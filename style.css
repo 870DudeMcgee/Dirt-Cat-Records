@@ -1,0 +1,47 @@
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background: #111;
+    color: #eee;
+    text-align: center;
+}
+header {
+    background-color: #f4e6c4;
+    padding: 40px 0;
+}
+.logo {
+    max-width: 300px;
+    height: auto;
+}
+.about, .form {
+    margin: 40px auto;
+    max-width: 800px;
+}
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+.gallery img {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+form input, form textarea {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 16px;
+}
+form button {
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #f4e6c4;
+    color: #111;
+    border: none;
+    cursor: pointer;
+}
