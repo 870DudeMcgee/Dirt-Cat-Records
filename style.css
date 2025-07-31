@@ -17,6 +17,21 @@ header.hero {
   text-align: center;
 }
 
+.hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #00c6ff, #bc00dd);
+  padding: 60px 20px;
+}
+
+.hero-logo {
+  max-width: 400px;
+  width: 100%;
+  height: auto;
+}
+
+
 .hero-content {
   width: 100%;
   max-width: none;
