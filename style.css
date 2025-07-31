@@ -36,6 +36,15 @@ header.hero {
   height: auto;
 }
 
+.hero-title {
+  color: white;
+  font-size: 2rem;
+  margin-top: 20px;
+  text-align: center;
+  text-shadow: 0 0 10px #ff00ff;
+}
+
+
 .tagline {
   font-size: 1.5rem;
   color: black;
