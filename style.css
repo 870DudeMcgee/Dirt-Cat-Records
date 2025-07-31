@@ -45,10 +45,14 @@ header.hero {
 }
 
 .tagline {
+  font-family: 'Orbitron', sans-serif;  /* Match hero-title */
   font-size: 1.5rem;
-  color: black;
-  margin: 0;
+  color: white;                         /* Match the hero-title */
+  text-align: center;
+  margin-top: 1rem;
+  text-shadow: 0 0 10px #ff00ff;        /* Match the glow */
 }
+
 
 .cta-button {
   padding: 20px 40px;
@@ -75,6 +79,38 @@ section img {
   height: auto;
   border-radius: 6px;
 }
+
+.track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem auto;
+  text-align: center;
+  max-width: 400px;
+}
+
+.album-art {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 0 20px #ff00ff;
+  margin-bottom: 1rem;
+}
+
+.song-title {
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 5px #ff00ff;
+}
+
+audio {
+  width: 100%;
+}
+
 
 form {
   display: flex;
