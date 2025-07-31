@@ -104,6 +104,23 @@ form button {
   background: #222;
 }
 
+.contact-phone {
+  margin-top: 20px;
+  font-size: 1.1rem;
+  color: white;
+  text-align: center;
+}
+
+.contact-phone a {
+  color: #00ffff;
+  text-decoration: none;
+}
+
+.contact-phone a:hover {
+  text-decoration: underline;
+}
+
+
 footer {
   text-align: center;
   padding: 20px;
