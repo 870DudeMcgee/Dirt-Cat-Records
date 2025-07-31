@@ -37,33 +37,18 @@ header.hero {
 }
 
 .tagline {
-  font-size: 1.2rem;
-  color: white;
+  font-size: 2.2rem;
+  color: black;
   margin: 0;
 }
 
 .cta-button {
-  padding: 10px 20px;
+  padding: 20px 40px;
   background: #000;
   color: #fff;
   text-decoration: none;
   font-weight: bold;
   border-radius: 5px;
-}
-
-
-.hero-logo {
-  max-width: 400px;
-  width: 100%;
-  height: auto;
-}
-
-
-.hero-content {
-  width: 100%;
-  max-width: none;
-  margin: 0 auto;
-  text-align: center;
 }
 
 section {
