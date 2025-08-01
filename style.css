@@ -220,5 +220,21 @@ button[type="submit"]:hover {
 }
 
 .contact-phone a:hover {
-  background: #0056b3; /* Darker on hover */
+  background: #0056b3; /* Darker on hover */    
+}
+
+.contact-phone a {
+  display: inline-block;
+  background: #007bff;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+
+.contact-phone a:hover {
+  background: #0056b3;
 }
