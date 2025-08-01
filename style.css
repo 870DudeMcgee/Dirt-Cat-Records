@@ -384,17 +384,6 @@ textarea::placeholder {
   width: 100%;
 }
 
-@media (max-width: 480px) {
-  #main-nav ul {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  #main-nav li {
-    width: 100%;
-  }
-}
 
 
 }
