@@ -81,7 +81,7 @@ img {
   max-width:350px;
   position: fixed;
   z-index: 2;
-  top: 24px;
+  top: 50px;
   left: 50%;
   transform: translateX(-50%);
   transition: opacity 0.6s ease-out;
