@@ -1,48 +1,41 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dirt Cat Records | Recording Studio in North Arkansas</title>
 
-  <title>Dirt Cat Records | Recording Studio in Gamaliel, Arkansas</title>
-
-  <!-- ✅ Meta Description & Keywords -->
-  <meta name="description" content="Dirt Cat Records is a home recording studio in Gamaliel, Arkansas offering professional mixing, mastering, and recording services. Record with soul. Mix with precision. Master with purpose." />
-  <meta name="keywords" content="Recording studio, mixing, mastering, Gamaliel Arkansas, music production, home studio, Dirt Cat Records, Josh McLean" />
+  <meta name="description" content="Dirt Cat Records is a professional recording studio in North Arkansas serving Southern Missouri, offering expert mixing, mastering, and production services. Record with soul. Mix with precision. Master with purpose." />
+  <meta name="keywords" content="Recording studio, mixing, mastering, North Arkansas, Southern Missouri, music production, professional studio, Dirt Cat Records, Josh McLean" />
   <meta name="author" content="Josh McLean" />
 
-  <!-- ✅ Favicon -->
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
   <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
 
-  <!-- ✅ Open Graph -->
-  <meta property="og:title" content="Dirt Cat Records | Recording Studio in Arkansas" />
-  <meta property="og:description" content="Professional recording, mixing & mastering in Gamaliel, AR. Run by Josh McLean. Record with soul. Mix with precision. Master with purpose." />
+  <meta property="og:title" content="Dirt Cat Records | Recording Studio in North Arkansas" />
+  <meta property="og:description" content="Professional recording, mixing & mastering in North Arkansas and Southern Missouri. Run by Josh McLean. Record with soul. Mix with precision. Master with purpose." />
   <meta property="og:image" content="https://www.dirtcatrecords.com/assets/Dirt-Cat-Logo.PNG" />
   <meta property="og:url" content="https://www.dirtcatrecords.com" />
   <meta property="og:type" content="website" />
 
-  <!-- ✅ Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Dirt Cat Records | Recording Studio in Arkansas" />
-  <meta name="twitter:description" content="Mix. Master. Record with soul. Gamaliel's top home studio." />
+  <meta name="twitter:title" content="Dirt Cat Records | Recording Studio in North Arkansas" />
+  <meta name="twitter:description" content="Mix. Master. Record with soul. North Arkansas and Southern Missouri's top studio." />
   <meta name="twitter:image" content="https://www.dirtcatrecords.com/assets/Dirt-Cat-Logo.PNG" />
 
-  <!-- ✅ Schema Markup -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "Dirt Cat Records",
-    "description": "Home recording studio in Gamaliel, Arkansas offering professional mixing, mastering, and recording.",
+    "description": "Professional recording studio in North Arkansas serving Southern Missouri. Offering expert mixing, mastering, and music production.",
     "url": "https://www.dirtcatrecords.com",
     "telephone": "+1-870-955-5627",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "7845 AR-101",
-      "addressLocality": "Gamaliel",
+      "addressLocality": "North Arkansas",
       "addressRegion": "AR",
-      "postalCode": "72537",
       "addressCountry": "US"
     },
     "image": "https://www.dirtcatrecords.com/assets/Dirt-Cat-Logo.PNG",
@@ -53,74 +46,109 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Hero Section -->
-<section id="hero-container" style="background-image: url('assets/studio-full.jpeg');">
+
+<nav id="main-nav">
+  <ul>
+    <li><a href="#hero-container">Home</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#listen">Listen</a></li>
+    <li><a href="#studio-gear">Gear</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<section id="hero-container" aria-label="Studio overview photo inside Dirt Cat Records in North Arkansas" style="background-image: url('assets/studio-full.jpeg');">
   <div class="overlay"></div>
-  <img id="main-logo" src="assets/Dirt-Cat-Logo.PNG" alt="Dirt Cat Records Logo" />
+  <img id="main-logo" src="assets/Dirt-Cat-Logo.PNG" alt="Dirt Cat Records logo in black and white circular psychedelic style" loading="lazy" />
   <h1 id="hero-heading">Record with Soul. Mix with Precision. Master with Purpose.</h1>
+  <p class="hero-subtitle">Professional music production studio serving North Arkansas and Southern Missouri – led by Josh McLean in the Ozark Mountains.</p>
   <a href="#contact" id="book-button" class="btn btn-primary">Book A Session</a>
 </section>
 
+<h2 class="section-title" id="services">Our Services</h2>
 <section id="card-container">
-
   <div id="recording-card" class="card" style="width: 18rem;">
-    <div class="card-img" style="background-image: url('assets/recording.png');"></div>
+    <div class="card-img" style="background-image: url('assets/recording.png');" aria-label="Recording service illustration – microphone in studio" role="img"></div>
     <div class="card-body">
-      <h5 class="card-title">Recording</h5>
-      <p class="card-text">Capture your performance with world-class clarity.</p>
+      <h3 class="card-title">Recording</h3>
+      <p class="card-text">Track your vocals or instruments with pristine clarity in a studio trusted by artists across North Arkansas and Southern Missouri.</p>
       <a href="#contact" class="btn btn-primary">Let's Record!</a>
     </div>
   </div>
 
   <div id="mixing-card" class="card" style="width: 18rem;">
-    <div class="card-img" style="background-image: url('assets/mixing.png');"></div>
+    <div class="card-img" style="background-image: url('assets/mixing.png');" aria-label="Mixing service illustration – mixing board with knobs and sliders" role="img"></div>
     <div class="card-body">
-      <h5 class="card-title">Mixing</h5>
-      <p class="card-text">Transform tracks into polished records.</p>
+      <h3 class="card-title">Mixing</h3>
+      <p class="card-text">Shape your sound with creative mix decisions and expert balance tailored to your genre, audience, and vision.</p>
       <a href="#contact" class="btn btn-primary">Mix It Up!</a>
     </div>
   </div>
 
   <div id="mastering-card" class="card" style="width: 18rem;">
-    <div class="card-img" style="background-image: url('assets/mastering.png');"></div>
+    <div class="card-img" style="background-image: url('assets/mastering.png');" aria-label="Mastering service illustration – analog mastering gear and meters" role="img"></div>
     <div class="card-body">
-      <h5 class="card-title">Mastering</h5>
-      <p class="card-text">Radio-ready results for every platform.</p>
+      <h3 class="card-title">Mastering</h3>
+      <p class="card-text">Achieve a final master that translates perfectly across streaming platforms, radio, and live playback — loud, clear, and compelling.</p>
       <a href="#contact" class="btn btn-primary">Ready for Mastering?</a>
     </div>
   </div>
-
 </section>
 
-  <!-- Audio Section -->
-  <section id="listen">
-    <h2>Listen</h2>
-    <div class="track">
-      <img src="assets/Dude-McGee-AlbumCover.PNG" alt="The First Take Album Cover" class="album-art">
-      <p class="song-title">🎵 Dude McGee – Digital Dream</p>
-      <audio controls>
-        <source src="assets/Digital-Dream.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-      </audio>
-    </div>
-  </section>
+<section id="listen">
+  <h2>Listen</h2>
+  <div class="track">
+    <img src="assets/Dude-McGee-AlbumCover.PNG" alt="Album artwork for Dude McGee – The First Take" class="album-art" loading="lazy" />
+    <p class="song-title">🎵 Dude McGee – Digital Dream</p>
+    <audio controls>
+      <source src="assets/Digital-Dream.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+  </div>
+</section>
 
-  <!-- Contact Section -->
-  <section id="contact">
-    <h2>Book a Session</h2>
-    <form action="https://formsubmit.co/870joshmclean@gmail.com" method="POST">
-      <input type="text" name="name" placeholder="Your Name" required />
-      <input type="email" name="email" placeholder="Your Email" required />
-      <textarea name="message" placeholder="What are you looking for?" required></textarea>
-      <button type="submit" class="btn btn-primary">Send</button>
-    </form>
-   <div class="contact-phone">
-  <a href="tel:+18709553793">📞 Call (870) 955-3793</a>
-</div>
-  </section>
+<section id="studio-gear">
+  <h2>Studio Gear</h2>
+  <p class="gear-intro">
+    Our studio features a carefully curated selection of analog equipment that brings warmth, character, and professional-grade tone to every project. From vintage preamps to modern signal processors, Dirt Cat Records captures your sound with precision and soul.
+  </p>
+  <div class="gear-gallery">
+    <img src="assets/gear-1.jpeg" alt="Analog studio rack with preamps and equalizers at Dirt Cat Records" loading="lazy" />
+    <img src="assets/gear-2.jpeg" alt="Close-up of vintage analog gear at Dirt Cat Records" loading="lazy" />
+  </div>
+</section>
 
-  <footer>
-    <p>© 2025 Dirt Cat Records</p>
-  </footer>
+<section id="contact">
+  <h2>Book a Session</h2>
+  <form action="https://formsubmit.co/870joshmclean@gmail.com" method="POST">
+    <input type="hidden" name="_autoresponse" value="Hey there — thanks for reaching out to Dirt Cat Records! I'm Josh McLean, and I’ll personally respond within 24 hours. You can message us anytime — we’re available 24/7. I'm excited to hear what you're working on and help make your creations come to life. Let's make something unforgettable!" />
+    <input type="hidden" name="_subject" value="New Booking Inquiry from Dirt Cat Records Website" />
+    <input type="text" name="name" placeholder="Your Name" required />
+    <input type="email" name="email" placeholder="Your Email" required />
+    <textarea name="message" placeholder="What are you looking for?" required></textarea>
+    <button type="submit" class="btn btn-primary">Send</button>
+  </form>
+
+  <div class="contact-phone">
+    <a href="tel:+18709553793" class="btn btn-primary">📞 Call (870) 955-3793</a>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 Dirt Cat Records</p>
+</footer>
+<script>
+  const logo = document.getElementById('main-logo');
+  const hero = document.getElementById('hero-container');
+
+  window.addEventListener('scroll', () => {
+    const heroBottom = hero.offsetTop + hero.offsetHeight;
+    if (window.scrollY > heroBottom - 100) {
+      logo.classList.add('fade-out');
+    } else {
+      logo.classList.remove('fade-out');
+    }
+  });
+</script>
 </body>
 </html>
