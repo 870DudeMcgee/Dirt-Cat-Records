@@ -353,7 +353,7 @@ textarea::placeholder {
     padding-left: 0;
     padding-right: 0;
     text-align: center;
-    gap: 0.25rem;
+    gap: 0.1rem;
   }
 
   #main-nav li {
