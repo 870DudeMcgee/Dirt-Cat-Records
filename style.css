@@ -209,7 +209,7 @@ button[type="submit"]:hover {
 
 .contact-phone a {
   display: inline-block;
-  background: #007bff; /* Match the .btn-primary background */
+  background: #8a2be2 /* Match the .btn-primary background */
   color: white;
   padding: 0.75rem 1.5rem;
   font-size: 1.2rem;
