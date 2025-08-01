@@ -372,6 +372,7 @@ textarea::placeholder {
   padding-left: 0;
   padding-right: 0;
   text-align: center;
+  gap: .05rem;    
 }
 
 #main-nav li {
@@ -382,6 +383,8 @@ textarea::placeholder {
 #main-nav a {
   display: inline-block;
   width: 100%;
+  padding: .025rem .05 rem
+  
 }
 
 
