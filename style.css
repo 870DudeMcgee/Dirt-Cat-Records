@@ -9,8 +9,8 @@ body {
   line-height: 1.6;
 }
 
-.hero {å
-  background: #000;
+.hero {
+  background: linear-gradient(135deg, #000000, #1a1a1a, #333333);
   padding: 2rem 1rem;
   text-align: center;
 }
