@@ -4,13 +4,13 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #fff;
-  color: #333;
+  background: linear-gradient(to bottom, #1a1a1a, #333333);
+  color: #f4f4f4;
   line-height: 1.6;
 }
 
 .hero {
-  background: linear-gradient(135deg, #ff00ff, #00ffff, #ff9900);
+  background: linear-gradient(to right, #000000, #330033);
   padding: 2rem 1rem;
   text-align: center;
 }
@@ -30,7 +30,7 @@ body {
 
 .tagline {
   font-size: 1.25rem;
-  color: black;
+  color: #eee;
   margin-bottom: 1rem;
 }
 
@@ -42,12 +42,19 @@ body {
   text-decoration: none;
   font-weight: bold;
   border-radius: 5px;
+  transition: background 0.3s ease;
+}
+
+.cta-button:hover {
+  background: #cc00cc;
 }
 
 section {
   padding: 2rem;
   max-width: 1000px;
   margin: 0 auto;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
 }
 
 section h2 {
@@ -58,6 +65,7 @@ section h2 {
 img {
   max-width: 100%;
   height: auto;
+  border-radius: 10px;
 }
 
 .track {
@@ -70,12 +78,15 @@ img {
   max-width: 90%;
   margin: 1rem auto;
   display: block;
+  border: 3px solid #ff00ff;
+  border-radius: 10px;
 }
 
 .song-title {
   font-weight: bold;
   font-size: 1.2rem;
   margin: 0.5rem 0;
+  color: #fff;
 }
 
 audio {
