@@ -1,12 +1,55 @@
 
-html,
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-    background:black;
+  background: black;
+  padding-top: 60px; /* offset for nav height */
 }
 
 img {
-    width:100%;
-    height:auto;
+  width: 100%;
+  height: auto;
+}
+
+#main-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  padding: 0.5rem 1rem;
+}
+
+#main-nav ul {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+#main-nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+#main-nav a:hover {
+  color: #ff00ff;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2rem;
+  margin: 3rem 0 1rem;
+  color: #fff;
+  text-shadow: 0 0 12px darkmagenta;
 }
 
 #hero-container {
@@ -18,8 +61,6 @@ img {
   justify-content: center;
   text-align: center;
   gap: 24px;
-  margin: 0;
-  padding: 0;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -35,27 +76,6 @@ img {
   left: 0;
   top: 0;
   z-index: 1;
-}
-
-/* Center and size the audio player and album art */
-.track {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.track audio {
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-  display: block;
-}
-
-.track .album-art {
-  width: 100%;
-  max-width: 500px;
-  height: auto;
-  margin: 0 auto 1rem;
-  display: block;
 }
 
 #main-logo {
@@ -78,86 +98,137 @@ img {
   text-wrap: balance;
 }
 
+.hero-subtitle {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 500;
+  text-shadow: 0 0 8px black;
+  max-width: 800px;
+  margin: 0 auto 1rem;
+  padding: 0 2vw;
+  z-index: 2;
+  position: relative;
+}
+
 #book-button {
   position: relative;
   z-index: 2;
 }
 
+/* Responsive card layout with layer stacking */
 #card-container {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:24px;
-    margin:72px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin: 72px 0;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
 }
 
 .card {
-    background:#222;
-    color:white;
+  background: #222;
+  color: white;
+  width: 18rem;
+  box-shadow: 0 0 12px rgba(255, 0, 255, 0.15);
 }
 
 .card-img {
-    width:100%;
-    height:225px;
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
+  width: 100%;
+  height: 225px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-#recording-card .card-img {background-image:url(../img/recording.png);}
-#mixing-card .card-img {background-image:url(../img/mixing.png);}
-#mastering-card .card-img {background-image:url(../img/mastering.png);}
-
-/* Responsive styling */
-@media (max-width: 768px) {
-    #hero-heading {
-        font-size: 32px;
-        padding: 0 5vw;
-    }
-
-    #main-logo {
-        max-width: 180px;
-        top: 16px;
-        left: 16px;
-    }
-
-    #card-container {
-        flex-direction: column;
-        gap: 16px;
-        margin: 48px 0;
-    }
-
-    .card-img {
-        height: 160px;
-    }
-}
-
-/* Fix for hero and service buttons */
-.btn {
-  display: inline-block;
-  padding: 0.75rem 1.25rem;
-  font-size: 1rem;
-  font-weight: bold;
+.card-body {
   text-align: center;
+  padding: 1rem;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: bold;
   color: white;
-  background-color: #8a2be2; /* Purple tone */
-  border: none;
-  border-radius: 8px;
-  text-decoration: none;
-  box-shadow: 0 0 12px #8a2be2;
-  transition: background 0.3s ease;
+  text-shadow: 0 0 12px darkmagenta;
+  margin-bottom: 0.5rem;
 }
 
-.btn:hover {
-  background-color: #6a1cb8;
+.card-text {
+  color: #ddd;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
-/* Contact form centering and style */
+.card-body .btn {
+  margin: 0 auto;
+}
+
+.track {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.track audio {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: block;
+}
+
+.track .album-art {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  margin: 0 auto 1rem;
+  display: block;
+}
+
+#studio-gear {
+  padding: 2rem;
+  text-align: center;
+  max-width: 1000px;
+  margin: 0 auto;
+  color: white;
+  position: relative;
+  z-index: 1;
+}
+
+#studio-gear h2 {
+  color: white;
+  font-size: 2rem;
+  text-shadow: 0 0 12px darkmagenta;
+  margin-bottom: 1rem;
+}
+
+#studio-gear .gear-intro {
+  color: white;
+  text-shadow: 0 0 8px darkmagenta;
+}
+
+.gear-gallery {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.gear-gallery img {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(255, 0, 255, 0.25);
+}
+
+/* Contact section */
 #contact {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 2rem 1rem;
+  position: relative;
+  z-index: 1;
 }
 
 form {
@@ -184,28 +255,27 @@ textarea::placeholder {
   color: #bbb;
 }
 
-button[type="submit"] {
-  background-color: #8a2be2;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 0.75rem;
-  font-weight: bold;
+.btn,
+.btn-primary {
+  display: inline-block;
+  padding: 0.75rem 1.25rem;
   font-size: 1rem;
-  cursor: pointer;
-  box-shadow: 0 0 10px #8a2be2;
+  font-weight: bold;
+  text-align: center;
+  color: white;
+  background-color: #8a2be2;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 0 12px #8a2be2;
   transition: background 0.3s ease;
 }
 
-button[type="submit"]:hover {
+.btn:hover,
+.btn-primary:hover {
   background-color: #6a1cb8;
 }
 
-button[type="submit"]:hover {
-  background-color: #d400d4;
-}
-
-/* Style the contact phone link to match buttons */
 .contact-phone {
   text-align: center;
   margin-top: 1.5rem;
@@ -213,7 +283,7 @@ button[type="submit"]:hover {
 
 .contact-phone a {
   display: inline-block;
-  background-color: #8a2be2; /* same as .btn-primary */
+  background-color: #8a2be2;
   color: white;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
@@ -227,4 +297,85 @@ button[type="submit"]:hover {
 
 .contact-phone a:hover {
   background-color: #6a1cb8;
+}
+
+/* Fade-out effect for logo after hero section */
+#main-logo.fade-out {
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+
+#main-logo {
+  transition: opacity 0.6s ease-out;
+}
+
+#main-logo {
+  position: fixed;
+  z-index: 0; /* Behind content by default */
+  top: 24px;
+  left: 24px;
+  max-width: 250px;
+  transition: opacity 0.6s ease-out;
+  pointer-events: none; /* Prevent interactions */
+}
+
+#hero-container #main-logo {
+  z-index: 2; /* On top only in hero section */
+}
+
+.fade-out {
+  opacity: 0;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  #hero-heading {
+    font-size: 32px;
+    padding: 0 5vw;
+  }
+
+  /* Fade-out effect for logo after hero section */
+#main-logo.fade-out {
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+
+#main-logo {
+  transition: opacity 0.6s ease-out;
+}
+
+#main-logo {
+  position: fixed;
+  z-index: 0; /* Behind content by default */
+  top: 24px;
+  left: 24px;
+  max-width: 250px;
+  transition: opacity 0.6s ease-out;
+  pointer-events: none; /* Prevent interactions */
+}
+
+#hero-container #main-logo {
+  z-index: 2; /* On top only in hero section */
+}
+
+.fade-out {
+  opacity: 0;
+}
+
+
+  #main-logo {
+    max-width: 180px;
+    top: 16px;
+    left: 16px;
+  }
+
+  #card-container {
+    flex-direction: column;
+    gap: 16px;
+    margin: 48px 0;
+  }
+
+  .card-img {
+    height: 160px;
+  }
 }
