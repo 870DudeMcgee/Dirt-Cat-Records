@@ -37,6 +37,27 @@ img {
   z-index: 1;
 }
 
+/* Center and size the audio player and album art */
+.track {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.track audio {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: block;
+}
+
+.track .album-art {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  margin: 0 auto 1rem;
+  display: block;
+}
+
 #main-logo {
   max-width: 250px;
   position: fixed;
