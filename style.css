@@ -367,6 +367,35 @@ textarea::placeholder {
   text-shadow: 0 0 8px darkmagenta, 0 0 12px #ff00ff;
 }
 
+#main-nav ul {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+}
+
+#main-nav li {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+#main-nav a {
+  display: inline-block;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  #main-nav ul {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  #main-nav li {
+    width: 100%;
+  }
+}
+
 
 }
 
