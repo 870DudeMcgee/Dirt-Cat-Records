@@ -185,7 +185,7 @@ textarea::placeholder {
 }
 
 button[type="submit"] {
-  background-color: #ff00ff;
+  background-color: #8a2be2;
   color: white;
   border: none;
   border-radius: 6px;
@@ -193,8 +193,12 @@ button[type="submit"] {
   font-weight: bold;
   font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 0 10px #ff00ff;
+  box-shadow: 0 0 10px #8a2be2;
   transition: background 0.3s ease;
+}
+
+button[type="submit"]:hover {
+  background-color: #6a1cb8;
 }
 
 button[type="submit"]:hover {
@@ -221,18 +225,6 @@ button[type="submit"]:hover {
 
 .contact-phone a:hover {
   background: #0056b3; /* Darker on hover */    
-}
-
-.contact-phone a {
-  display: inline-block;
-  background: #007bff;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  text-decoration: none;
-  font-weight: bold;
-  border-radius: 5px;
-  font-size: 1rem;
-  transition: background 0.3s ease;
 }
 
 .contact-phone a:hover {
