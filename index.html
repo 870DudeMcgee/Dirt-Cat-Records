@@ -139,16 +139,26 @@
 </footer>
 <script>
   const logo = document.getElementById('main-logo');
-  const hero = document.getElementById('hero-container');
+  const fadeStart = window.innerHeight * 0.01; // Delay start until text area
+  const fadeEnd = document.getElementById('card-container').offsetTop -1000;
 
   window.addEventListener('scroll', () => {
-    const heroBottom = hero.offsetTop + hero.offsetHeight;
-    if (window.scrollY > heroBottom - 100) {
-      logo.classList.add('fade-out');
+    const scrollY = window.scrollY;
+
+    if (scrollY < fadeStart) {
+      logo.style.opacity = '1';
+      logo.style.transform = 'translateX(-50%) scale(1)';
+    } else if (scrollY >= fadeStart && scrollY < fadeEnd) {
+      const progress = (scrollY - fadeStart) / (fadeEnd - fadeStart);
+      logo.style.opacity = `${1 - progress}`;
+      logo.style.transform = `translateX(-50%) scale(${1 - progress * 0.05})`;
     } else {
-      logo.classList.remove('fade-out');
+      logo.style.opacity = '0';
+      logo.style.transform = 'translateX(-50%) scale(0.95)';
     }
   });
 </script>
+
+
 </body>
 </html>
