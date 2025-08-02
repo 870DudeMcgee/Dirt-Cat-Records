@@ -264,30 +264,63 @@ textarea::placeholder {
 
 /* Responsive mobile styling */
 @media (max-width: 768px) {
+  /* Keep your logo size and position exactly as you set */
   #main-logo {
     max-width: 200px;
     top: 75px;
   }
 
+  /* Navigation menu styles on mobile */
   #main-nav ul {
-    justify-content: center;
+    display: flex;
+    justify-content: center;   /* ✅ Center nav links horizontally */
+    flex-wrap: wrap;           /* Allow wrapping if needed */
     padding: 0;
     margin: 0 auto;
-    text-align: center;
-    gap: 0.3rem;
+    list-style: none;
   }
 
   #main-nav li {
-    flex: 0 1 auto;
     text-align: center;
   }
 
   #main-nav a {
     display: inline-block;
-    padding: 0.1rem 0.2rem;
+    padding: 0.3rem 0.6rem;
     font-size: 1rem;
     white-space: nowrap;
-    width: auto;
+  }
+
+  /* Optional: responsive hero heading size if you want it */
+  #hero-heading {
+    font-size: 32px;
+    padding: 0 5vw;
+    text-shadow: 0 0 12px darkmagenta;
+  }
+
+  /* Card layout stacks vertically on small screens */
+  #card-container {
+    flex-direction: column;
+    gap: 16px;
+    margin: 48px 0;
+  }
+
+  .card-img {
+    height: 160px;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    text-shadow: 0 0 12px darkmagenta;
+  }
+
+  /* Studio section responsive tweaks */
+  #studio-gear h2 {
+    font-size: 1.5rem;
+  }
+
+  #studio-gear .gear-intro {
+    font-size: 0.95rem;
   }
 }
 
