@@ -1,39 +1,55 @@
-/* Global styles */
+/*
+  Enables smooth scrolling when navigating via anchor links
+*/
 html {
   scroll-behavior: smooth;
 }
 
+/*
+  Sets black background for the entire page and top padding to account for fixed nav
+*/
 body {
   background: black;
   padding-top: 60px;
 }
 
+/*
+  Makes all images responsive (scale with width, preserve aspect ratio)
+*/
 img {
   width: 100%;
   height: auto;
 }
 
-/* Navigation */
+/*
+  Styles the fixed navigation bar at the top
+*/
 #main-nav {
-  position: fixed;
+  position: fixed;         /* Stick to the top of the viewport */
   top: 0;
   left: 0;
-  width: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 999;
-  padding: 0.5rem 1rem;
+  width: 100%;             /* Full width */
+  background: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
+  z-index: 999;            /* Stay on top of other content */
+  padding: 0.5rem 1rem;    /* Padding around the nav */
 }
 
+/*
+  Styles the nav list horizontally with spacing
+*/
 #main-nav ul {
-  display: flex;
-  justify-content: center;
-  list-style: none;
+  display: flex;           /* Arrange items in a row */
+  justify-content: center; /* Center items */
+  list-style: none;        /* Remove bullets */
   margin: 0;
   padding: 0;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  gap: 1.5rem;             /* Space between nav links — adjust here for desktop gap */
+  flex-wrap: wrap;         /* Allow wrapping on smaller screens */
 }
 
+/*
+  Styles each nav link
+*/
 #main-nav a {
   color: #fff;
   text-decoration: none;
@@ -41,11 +57,27 @@ img {
   transition: color 0.3s ease;
 }
 
+/*
+  Change link color on hover
+*/
 #main-nav a:hover {
   color: #ff00ff;
 }
 
-/* Hero Section */
+/*
+  Section titles with glow
+*/
+.section-title {
+  text-align: center;
+  font-size: 2rem;
+  margin: 3rem 0 1rem;
+  color: #fff;
+  text-shadow: 0 0 12px darkmagenta;
+}
+
+/*
+  Hero section fills entire screen, centers content
+*/
 #hero-container {
   position: relative;
   height: 100vh;
@@ -54,12 +86,15 @@ img {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 24px;
+  gap: 24px;                       /* Space between hero elements */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 
+/*
+  Dark overlay for background images in hero
+*/
 #hero-container .overlay {
   content: "";
   background: black;
@@ -72,36 +107,48 @@ img {
   z-index: 1;
 }
 
+/*
+  Main logo styling and animation
+*/
 #main-logo {
-  max-width: 350px;
+  max-width: 350px;              /* Logo size — adjust here to make bigger/smaller */
   position: fixed;
   z-index: 2;
-  top: 150px;
+  top: 50px;                    /* Adjust to move logo down */
   left: 50%;
   transform: translateX(-50%);
-  pointer-events: none;
-  animation: pulseLogo 5s ease-in-out infinite;
-  filter: drop-shadow(0 0 10px magenta);
+  pointer-events: none;          /* Prevents logo from blocking clicks */
+  animation: pulseLogo 5s ease-in-out infinite; /* Glowing pulsing animation */
+  filter: drop-shadow(0 0 10px magenta);        /* Glow effect */
   transition: opacity 0.6s ease-out, transform 0.6s ease-out, filter 0.6s ease-out;
 }
 
+/*
+  Logo fade out state (used via JS)
+*/
 #main-logo.fade-out {
   opacity: 0;
   filter: blur(2px) brightness(80%);
 }
 
+/*
+  Heading in the hero
+*/
 #hero-heading {
   color: white;
-  font-size: 32px;
+  font-size: 60px;
   position: relative;
   z-index: 2;
   font-weight: 800;
-  padding: 0 5vw;
+  padding: 0 2vw;
   margin: 0;
   text-shadow: 0 0 12px darkmagenta;
   text-wrap: balance;
 }
 
+/*
+  Subtitle below the hero heading
+*/
 .hero-subtitle {
   color: white;
   font-size: 1.25rem;
@@ -114,7 +161,17 @@ img {
   position: relative;
 }
 
-/* Cards */
+/*
+  Ensures the book button stacks correctly
+*/
+#book-button {
+  position: relative;
+  z-index: 2;
+}
+
+/*
+  Container for feature cards (equipment, services, etc.)
+*/
 #card-container {
   display: flex;
   align-items: center;
@@ -126,6 +183,9 @@ img {
   z-index: 1;
 }
 
+/*
+  Individual card styles
+*/
 .card {
   background: #222;
   color: white;
@@ -164,7 +224,32 @@ img {
   margin: 0 auto;
 }
 
-/* Studio Gear */
+/*
+  Music track styling with audio player
+*/
+.track {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.track audio {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: block;
+}
+
+.track .album-art {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  margin: 0 auto 1rem;
+  display: block;
+}
+
+/*
+  Studio gear section layout
+*/
 #studio-gear {
   padding: 2rem;
   text-align: center;
@@ -206,7 +291,9 @@ img {
   box-shadow: 0 0 15px rgba(255, 0, 255, 0.25);
 }
 
-/* Contact */
+/*
+  Contact section with centered layout
+*/
 #contact {
   display: flex;
   flex-direction: column;
@@ -240,7 +327,9 @@ textarea::placeholder {
   color: #bbb;
 }
 
-/* Buttons */
+/*
+  Primary button styles
+*/
 .btn,
 .btn-primary {
   display: inline-block;
@@ -262,41 +351,96 @@ textarea::placeholder {
   background-color: #6a1cb8;
 }
 
-/* Responsive mobile styling */
-/* Responsive mobile styling */
+.contact-phone {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.contact-phone a {
+  display: inline-block;
+  background-color: #8a2be2;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 5px;
+  border: none;
+  box-shadow: 0 0 10px #8a2be2;
+  transition: background-color 0.3s ease;
+}
+
+.contact-phone a:hover {
+  background-color: #6a1cb8;
+}
+
+/*
+  Responsive layout for screens under 768px wide (mobile)
+*/
 @media (max-width: 768px) {
-  /* Adjusts the max logo size and vertical placement on smaller screens */
   #main-logo {
-    max-width: 200px;         /* Keeps logo smaller for mobile */
-    top: 75px;                /* Vertical position from top of screen */
+    max-width: 200px;     /* Smaller logo for mobile */
+    top: 75px;             /* Adjust logo vertical position */
   }
 
-  /* Styles for the nav link list on mobile */
+  #hero-heading {
+    font-size: 32px;
+    padding: 0 5vw;
+    text-shadow: 0 0 12px darkmagenta;
+  }
+
+  #card-container {
+    flex-direction: column;
+    gap: 16px;
+    margin: 48px 0;
+  }
+
+  .card-img {
+    height: 160px;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    text-shadow: 0 0 12px darkmagenta;
+  }
+
+  #studio-gear h2 {
+    font-size: 1.5rem;
+  }
+
+  #studio-gear .gear-intro {
+    font-size: 0.95rem;
+  }
+
   #main-nav ul {
-    justify-content: center;  /* Centers the nav links horizontally */
-    padding: 0;               /* Removes default padding */
-    margin: 0 auto;           /* Horizontally centers the nav list */
-    text-align: center;       /* Ensures inline centering */
-    gap: 0.4rem;              /* CHANGE: Reduced spacing between nav links */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0 auto;
+    list-style: none;
+    text-align: center;
+    gap: 0.3rem;
+    width: fit-content;
   }
 
-  /* Each nav item */
   #main-nav li {
-    flex: 0 1 auto;           /* Prevents nav links from stretching or shrinking */
-    text-align: center;       /* Ensures text is centered inside each link */
+    flex: 0 1 auto;
   }
 
-  /* Styling individual nav anchor links */
   #main-nav a {
-    display: inline-block;    /* Allows padding and spacing control */
-    padding: 0.2rem 0.3rem;   /* CHANGE: Reduced padding for tighter spacing */
-    font-size: 1rem;          /* Keeps text readable */
-    white-space: nowrap;      /* Prevents link text from wrapping */
-    width: auto;              /* Ensures link width is content-driven */
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    font-size: 1rem;
+    white-space: nowrap;
+    width: auto;
   }
 }
 
-/* Logo animation */
+/*
+  Keyframes for pulsing logo animation
+*/
 @keyframes pulseLogo {
   0%, 100% { transform: translateX(-50%) scale(1); }
   50% { transform: translateX(-50%) scale(1.05); }
