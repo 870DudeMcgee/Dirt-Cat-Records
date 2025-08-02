@@ -413,8 +413,8 @@ textarea::placeholder {
   }
 
   #main-nav ul {
-    justify-content: left;         /* Center nav on mobile */
-    padding: 0.5rem 0;
+    justify-content: center;         /* Center nav on mobile */
+    padding: 0.1rem 0;
     text-align: center;
     gap: 0.1rem;                     /* Adjust this to make gaps smaller or larger */
   }
