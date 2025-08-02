@@ -263,69 +263,36 @@ textarea::placeholder {
 }
 
 /* Responsive mobile styling */
+/* Responsive mobile styling */
 @media (max-width: 768px) {
-  /* Logo on mobile */
+  /* Adjusts the max logo size and vertical placement on smaller screens */
   #main-logo {
-    max-width: 200px;         /* Reduce logo size for smaller screens */
-    top: 75px;                /* Maintain vertical spacing from top */
+    max-width: 200px;         /* Keeps logo smaller for mobile */
+    top: 75px;                /* Vertical position from top of screen */
   }
 
-  /* Nav list container (the <ul>) */
+  /* Styles for the nav link list on mobile */
   #main-nav ul {
-    display: flex;            /* Use flexbox layout */
-    justify-content: center;  /* Center nav links horizontally */
-    flex-wrap: wrap;          /* Allow wrapping to next line on small screens */
-    padding: 0;               /* Remove default padding */
-    margin: 0 auto;           /* Center the container itself */
-    list-style: none;         /* Remove bullets from list items */
+    justify-content: center;  /* Centers the nav links horizontally */
+    padding: 0;               /* Removes default padding */
+    margin: 0 auto;           /* Horizontally centers the nav list */
+    text-align: center;       /* Ensures inline centering */
+    gap: 0.4rem;              /* CHANGE: Reduced spacing between nav links */
   }
 
-  /* Each individual nav item (<li>) */
+  /* Each nav item */
   #main-nav li {
-    text-align: center;       /* Center the text inside each item */
+    flex: 0 1 auto;           /* Prevents nav links from stretching or shrinking */
+    text-align: center;       /* Ensures text is centered inside each link */
   }
 
-  /* Each nav link (<a>) */
+  /* Styling individual nav anchor links */
   #main-nav a {
-    display: inline-block;    /* Makes padding/margin apply cleanly */
-    padding: 0.1rem 0.2rem;   /* Add some spacing around each link */
-    font-size: 1rem;          /* Keep font legible but not too large */
-    white-space: nowrap;      /* Prevent nav link text from wrapping mid-word */
-  }
-
-  /* Optional: Resize hero heading text for mobile */
-  #hero-heading {
-    font-size: 32px;          /* Smaller heading for narrow screens */
-    padding: 0 5vw;           /* Responsive horizontal padding */
-    text-shadow: 0 0 12px darkmagenta;  /* Keep the glow effect */
-  }
-
-  /* Stack cards vertically on mobile */
-  #card-container {
-    flex-direction: column;   /* Stack feature cards instead of horizontal layout */
-    gap: 16px;                /* Reduce space between cards */
-    margin: 48px 0;           /* Adjust vertical spacing */
-  }
-
-  /* Resize card image on mobile */
-  .card-img {
-    height: 160px;            /* Shorter image height */
-  }
-
-  /* Reduce title size inside each card */
-  .card-title {
-    font-size: 1.25rem;       /* Smaller but still bold and clear */
-    text-shadow: 0 0 12px darkmagenta;  /* Keep consistent glow */
-  }
-
-  /* Resize studio gear heading */
-  #studio-gear h2 {
-    font-size: 1.5rem;        /* Slightly smaller section title */
-  }
-
-  /* Adjust paragraph font in studio gear intro */
-  #studio-gear .gear-intro {
-    font-size: 0.95rem;       /* Slightly smaller text for readability */
+    display: inline-block;    /* Allows padding and spacing control */
+    padding: 0.2rem 0.3rem;   /* CHANGE: Reduced padding for tighter spacing */
+    font-size: 1rem;          /* Keeps text readable */
+    white-space: nowrap;      /* Prevents link text from wrapping */
+    width: auto;              /* Ensures link width is content-driven */
   }
 }
 
