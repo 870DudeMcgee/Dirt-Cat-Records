@@ -247,6 +247,27 @@ img {
   display: block;
 }
 
+.audio-container {
+  display: flex;                     /* Arrange horizontally */
+  align-items: center;              /* Vertically align note with player */
+  justify-content: center;          /* ✅ Center the whole row */
+  gap: 0.5rem;                      /* Space between note and player */
+  margin: 0 auto 1rem;              /* Auto margins center the block */
+  max-width: 500px;             
+}
+
+.music-note {
+  font-size: 1.5rem;
+  color: #fff;
+  text-shadow: 0 0 8px darkmagenta;
+}
+
+@keyframes bounceNote {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+
 /*
   Studio gear section layout
 */
@@ -413,30 +434,24 @@ textarea::placeholder {
   }
 
   #main-nav ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-    margin: 0 auto;
-    list-style: none;
-    text-align: center;
-    gap: 0.3rem;
-    width: fit-content;
-  }
-
+  justify-content: center;
+  padding: 0; /* remove any vertical/horizontal padding */
+  margin: 0 auto; /* explicitly center it */
+  text-align: center;
+  gap: 0.3rem; /* adjust spacing here if you want smaller gaps */
+}
   #main-nav li {
     flex: 0 1 auto;
+    text-align: center;
   }
 
-  #main-nav a {
-    display: inline-block;
-    padding: 0.1rem 0.4rem;
-    font-size: 1rem;
-    white-space: nowrap;
-    width: auto;
-  }
-}
+#main-nav a {
+  display: inline-block;
+  padding: 0.1rem 0.2rem;
+  font-size: 1rem;
+  white-space: nowrap;
+  width: auto; /* override any 100% width */
+}}
 
 /*
   Keyframes for pulsing logo animation
