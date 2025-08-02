@@ -312,15 +312,15 @@ textarea::placeholder {
 }
 
 @media (max-width: 768px) {
+  #main-logo {
+    max-width: 200px;
+    top: 50px;
+  }
+
   #hero-heading {
     font-size: 32px;
     padding: 0 5vw;
     text-shadow: 0 0 12px darkmagenta;
-  }
-
-  #main-logo {
-    max-width: 200px;
-    top: 50px;
   }
 
   #card-container {
@@ -350,10 +350,9 @@ textarea::placeholder {
 
   #main-nav ul {
     justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
+    padding: 0;
     text-align: center;
-    gap: 0.1rem;
+    gap: 0.4rem; /* tweak spacing as needed */
   }
 
   #main-nav li {
@@ -363,12 +362,13 @@ textarea::placeholder {
 
   #main-nav a {
     display: inline-block;
-    width: 100%;
-    padding: 0.25rem 0.4rem;
-    font-size: 0.95rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
     white-space: nowrap;
+    width: auto; /* ✅ override previous 100% width */
   }
 }
+
 
 @keyframes pulseLogo {
   0%, 100% { transform: translateX(-50%) scale(1); }
