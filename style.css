@@ -92,11 +92,11 @@ img {
 
 #hero-heading {
   color: white;
-  font-size: 60px;
+  font-size: 32px;
   position: relative;
   z-index: 2;
   font-weight: 800;
-  padding: 0 2vw;
+  padding: 0 5vw;
   margin: 0;
   text-shadow: 0 0 12px darkmagenta;
   text-wrap: balance;
