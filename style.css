@@ -264,63 +264,68 @@ textarea::placeholder {
 
 /* Responsive mobile styling */
 @media (max-width: 768px) {
-  /* Keep your logo size and position exactly as you set */
+  /* Logo on mobile */
   #main-logo {
-    max-width: 200px;
-    top: 75px;
+    max-width: 200px;         /* Reduce logo size for smaller screens */
+    top: 75px;                /* Maintain vertical spacing from top */
   }
 
-  /* Navigation menu styles on mobile */
+  /* Nav list container (the <ul>) */
   #main-nav ul {
-    display: flex;
-    justify-content: center;   /* ✅ Center nav links horizontally */
-    flex-wrap: wrap;           /* Allow wrapping if needed */
-    padding: 0;
-    margin: 0 auto;
-    list-style: none;
+    display: flex;            /* Use flexbox layout */
+    justify-content: center;  /* Center nav links horizontally */
+    flex-wrap: wrap;          /* Allow wrapping to next line on small screens */
+    padding: 0;               /* Remove default padding */
+    margin: 0 auto;           /* Center the container itself */
+    list-style: none;         /* Remove bullets from list items */
   }
 
+  /* Each individual nav item (<li>) */
   #main-nav li {
-    text-align: center;
+    text-align: center;       /* Center the text inside each item */
   }
 
+  /* Each nav link (<a>) */
   #main-nav a {
-    display: inline-block;
-    padding: 0.3rem 0.6rem;
-    font-size: 1rem;
-    white-space: nowrap;
+    display: inline-block;    /* Makes padding/margin apply cleanly */
+    padding: 0.1rem 0.2rem;   /* Add some spacing around each link */
+    font-size: 1rem;          /* Keep font legible but not too large */
+    white-space: nowrap;      /* Prevent nav link text from wrapping mid-word */
   }
 
-  /* Optional: responsive hero heading size if you want it */
+  /* Optional: Resize hero heading text for mobile */
   #hero-heading {
-    font-size: 32px;
-    padding: 0 5vw;
-    text-shadow: 0 0 12px darkmagenta;
+    font-size: 32px;          /* Smaller heading for narrow screens */
+    padding: 0 5vw;           /* Responsive horizontal padding */
+    text-shadow: 0 0 12px darkmagenta;  /* Keep the glow effect */
   }
 
-  /* Card layout stacks vertically on small screens */
+  /* Stack cards vertically on mobile */
   #card-container {
-    flex-direction: column;
-    gap: 16px;
-    margin: 48px 0;
+    flex-direction: column;   /* Stack feature cards instead of horizontal layout */
+    gap: 16px;                /* Reduce space between cards */
+    margin: 48px 0;           /* Adjust vertical spacing */
   }
 
+  /* Resize card image on mobile */
   .card-img {
-    height: 160px;
+    height: 160px;            /* Shorter image height */
   }
 
+  /* Reduce title size inside each card */
   .card-title {
-    font-size: 1.25rem;
-    text-shadow: 0 0 12px darkmagenta;
+    font-size: 1.25rem;       /* Smaller but still bold and clear */
+    text-shadow: 0 0 12px darkmagenta;  /* Keep consistent glow */
   }
 
-  /* Studio section responsive tweaks */
+  /* Resize studio gear heading */
   #studio-gear h2 {
-    font-size: 1.5rem;
+    font-size: 1.5rem;        /* Slightly smaller section title */
   }
 
+  /* Adjust paragraph font in studio gear intro */
   #studio-gear .gear-intro {
-    font-size: 0.95rem;
+    font-size: 0.95rem;       /* Slightly smaller text for readability */
   }
 }
 
