@@ -241,7 +241,7 @@ textarea::placeholder {
   color: #bbb;
 }
 
-/* Buttons */
+/* Ensures all primary buttons have correct styling */
 .btn,
 .btn-primary {
   display: inline-block;
@@ -250,19 +250,18 @@ textarea::placeholder {
   font-weight: bold;
   text-align: center;
   color: white;
-  background-color: #8a2be2;
+  background-color: #8a2be2;  /* Vivid purple */
   border: none;
   border-radius: 8px;
   text-decoration: none;
-  box-shadow: 0 0 12px #8a2be2;
+  box-shadow: 0 0 12px #8a2be2;  /* Glow effect */
   transition: background 0.3s ease;
 }
 
 .btn:hover,
 .btn-primary:hover {
-  background-color: #6a1cb8;
+  background-color: #6a1cb8;  /* Slightly darker on hover */
 }
-
 /* Responsive mobile styling */
 /* Responsive layout for screens under 768px wide (mobile) */
 @media (max-width: 768px) {
@@ -308,14 +307,18 @@ textarea::placeholder {
     white-space: nowrap;      /* Prevent text wrap */
     width: auto;
   }
-}  /* Make sure buttons stack correctly and space out at the bottom */
-  #contact .btn {
-    width: 100%;                /* Ensures buttons take full width on mobile */
-    margin-top: 0.5rem;         /* Space between contact buttons */
-  }
+/* Call button container */
+.contact-phone {
+  display: flex;
+  justify-content: center;  /* Center horizontally */
+  margin-top: 1rem;
 }
 
-/* Logo animation */
+/* Optional: make sure button doesn't stretch full width on mobile */
+.contact-phone .btn {
+  width: auto;
+}
+  /* Logo animation */
 @keyframes pulseLogo {
   0%, 100% { transform: translateX(-50%) scale(1); }
   50% { transform: translateX(-50%) scale(1.05); }
