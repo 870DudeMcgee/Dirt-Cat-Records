@@ -241,89 +241,73 @@ textarea::placeholder {
   color: #bbb;
 }
 
-/* Ensures all primary buttons have correct styling */
-/* Buttons - unified styling for all types including submit, book, call */
-/* Universal button styles (for links AND form buttons) */
+/* Buttons */
 .btn,
-.btn-primary,
-button[type="submit"] {
-  display: inline-block;                  /* Makes buttons flow inline but accept box styling */
-  padding: 0.75rem 1.25rem;               /* Size of the button */
-  font-size: 1rem;                        /* Text size */
-  font-weight: bold;                      /* Bold text */
-  text-align: center;                     /* Centers the text */
-  color: white;                           /* Button text color */
-  background-color: #8a2be2;              /* Purple background */
-  border: none;                           /* No border */
-  border-radius: 8px;                     /* Rounded corners */
-  text-decoration: none;                  /* Removes underline for links */
-  box-shadow: 0 0 12px #8a2be2;           /* Purple glow */
-  transition: background 0.3s ease;       /* Smooth hover transition */
+.btn-primary {
+  display: inline-block;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  color: white;
+  background-color: #8a2be2;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 0 12px #8a2be2;
+  transition: background 0.3s ease;
 }
 
-/* Hover state */
 .btn:hover,
-.btn-primary:hover,
-button[type="submit"]:hover {
-  background-color: #6a1cb8;              /* Slightly darker purple on hover */
+.btn-primary:hover {
+  background-color: #6a1cb8;
 }
+
 /* Responsive mobile styling */
-/* Responsive layout for screens under 768px wide (mobile) */
 @media (max-width: 768px) {
-  /* Scale down the logo size for mobile */
+  /* Keeps the logo smaller and in your specified vertical spot on mobile */
   #main-logo {
-    max-width: 200px;
-    top: 75px; /* Maintain original vertical placement */
+    max-width: 200px;       /* Keeps logo compact for mobile screens */
+    top: 75px;              /* Ensures consistent vertical placement — do not change */
   }
 
-  /* Reduce hero heading size for mobile */
-  #hero-heading {
-    font-size: 32px;
-    padding: 0 5vw;
-    text-shadow: 0 0 12px darkmagenta;
-  }
-
-  /* Remove side padding on nav to allow clean centering */
-  #main-nav {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  /* Center the nav link list, tighten spacing */
+  /* Styles for the nav link list */
   #main-nav ul {
-    justify-content: center;  /* Center links */
-    padding: 0;
-    margin: 0 auto;            /* Ensure horizontal centering */
-    text-align: center;
-    gap: 0.3rem;               /* Tighter spacing between links */
+    display: flex;                  /* Uses flexbox for layout */
+    justify-content: center;        /* Horizontally centers all nav links */
+    align-items: center;            /* Vertically aligns the nav links */
+    list-style: none;              /* Removes bullets */
+    padding: 0;                    /* Clears default padding */
+    margin: 0 auto;                /* Centers the UL container */
+    gap: 0.4rem;                   /* Space between nav links — adjustable */
+    flex-wrap: wrap;              /* Allows wrapping on small screens */
+    width: fit-content;           /* Prevents nav from expanding too wide */
   }
 
-  /* Make each nav list item behave independently */
+  /* Each nav list item */
   #main-nav li {
-    flex: 0 1 auto;
-    text-align: center;
+    flex: 0 1 auto;              /* Prevents links from stretching */
+    text-align: center;          /* Centers text inside */
   }
 
-  /* Shrink and tighten tap targets while keeping accessibility */
+  /* Styling for the actual links */
   #main-nav a {
-    display: inline-block;
-    padding: 0.5rem 0.6rem;    /* Slightly tighter padding */
-    font-size: 1rem;
-    white-space: nowrap;      /* Prevent text wrap */
-    width: auto;
+    display: inline-block;       /* Allows control of padding and spacing */
+    padding: 0.2rem 0.3rem;      /* Tap target size — reduce if you want links closer */
+    font-size: 1rem;             /* Readable but not oversized */
+    white-space: nowrap;         /* Prevents wrapping of link text */
+    width: auto;                 /* Ensures width is based on content */
+    text-shadow: 0 0 10px #ff00ff; /* Restores glow effect */
   }
-/* Call button container */
-.contact-phone {
-  display: flex;
-  justify-content: center;  /* Center horizontally */
-  margin-top: 1rem;
+
+  /* Make sure buttons stack correctly and space out at the bottom */
+  #contact .btn {
+    width: 100%;                /* Ensures buttons take full width on mobile */
+    margin-top: 0.5rem;         /* Space between contact buttons */
+  }
 }
 
-/* Optional: make sure button doesn't stretch full width on mobile */
-.contact-phone .btn {
-  width: auto;
-}
-  /* Logo animation */
+/* Logo animation */
 @keyframes pulseLogo {
   0%, 100% { transform: translateX(-50%) scale(1); }
   50% { transform: translateX(-50%) scale(1.05); }
