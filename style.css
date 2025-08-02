@@ -413,25 +413,24 @@ textarea::placeholder {
   }
 
   #main-nav ul {
-    justify-content: center;         /* Center nav on mobile */
-    padding: 0.1rem 0;
-    text-align: left;
-    gap: 0.1rem;                     /* Adjust this to make gaps smaller or larger */
-  }
-
+  justify-content: center;
+  padding: 0; /* remove any vertical/horizontal padding */
+  margin: 0 auto; /* explicitly center it */
+  text-align: center;
+  gap: 0.3rem; /* adjust spacing here if you want smaller gaps */
+}
   #main-nav li {
     flex: 0 1 auto;
     text-align: center;
   }
 
-  #main-nav a {
-    display: inline-block;
-    padding: 0.1rem .2rem;           /* Padding around nav links — tweak to grow/shrink tap target */
-    font-size: 1.0rem;
-    white-space: nowrap;
-    width: auto;                     /* Override any inherited width */
-  }
-}
+#main-nav a {
+  display: inline-block;
+  padding: 0.1rem 0.2rem;
+  font-size: 1rem;
+  white-space: nowrap;
+  width: auto; /* override any 100% width */
+}}
 
 /*
   Keyframes for pulsing logo animation
