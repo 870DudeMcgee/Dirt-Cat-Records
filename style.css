@@ -362,7 +362,7 @@ textarea::placeholder {
 
   #main-nav a {
     display: inline-block;
-    padding: 0.2rem 0.4rem;
+    padding: 0.5rem 0;
     font-size: 1.0rem;
     white-space: nowrap;
     width: auto; /* ✅ override previous 100% width */
