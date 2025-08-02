@@ -380,7 +380,7 @@ textarea::placeholder {
 @media (max-width: 768px) {
   #main-logo {
     max-width: 200px;     /* Smaller logo for mobile */
-    top: 75px;             /* Adjust logo vertical position */
+    top: 80px;             /* Adjust logo vertical position */
   }
 
   #hero-heading {
