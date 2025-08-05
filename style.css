@@ -377,6 +377,14 @@ textarea::placeholder {
   margin-top: 1.5rem;
 }
 
+/* Center the Buy This Track button under the audio player */
+.purchase-container {
+  display: flex;               /* Enables flex layout */
+  justify-content: center;     /* Horizontally centers the button */
+  margin-top: 1rem;            /* Adds spacing above the button */
+}
+
+
 .contact-phone a {
   display: inline-block;
   background-color: #8a2be2;
