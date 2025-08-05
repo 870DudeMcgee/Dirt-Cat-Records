@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -99,16 +98,28 @@
   <h2>Listen</h2>
   <div class="track">
     <img src="assets/Dude-McGee-AlbumCover.PNG" alt="Album artwork for Dude McGee – The First Take" class="album-art" loading="lazy" />
-    
+
     <div class="audio-container">
       <span class="music-note">🎵</span>
-      <audio controls>
+      <audio controls controlslist="nodownload">
         <source src="assets/Digital-Dream.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
       </audio>
     </div>
 
     <p class="song-title">Dude McGee – Digital Dream</p>
+
+    <!-- PayPal Buy Now Button -->
+    <div class="purchase-container">
+      <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+        <input type="hidden" name="cmd" value="_xclick">
+        <input type="hidden" name="business" value="-870skitzofrenzy@gmail.com">
+        <input type="hidden" name="item_name" value="Dude McGee – Digital Dream">
+        <input type="hidden" name="amount" value="1.29">
+        <input type="hidden" name="currency_code" value="USD">
+        <button type="submit" class="btn btn-primary">💽 Buy This Track</button>
+      </form>
+    </div>
   </div>
 </section>
 
@@ -144,7 +155,7 @@
 </footer>
 <script>
   const logo = document.getElementById('main-logo');
-  const fadeStart = window.innerHeight * 0.01; // Delay start until text area
+  const fadeStart = window.innerHeight * 0.01;
   const fadeEnd = document.getElementById('card-container').offsetTop -1000;
 
   window.addEventListener('scroll', () => {
@@ -163,7 +174,6 @@
     }
   });
 </script>
-
 
 </body>
 </html>
