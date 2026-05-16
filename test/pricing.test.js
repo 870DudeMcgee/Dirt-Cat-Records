@@ -4,6 +4,7 @@ const {
   calculateOrder,
   SERVICES,
   ADD_ONS,
+  centsToDollars,
 } = require('../lib/checkout/pricing');
 
 test('catalog exposes approved base services', () => {
@@ -152,4 +153,81 @@ test('invalid service, song count, add-on, and quantity are rejected', () => {
     selectedAddOns: [],
     paymentMode: 'partial',
   }), /Payment mode must be/);
+});
+
+test('prototype catalog keys are rejected', () => {
+  assert.throws(() => calculateOrder({
+    baseServiceId: '__proto__',
+    songCount: 1,
+    selectedAddOns: [],
+    paymentMode: 'full',
+  }), /Unknown base service/);
+
+  assert.throws(() => calculateOrder({
+    baseServiceId: 'mix',
+    songCount: 1,
+    selectedAddOns: [{ addOnId: 'constructor', quantity: 1 }],
+    paymentMode: 'full',
+  }), /Unknown add-on/);
+});
+
+test('malformed and duplicate add-ons are rejected', () => {
+  assert.throws(() => calculateOrder({
+    baseServiceId: 'mix',
+    songCount: 1,
+    selectedAddOns: [null],
+    paymentMode: 'full',
+  }), /Add-on entry must be an object/);
+
+  assert.throws(() => calculateOrder({
+    baseServiceId: 'mix',
+    songCount: 1,
+    selectedAddOns: [
+      { addOnId: 'extraRevision', quantity: 1 },
+      { addOnId: 'extraRevision', quantity: 1 },
+    ],
+    paymentMode: 'full',
+  }), /Duplicate add-on/);
+});
+
+test('per-project add-ons are limited to one per order', () => {
+  assert.throws(() => calculateOrder({
+    baseServiceId: 'mix',
+    songCount: 1,
+    selectedAddOns: [{ addOnId: 'rushDelivery', quantity: 2 }],
+    paymentMode: 'full',
+  }), /Per-project add-ons/);
+});
+
+test('custom project deposit is a flat full-payment deposit item', () => {
+  const order = calculateOrder({
+    baseServiceId: 'customDeposit',
+    songCount: 1,
+    selectedAddOns: [],
+    paymentMode: 'full',
+  });
+
+  assert.equal(order.totalCents, 25000);
+  assert.equal(order.amountDueNowCents, 25000);
+  assert.equal(order.remainingBalanceCents, 0);
+  assert.equal(order.discountPercent, 0);
+
+  assert.throws(() => calculateOrder({
+    baseServiceId: 'customDeposit',
+    songCount: 2,
+    selectedAddOns: [],
+    paymentMode: 'full',
+  }), /Custom project deposit must use a song count of 1/);
+
+  assert.throws(() => calculateOrder({
+    baseServiceId: 'customDeposit',
+    songCount: 1,
+    selectedAddOns: [],
+    paymentMode: 'deposit',
+  }), /already a deposit/);
+});
+
+test('centsToDollars formats PayPal amounts', () => {
+  assert.equal(centsToDollars(14900), '149.00');
+  assert.equal(centsToDollars(30615), '306.15');
 });
