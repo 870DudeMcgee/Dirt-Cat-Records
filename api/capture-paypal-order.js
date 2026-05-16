@@ -79,7 +79,7 @@ function getOrderSummaryFromPayPalOrder(paypalOrder) {
   }
 
   try {
-    return calculateOrder(JSON.parse(customId));
+    return calculateOrder(paypalOrderHelpers.parseOrderMetadata(customId));
   } catch (_error) {
     throw createHttpError(409, 'PayPal order metadata is invalid.');
   }
