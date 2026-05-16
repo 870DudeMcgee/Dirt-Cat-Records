@@ -96,10 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // SPELL 3: TRUE REAL-TIME SPECTRUM ANALYZER
   // =========================================
   const listenSection = document.getElementById('listen');
-  const audioContainer = document.querySelector('.track');
-  const audioElement = document.querySelector('.track audio');
+  const audioElements = document.querySelectorAll('.track audio');
   
-  if (listenSection && audioElement && audioContainer) {
+  if (listenSection && audioElements.length > 0) {
     // 1. Inject a container for the EQ bars
     const eqContainer = document.createElement('div');
     eqContainer.style.position = 'absolute';
@@ -146,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioCtx;
     let analyser;
     let dataArray;
-    let source;
     let isLive = false;
     let reqFrame;
 
@@ -157,8 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
       audioCtx = new AudioContext();
       analyser = audioCtx.createAnalyser();
       
-      source = audioCtx.createMediaElementSource(audioElement);
-      source.connect(analyser);
+      audioElements.forEach(el => {
+        const source = audioCtx.createMediaElementSource(el);
+        source.connect(analyser);
+      });
       analyser.connect(audioCtx.destination);
       
       analyser.fftSize = 128; // gives 64 bins
@@ -184,36 +184,50 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 5. Event Listeners
-    audioElement.addEventListener('play', () => {
-      eqAnimation.pause(); // Kill the idle anime.js animation
-      
-      // Remove inline heights set by anime.js so we can control them cleanly
-      bars.forEach(bar => bar.style.height = '5%');
+    audioElements.forEach(audioElement => {
+      audioElement.addEventListener('play', () => {
+        // Pause other audio elements to prevent overlapping sound
+        audioElements.forEach(otherEl => {
+          if (otherEl !== audioElement && !otherEl.paused) {
+            otherEl.pause();
+          }
+        });
 
-      setupAudio();
-      
-      // AudioContext might be in a suspended state (browser policy), so resume it
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+        eqAnimation.pause(); // Kill the idle anime.js animation
+        
+        // Remove inline heights set by anime.js so we can control them cleanly
+        bars.forEach(bar => bar.style.height = '5%');
 
-      isLive = true;
-      renderFrame();
-    });
+        setupAudio();
+        
+        // AudioContext might be in a suspended state (browser policy), so resume it
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
 
-    audioElement.addEventListener('pause', () => {
-      isLive = false;
-      cancelAnimationFrame(reqFrame);
-      
-      // Restart the idle animation
-      eqAnimation = anime({
-        targets: bars,
-        height: () => anime.random(5, 35) + '%',
-        easing: 'easeInOutQuad',
-        duration: 800,
-        delay: anime.stagger(40, {from: 'center'}),
-        loop: true,
-        direction: 'alternate'
+        if (!isLive) {
+          isLive = true;
+          renderFrame();
+        }
+      });
+
+      audioElement.addEventListener('pause', () => {
+        const anyPlaying = Array.from(audioElements).some(el => !el.paused);
+        if (!anyPlaying) {
+          isLive = false;
+          cancelAnimationFrame(reqFrame);
+          
+          // Restart the idle animation
+          eqAnimation = anime({
+            targets: bars,
+            height: () => anime.random(5, 35) + '%',
+            easing: 'easeInOutQuad',
+            duration: 800,
+            delay: anime.stagger(40, {from: 'center'}),
+            loop: true,
+            direction: 'alternate'
+          });
+        }
       });
     });
   }
