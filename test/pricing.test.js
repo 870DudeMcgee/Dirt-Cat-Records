@@ -145,4 +145,11 @@ test('invalid service, song count, add-on, and quantity are rejected', () => {
     selectedAddOns: [{ addOnId: 'extraRevision', quantity: 0 }],
     paymentMode: 'full',
   }), /Add-on quantity must be/);
+
+  assert.throws(() => calculateOrder({
+    baseServiceId: 'mix',
+    songCount: 1,
+    selectedAddOns: [],
+    paymentMode: 'partial',
+  }), /Payment mode must be/);
 });
