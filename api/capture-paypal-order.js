@@ -27,13 +27,6 @@ function createPaypalCaptureHandler(dependencies = {}) {
       return res.status(400).json({ error: 'PayPal orderId is required' });
     }
 
-    let orderSummary;
-    try {
-      orderSummary = calculateOrder(body);
-    } catch (error) {
-      return res.status(400).json({ error: error.message || 'Invalid checkout order' });
-    }
-
     try {
       const env = getEnv();
       const paypalClient = paypalOrderHelpers.getPaypalClient(env, fetchImpl);
@@ -42,6 +35,8 @@ function createPaypalCaptureHandler(dependencies = {}) {
       if (paypalOrder.status !== 'COMPLETED') {
         return res.status(409).json({ error: 'PayPal capture was not completed' });
       }
+
+      const orderSummary = getOrderSummaryFromPayPalOrder(paypalOrder);
 
       if (!capturedAmountMatches(paypalOrder, orderSummary.amountDueNowCents)) {
         return res.status(409).json({ error: 'PayPal captured amount did not match checkout total' });
@@ -55,7 +50,7 @@ function createPaypalCaptureHandler(dependencies = {}) {
     } catch (error) {
       const status = error.statusCode || 500;
       if (status >= 500) {
-        console.error('PayPal order capture failed:', error);
+        console.error('PayPal order capture failed:', paypalOrderHelpers.sanitizeErrorForLog(error));
       }
       return res.status(status).json({ error: error.publicMessage || 'PayPal order capture failed' });
     }
@@ -77,6 +72,26 @@ function capturedAmountMatches(paypalOrder, expectedCents) {
   });
 }
 
+function getOrderSummaryFromPayPalOrder(paypalOrder) {
+  const customId = paypalOrder.purchase_units?.[0]?.custom_id;
+  if (!customId || typeof customId !== 'string') {
+    throw createHttpError(409, 'PayPal order is missing checkout metadata.');
+  }
+
+  try {
+    return calculateOrder(JSON.parse(customId));
+  } catch (_error) {
+    throw createHttpError(409, 'PayPal order metadata is invalid.');
+  }
+}
+
+function createHttpError(statusCode, publicMessage) {
+  const error = new Error(publicMessage);
+  error.statusCode = statusCode;
+  error.publicMessage = publicMessage;
+  return error;
+}
+
 function setJsonHeaders(res) {
   if (typeof res.setHeader === 'function') {
     res.setHeader('Content-Type', 'application/json');
@@ -90,4 +105,5 @@ module.exports.createPaypalCaptureHandler = createPaypalCaptureHandler;
 module.exports._private = {
   capturedAmountMatches,
   capturePaypalOrder,
+  getOrderSummaryFromPayPalOrder,
 };

@@ -7,6 +7,7 @@ const PAYPAL_BASE_URLS = Object.freeze({
   sandbox: 'https://api-m.sandbox.paypal.com',
   live: 'https://api-m.paypal.com',
 });
+const MAX_JSON_BODY_BYTES = 32 * 1024;
 
 function createPaypalOrderHandler(dependencies = {}) {
   const fetchImpl = dependencies.fetch || globalThis.fetch;
@@ -49,7 +50,7 @@ function createPaypalOrderHandler(dependencies = {}) {
     } catch (error) {
       const status = error.statusCode || 500;
       if (status >= 500) {
-        console.error('PayPal order creation failed:', error);
+        console.error('PayPal order creation failed:', sanitizeErrorForLog(error));
       }
       return res.status(status).json({ error: error.publicMessage || 'PayPal order creation failed' });
     }
@@ -66,6 +67,7 @@ async function createPaypalOrder(paypalClient, orderSummary) {
           value: centsToDollars(orderSummary.amountDueNowCents),
         },
         description: buildOrderDescription(orderSummary),
+        custom_id: JSON.stringify(buildOrderMetadata(orderSummary)),
       },
     ],
     application_context: {
@@ -74,6 +76,18 @@ async function createPaypalOrder(paypalClient, orderSummary) {
       user_action: 'PAY_NOW',
     },
   });
+}
+
+function buildOrderMetadata(orderSummary) {
+  return {
+    baseServiceId: orderSummary.baseServiceId,
+    songCount: orderSummary.songCount,
+    selectedAddOns: orderSummary.addOnLineItems.map((item) => ({
+      addOnId: item.id,
+      quantity: item.quantity,
+    })),
+    paymentMode: orderSummary.paymentMode,
+  };
 }
 
 function buildOrderDescription(orderSummary) {
@@ -170,12 +184,21 @@ async function readJsonBody(req) {
   }
 
   if (typeof req.body === 'string') {
+    if (Buffer.byteLength(req.body, 'utf8') > MAX_JSON_BODY_BYTES) {
+      throw createHttpError(413, 'Request body is too large.');
+    }
     return req.body ? JSON.parse(req.body) : {};
   }
 
   const chunks = [];
+  let totalBytes = 0;
   for await (const chunk of req) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    totalBytes += buffer.length;
+    if (totalBytes > MAX_JSON_BODY_BYTES) {
+      throw createHttpError(413, 'Request body is too large.');
+    }
+    chunks.push(buffer);
   }
 
   const rawBody = Buffer.concat(chunks).toString('utf8');
@@ -195,11 +218,22 @@ function createHttpError(statusCode, publicMessage) {
   return error;
 }
 
+function sanitizeErrorForLog(error) {
+  return {
+    message: error.message,
+    statusCode: error.statusCode,
+    paypalStatus: error.paypalStatus,
+    paypalDebugId: error.paypalResponse?.debug_id,
+    paypalName: error.paypalResponse?.name,
+  };
+}
+
 const handler = createPaypalOrderHandler();
 
 module.exports = handler;
 module.exports.createPaypalOrderHandler = createPaypalOrderHandler;
 module.exports._private = {
+  buildOrderMetadata,
   buildOrderDescription,
   createPaypalOrder,
   getPaypalAccessToken,
@@ -207,4 +241,5 @@ module.exports._private = {
   getPaypalClient,
   readJsonBody,
   readPaypalJsonResponse,
+  sanitizeErrorForLog,
 };
