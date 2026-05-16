@@ -57,43 +57,183 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================
   // SPELL 2: STAGGERED BENTO REVEALS
   // =========================================
-  const cards = document.querySelectorAll('.card');
-  
-  // Set initial invisible state for cards
-  cards.forEach(card => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(50px)';
-  });
+  const revealContainer = (containerId, animate = true) => {
+    const targets = document.querySelectorAll(`#${containerId} .card`);
+    if (!targets.length) return;
+
+    if (!animate) {
+      targets.forEach((card) => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      });
+      return;
+    }
+
+    anime({
+      targets,
+      translateY: [50, 0],
+      opacity: [0, 1],
+      easing: 'spring(1, 80, 10, 0)',
+      delay: anime.stagger(150),
+      duration: 1000,
+      complete: () => {
+        targets.forEach((card) => {
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        });
+      }
+    });
+  };
+
+  const hideContainerCards = (container) => {
+    container.querySelectorAll('.card').forEach((card) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(50px)';
+    });
+  };
+
+  const isInViewport = (element) => {
+    const rect = element.getBoundingClientRect();
+    return rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
+  };
 
   // Helper to create an observer for a specific grid container
   const createBentoObserver = (containerId) => {
     const container = document.getElementById(containerId);
     if (!container) return;
 
+    if (isInViewport(container)) {
+      revealContainer(containerId, true);
+      return;
+    }
+
+    hideContainerCards(container);
+
     const observer = new IntersectionObserver((entries, obs) => {
       const isVisible = entries.some(entry => entry.isIntersecting);
       if (isVisible) {
-        anime({
-          targets: `#${containerId} .card`,
-          translateY: [50, 0],
-          opacity: [0, 1],
-          easing: 'spring(1, 80, 10, 0)',
-          delay: anime.stagger(150), // Each card drops 150ms after the last
-          duration: 1000
-        });
+        revealContainer(containerId, true);
         obs.disconnect();
       }
-    }, { threshold: 0.1 });
+    }, { threshold: 0.05 });
 
     observer.observe(container);
   };
 
   createBentoObserver('card-container');
+  createBentoObserver('process-grid');
+  createBentoObserver('faq-grid');
   createBentoObserver('fat-footer');
+
+  // =========================================
+  // SPELL 3: SINGLE-CARD LISTEN PLAYER
+  // =========================================
+  const listenPlayer = document.querySelector('.listen-player');
+  const listenArt = document.getElementById('listen-art');
+  const listenAudio = document.getElementById('listen-audio');
+  const listenTitle = document.getElementById('listen-title');
+  const listenNote = document.getElementById('listen-note');
+  const listenPrev = document.getElementById('listen-prev');
+  const listenNext = document.getElementById('listen-next');
+  const listenDots = document.getElementById('listen-dots');
+
+  const listenTracks = [
+    {
+      title: 'Dude McGee – Digital Dream',
+      src: 'assets/Digital Dream .wav',
+      note: 'Wide, polished, and balanced without losing the personality of the track.',
+      art: 'assets/Dude-McGee-AlbumCover.PNG',
+      alt: 'Album artwork for Dude McGee – Digital Dream'
+    },
+    {
+      title: 'Dude McGee – Slow Swing',
+      src: 'assets/SlowSwing.wav',
+      note: 'Controlled low end, stronger pocket, and a more focused sense of space.',
+      art: 'assets/Dude-McGee-AlbumCover.PNG',
+      alt: 'Album artwork for Dude McGee – Slow Swing'
+    },
+    {
+      title: 'Dude McGee – Smells Like June',
+      src: 'assets/Smells Like June.wav',
+      note: 'A cleaner presentation with enough edge to keep the performance alive.',
+      art: 'assets/Dude-McGee-AlbumCover.PNG',
+      alt: 'Album artwork for Dude McGee – Smells Like June'
+    }
+  ];
+
+  if (listenPlayer && listenArt && listenAudio && listenTitle && listenNote && listenPrev && listenNext && listenDots) {
+    let currentTrack = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    const renderTrack = (nextTrack) => {
+      const wasPlaying = !listenAudio.paused;
+      const track = listenTracks[nextTrack];
+      currentTrack = nextTrack;
+
+      listenArt.src = track.art;
+      listenArt.alt = track.alt;
+      listenTitle.textContent = track.title;
+      listenNote.textContent = track.note;
+      listenAudio.src = track.src;
+      listenAudio.load();
+
+      Array.from(listenDots.children).forEach((dot, index) => {
+        dot.classList.toggle('is-active', index === currentTrack);
+        dot.setAttribute('aria-current', index === currentTrack ? 'true' : 'false');
+      });
+
+      anime({
+        targets: listenPlayer,
+        scale: [0.985, 1],
+        opacity: [0.76, 1],
+        easing: 'easeOutQuad',
+        duration: 260
+      });
+
+      if (wasPlaying) {
+        listenAudio.play().catch(() => {});
+      }
+    };
+
+    const moveTrack = (direction) => {
+      const nextTrack = (currentTrack + direction + listenTracks.length) % listenTracks.length;
+      renderTrack(nextTrack);
+    };
+
+    listenTracks.forEach((track, index) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'listen-dot';
+      dot.setAttribute('aria-label', `Play ${track.title}`);
+      dot.addEventListener('click', () => renderTrack(index));
+      listenDots.appendChild(dot);
+    });
+
+    listenPrev.addEventListener('click', () => moveTrack(-1));
+    listenNext.addEventListener('click', () => moveTrack(1));
+
+    listenPlayer.addEventListener('touchstart', (event) => {
+      touchStartX = event.changedTouches[0].screenX;
+      touchStartY = event.changedTouches[0].screenY;
+    }, { passive: true });
+
+    listenPlayer.addEventListener('touchend', (event) => {
+      const touchEndX = event.changedTouches[0].screenX;
+      const touchEndY = event.changedTouches[0].screenY;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+
+      if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+      moveTrack(deltaX < 0 ? 1 : -1);
+    }, { passive: true });
+
+    renderTrack(currentTrack);
+  }
 
 
   // =========================================
-  // SPELL 3: TRUE REAL-TIME SPECTRUM ANALYZER
+  // SPELL 4: TRUE REAL-TIME SPECTRUM ANALYZER
   // =========================================
   const listenSection = document.getElementById('listen');
   const audioElements = document.querySelectorAll('.track audio');
