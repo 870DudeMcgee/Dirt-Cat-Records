@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node --test",
     "check:js": "node --check spells.js && node --check checkout.js && node --check success.js && node --check api/create-paypal-order.js && node --check api/capture-paypal-order.js && node --check lib/checkout/pricing.js",
-    "dev": "vercel dev"
+    "dev": "npx vercel dev"
   },
   "devDependencies": {}
 }
