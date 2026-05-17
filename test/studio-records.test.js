@@ -2,7 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   buildProjectCode,
+  createAutomationTestRun,
   normalizeEmail,
+  getAutomationTestRun,
+  updateAutomationTestRun,
   upsertCustomer,
   upsertPaymentAndOrder,
   createProjectEvent,
@@ -112,6 +115,57 @@ test('upsertPaymentAndOrder stores project total separately from captured deposi
   assert.equal(calls[0].body.amount_due_now, '398.00');
   assert.equal(calls[0].body.remaining_balance, '398.00');
   assert.equal(calls[1].body.amount, '398.00');
+});
+
+test('createAutomationTestRun stores a redacted report shell', async () => {
+  const calls = [];
+  const run = await createAutomationTestRun({
+    id: 'test-run-1',
+    mode: 'simulation',
+    status: 'running',
+    businessName: 'Dirt Cat Records',
+    report: { steps: [] },
+  }, {
+    env: { SUPABASE_URL: 'https://project.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service-key' },
+    fetchImpl: async (url, options) => {
+      calls.push({ url: String(url), body: JSON.parse(options.body) });
+      return jsonResponse([{ id: 'test-run-1', mode: 'simulation', status: 'running' }]);
+    },
+  });
+
+  assert.equal(run.id, 'test-run-1');
+  assert.match(calls[0].url, /\/automation_test_runs\?select=/);
+  assert.equal(calls[0].body.business_name, 'Dirt Cat Records');
+  assert.deepEqual(calls[0].body.report, { steps: [] });
+});
+
+test('updateAutomationTestRun patches report and cleanup status', async () => {
+  const calls = [];
+  await updateAutomationTestRun('test-run-1', {
+    status: 'passed',
+    cleanupStatus: 'pending',
+    report: { steps: [{ key: 'simulation', status: 'passed' }] },
+    finishedAt: '2026-05-17T12:00:00.000Z',
+  }, {
+    env: { SUPABASE_URL: 'https://project.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service-key' },
+    fetchImpl: async (url, options) => {
+      calls.push({ url: String(url), body: JSON.parse(options.body) });
+      return jsonResponse([{ id: 'test-run-1', status: 'passed' }]);
+    },
+  });
+
+  assert.match(calls[0].url, /id=eq\.test-run-1/);
+  assert.equal(calls[0].body.cleanup_status, 'pending');
+  assert.equal(calls[0].body.finished_at, '2026-05-17T12:00:00.000Z');
+});
+
+test('getAutomationTestRun returns null when run does not exist', async () => {
+  const run = await getAutomationTestRun('missing-run', {
+    env: { SUPABASE_URL: 'https://project.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service-key' },
+    fetchImpl: async () => jsonResponse([]),
+  });
+
+  assert.equal(run, null);
 });
 
 function jsonResponse(body, status = 200) {

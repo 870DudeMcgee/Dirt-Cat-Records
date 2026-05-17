@@ -280,6 +280,22 @@ create table if not exists public.email_events (
     check (status in ('sent', 'failed', 'skipped'))
 );
 
+create table if not exists public.automation_test_runs (
+  id text primary key,
+  mode text not null,
+  status text not null,
+  business_name text not null,
+  report jsonb not null default '{}'::jsonb,
+  cleanup_status text not null default 'not_requested',
+  started_at timestamptz not null default now(),
+  finished_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint automation_test_runs_mode_check check (mode in ('simulation', 'sandbox')),
+  constraint automation_test_runs_status_check check (status in ('running', 'passed', 'failed', 'cleaned')),
+  constraint automation_test_runs_cleanup_status_check check (cleanup_status in ('not_requested', 'pending', 'cleaned', 'failed'))
+);
+
 create table if not exists public.followup_jobs (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(id) on delete cascade,
@@ -400,6 +416,7 @@ alter table public.project_events enable row level security;
 alter table public.revision_requests enable row level security;
 alter table public.admin_notes enable row level security;
 alter table public.email_events enable row level security;
+alter table public.automation_test_runs enable row level security;
 alter table public.followup_jobs enable row level security;
 
 revoke all on table public.customers from anon, authenticated;
@@ -414,6 +431,7 @@ revoke all on table public.project_events from anon, authenticated;
 revoke all on table public.revision_requests from anon, authenticated;
 revoke all on table public.admin_notes from anon, authenticated;
 revoke all on table public.email_events from anon, authenticated;
+revoke all on table public.automation_test_runs from anon, authenticated;
 revoke all on table public.followup_jobs from anon, authenticated;
 
 grant usage on schema public to service_role;
@@ -429,4 +447,5 @@ grant select, insert, update, delete on table public.project_events to service_r
 grant select, insert, update, delete on table public.revision_requests to service_role;
 grant select, insert, update, delete on table public.admin_notes to service_role;
 grant select, insert, update, delete on table public.email_events to service_role;
+grant all on public.automation_test_runs to service_role;
 grant select, insert, update, delete on table public.followup_jobs to service_role;
