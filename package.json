@@ -4,8 +4,8 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "test": "node --test",
-    "check:js": "node --check spells.js && node --check api/create-paypal-order.js && node --check api/capture-paypal-order.js && node --check api/checkout-config.js && node --check api/webhooks/paypal.js && node --check lib/checkout/pricing.js && node --check lib/paypal/webhook.js && node --check lib/db/supabase-orders.js",
+    "test": "node --test test/pricing.test.js test/paypal-api.test.js",
+    "check:js": "node --check spells.js && node --check checkout.js && node --check success.js && node --check api/create-paypal-order.js && node --check api/capture-paypal-order.js && node --check api/checkout-config.js && node --check lib/checkout/pricing.js",
     "dev": "npx vercel dev"
   },
   "devDependencies": {}

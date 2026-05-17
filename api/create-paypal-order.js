@@ -52,8 +52,8 @@ function createPaypalOrderHandler(dependencies = {}) {
     let body;
     try {
       body = await readJsonBody(req);
-    } catch (_error) {
-      return res.status(400).json({ error: 'Invalid JSON payload' });
+    } catch (error) {
+      return res.status(error.statusCode || 400).json({ error: error.publicMessage || 'Invalid JSON payload' });
     }
 
     let orderSummary;
@@ -118,13 +118,19 @@ function buildOrderMetadata(orderSummary) {
     throw createHttpError(500, 'Checkout metadata could not be created');
   }
 
-  return [
+  const metadata = [
     METADATA_VERSION,
     serviceCode,
     orderSummary.songCount,
     paymentCode,
     addOnCodes,
   ].join(';');
+
+  if (metadata.length > 127) {
+    throw createHttpError(500, 'Checkout metadata is too large');
+  }
+
+  return metadata;
 }
 
 function parseOrderMetadata(metadata) {
@@ -132,7 +138,12 @@ function parseOrderMetadata(metadata) {
     throw createHttpError(409, 'PayPal order metadata is invalid.');
   }
 
-  const [version, serviceCode, songCount, paymentCode, addOnCodes = ''] = metadata.split(';');
+  const parts = metadata.split(';');
+  if (parts.length !== 5) {
+    throw createHttpError(409, 'PayPal order metadata is invalid.');
+  }
+
+  const [version, serviceCode, songCount, paymentCode, addOnCodes] = parts;
   if (version !== METADATA_VERSION) {
     throw createHttpError(409, 'PayPal order metadata is invalid.');
   }

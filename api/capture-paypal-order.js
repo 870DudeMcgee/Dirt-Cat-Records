@@ -19,8 +19,8 @@ function createPaypalCaptureHandler(dependencies = {}) {
     let body;
     try {
       body = await paypalOrderHelpers.readJsonBody(req);
-    } catch (_error) {
-      return res.status(400).json({ error: 'Invalid JSON payload' });
+    } catch (error) {
+      return res.status(error.statusCode || 400).json({ error: error.publicMessage || 'Invalid JSON payload' });
     }
 
     if (!body || typeof body.orderId !== 'string' || !body.orderId.trim()) {

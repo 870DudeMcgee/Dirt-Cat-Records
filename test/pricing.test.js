@@ -225,6 +225,13 @@ test('custom project deposit is a flat full-payment deposit item', () => {
     selectedAddOns: [],
     paymentMode: 'deposit',
   }), /already a deposit/);
+
+  assert.throws(() => calculateOrder({
+    baseServiceId: 'customDeposit',
+    songCount: 1,
+    selectedAddOns: [{ addOnId: 'rushDelivery', quantity: 1 }],
+    paymentMode: 'full',
+  }), /cannot include add-ons/);
 });
 
 test('centsToDollars formats PayPal amounts', () => {
