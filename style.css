@@ -985,7 +985,8 @@ footer {
 .checkout-logo {
   width: min(260px, 70vw);
   filter: drop-shadow(0 0 18px rgba(255, 0, 255, 0.7)) drop-shadow(0 0 28px rgba(107, 217, 255, 0.28));
-  animation: pulseLogo 5s ease-in-out infinite;
+  transform-origin: center;
+  animation: checkoutLogoPulse 5s ease-in-out infinite;
 }
 
 .checkout-hero h1 {
@@ -1334,5 +1335,17 @@ footer {
   .checkout-panel,
   .checkout-summary {
     padding: 1rem;
+  }
+}
+
+@keyframes checkoutLogoPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px magenta);
+  }
+
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px magenta);
   }
 }
