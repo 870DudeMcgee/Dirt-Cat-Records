@@ -7,9 +7,14 @@
 
   async function initAdmin() {
     bindActions();
-    await initAuth();
-    await loadSetup();
-    await loadRuns();
+    try {
+      await initAuth();
+      await loadSetup();
+      await loadRuns();
+    } catch (error) {
+      setStatus(error.message || 'Unable to initialize admin setup.');
+      renderSetup({ sections: {} });
+    }
   }
 
   function bindActions() {
