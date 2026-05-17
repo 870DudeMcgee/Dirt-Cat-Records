@@ -3,15 +3,15 @@ const {
   verifyPayPalWebhookSignature,
 } = require('../../lib/paypal/webhook');
 const {
-  upsertPaidOrder,
-} = require('../../lib/db/supabase-orders');
+  createPaidProjectWorkflow,
+} = require('../../lib/automation/studio-workflow');
 
 const MAX_WEBHOOK_BODY_BYTES = 64 * 1024;
 
 function createPaypalWebhookHandler(dependencies = {}) {
   const verifySignature = dependencies.verifySignature || verifyPayPalWebhookSignature;
   const parseEvent = dependencies.parseEvent || parseCompletedPaymentEvent;
-  const upsertOrder = dependencies.upsertOrder || upsertPaidOrder;
+  const runPaidProjectWorkflow = dependencies.runPaidProjectWorkflow || createPaidProjectWorkflow();
   const logError = dependencies.logError || console.error;
 
   return async function paypalWebhookHandler(req, res) {
@@ -33,11 +33,11 @@ function createPaypalWebhookHandler(dependencies = {}) {
       const verified = await verifySignature({ headers: req.headers || {}, webhookEvent });
       if (!verified) return res.status(401).json({ error: 'Invalid PayPal webhook signature' });
 
-      const paymentRecord = parseEvent(webhookEvent);
+      const paymentRecord = await parseEvent(webhookEvent);
       if (!paymentRecord) return res.status(200).json({ ok: true, ignored: true });
 
-      const result = await upsertOrder(paymentRecord);
-      return res.status(200).json({ ok: true, ignored: false, orderId: result.order.id });
+      const result = await runPaidProjectWorkflow(paymentRecord);
+      return res.status(200).json({ ok: true, ignored: false, projectId: result.project.id });
     } catch (error) {
       const status = isClientWebhookError(error) ? 400 : 500;
       if (status === 500) logError('PayPal webhook handling failed:', sanitizeErrorForLog(error));
@@ -81,7 +81,7 @@ function setJsonHeaders(res) {
 }
 
 function isClientWebhookError(error) {
-  return /Missing PayPal webhook header|Completed PayPal event|Unsupported PayPal currency/i
+  return /Missing PayPal webhook header|Completed PayPal event|Unsupported PayPal currency|checkout metadata/i
     .test(error.message || '');
 }
 

@@ -4,6 +4,7 @@ const {
   buildProjectCode,
   normalizeEmail,
   upsertCustomer,
+  upsertPaymentAndOrder,
   createProjectEvent,
 } = require('../lib/db/studio-records');
 
@@ -82,6 +83,35 @@ test('createProjectEvent stores timeline event metadata', async () => {
   assert.match(calls[0].url, /\/project_events\?select=/);
   assert.equal(calls[0].body.actor_type, 'system');
   assert.equal(calls[0].body.metadata.status, 'awaiting_files');
+});
+
+test('upsertPaymentAndOrder stores project total separately from captured deposit', async () => {
+  const calls = [];
+  await upsertPaymentAndOrder({
+    customer: { id: 'customer-1' },
+    payment: {
+      paypalTxnId: 'CAPTURE-1',
+      paypalOrderId: 'ORDER-1',
+      status: 'paid',
+      totalAmount: '796.00',
+      amountDueNow: '398.00',
+      remainingBalance: '398.00',
+      orderSummary: { paymentMode: 'deposit' },
+    },
+  }, {
+    env: { SUPABASE_URL: 'https://project.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service-key' },
+    fetchImpl: async (url, options) => {
+      calls.push({ url: String(url), body: JSON.parse(options.body) });
+      if (String(url).includes('/orders')) return jsonResponse([{ id: 'order-1' }]);
+      if (String(url).includes('/payments')) return jsonResponse([{ id: 'payment-1' }]);
+      throw new Error(`Unexpected URL: ${url}`);
+    },
+  });
+
+  assert.equal(calls[0].body.total_amount, '796.00');
+  assert.equal(calls[0].body.amount_due_now, '398.00');
+  assert.equal(calls[0].body.remaining_balance, '398.00');
+  assert.equal(calls[1].body.amount, '398.00');
 });
 
 function jsonResponse(body, status = 200) {

@@ -2,41 +2,16 @@ const {
   calculateOrder,
   centsToDollars,
 } = require('../lib/checkout/pricing');
+const {
+  buildOrderMetadata,
+  parseOrderMetadata,
+} = require('../lib/paypal/order-metadata');
 
 const PAYPAL_BASE_URLS = Object.freeze({
   sandbox: 'https://api-m.sandbox.paypal.com',
   live: 'https://api-m.paypal.com',
 });
 const MAX_JSON_BODY_BYTES = 32 * 1024;
-const METADATA_VERSION = 'v1';
-const SERVICE_METADATA_CODES = Object.freeze({
-  mix: 'm',
-  master: 't',
-  mixMaster: 'mm',
-  customDeposit: 'cd',
-});
-const SERVICE_IDS_BY_METADATA_CODE = Object.freeze(
-  Object.fromEntries(Object.entries(SERVICE_METADATA_CODES).map(([id, code]) => [code, id])),
-);
-const ADD_ON_METADATA_CODES = Object.freeze({
-  extraRevision: 'r',
-  lightVocalEditing: 'v',
-  cleanRadioEdit: 'c',
-  instrumentalAcapella: 'i',
-  extraStems: 's',
-  rushDelivery: 'u',
-  consultation: 'k',
-});
-const ADD_ON_IDS_BY_METADATA_CODE = Object.freeze(
-  Object.fromEntries(Object.entries(ADD_ON_METADATA_CODES).map(([id, code]) => [code, id])),
-);
-const PAYMENT_MODE_METADATA_CODES = Object.freeze({
-  full: 'f',
-  deposit: 'd',
-});
-const PAYMENT_MODES_BY_METADATA_CODE = Object.freeze(
-  Object.fromEntries(Object.entries(PAYMENT_MODE_METADATA_CODES).map(([id, code]) => [code, id])),
-);
 
 function createPaypalOrderHandler(dependencies = {}) {
   const fetchImpl = dependencies.fetch || globalThis.fetch;
@@ -105,72 +80,6 @@ async function createPaypalOrder(paypalClient, orderSummary) {
       user_action: 'PAY_NOW',
     },
   });
-}
-
-function buildOrderMetadata(orderSummary) {
-  const serviceCode = SERVICE_METADATA_CODES[orderSummary.baseServiceId];
-  const paymentCode = PAYMENT_MODE_METADATA_CODES[orderSummary.paymentMode];
-  const addOnCodes = orderSummary.addOnLineItems
-    .map((item) => `${ADD_ON_METADATA_CODES[item.id]}.${item.quantity}`)
-    .join(',');
-
-  if (!serviceCode || !paymentCode || orderSummary.addOnLineItems.some((item) => !ADD_ON_METADATA_CODES[item.id])) {
-    throw createHttpError(500, 'Checkout metadata could not be created');
-  }
-
-  const metadata = [
-    METADATA_VERSION,
-    serviceCode,
-    orderSummary.songCount,
-    paymentCode,
-    addOnCodes,
-  ].join(';');
-
-  if (metadata.length > 127) {
-    throw createHttpError(500, 'Checkout metadata is too large');
-  }
-
-  return metadata;
-}
-
-function parseOrderMetadata(metadata) {
-  if (typeof metadata !== 'string' || metadata.length > 127) {
-    throw createHttpError(409, 'PayPal order metadata is invalid.');
-  }
-
-  const parts = metadata.split(';');
-  if (parts.length !== 5) {
-    throw createHttpError(409, 'PayPal order metadata is invalid.');
-  }
-
-  const [version, serviceCode, songCount, paymentCode, addOnCodes] = parts;
-  if (version !== METADATA_VERSION) {
-    throw createHttpError(409, 'PayPal order metadata is invalid.');
-  }
-
-  const baseServiceId = SERVICE_IDS_BY_METADATA_CODE[serviceCode];
-  const paymentMode = PAYMENT_MODES_BY_METADATA_CODE[paymentCode];
-  if (!baseServiceId || !paymentMode) {
-    throw createHttpError(409, 'PayPal order metadata is invalid.');
-  }
-
-  const selectedAddOns = addOnCodes
-    ? addOnCodes.split(',').map((entry) => {
-      const [addOnCode, quantity] = entry.split('.');
-      const addOnId = ADD_ON_IDS_BY_METADATA_CODE[addOnCode];
-      if (!addOnId) {
-        throw createHttpError(409, 'PayPal order metadata is invalid.');
-      }
-      return { addOnId, quantity };
-    })
-    : [];
-
-  return {
-    baseServiceId,
-    songCount,
-    selectedAddOns,
-    paymentMode,
-  };
 }
 
 function buildOrderDescription(orderSummary) {

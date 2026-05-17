@@ -5,11 +5,11 @@ const {
 } = require('../api/webhooks/paypal');
 
 test('paypal webhook route rejects invalid signatures', async () => {
-  let upsertCalled = false;
+  let workflowCalled = false;
   const handler = createPaypalWebhookHandler({
     verifySignature: async () => false,
-    upsertOrder: async () => {
-      upsertCalled = true;
+    runPaidProjectWorkflow: async () => {
+      workflowCalled = true;
     },
   });
   const res = createResponse();
@@ -17,16 +17,16 @@ test('paypal webhook route rejects invalid signatures', async () => {
   await handler({ method: 'POST', headers: {}, body: { id: 'WH-EVENT' } }, res);
 
   assert.equal(res.statusCode, 401);
-  assert.equal(upsertCalled, false);
+  assert.equal(workflowCalled, false);
 });
 
-test('paypal webhook route upserts completed payment events', async () => {
-  const upserts = [];
+test('paypal webhook route runs paid project automation for completed payment events', async () => {
+  const workflowInputs = [];
   const handler = createPaypalWebhookHandler({
     verifySignature: async () => true,
-    upsertOrder: async (record) => {
-      upserts.push(record);
-      return { order: { id: 'order-123' } };
+    runPaidProjectWorkflow: async (record) => {
+      workflowInputs.push(record);
+      return { project: { id: 'project-123' } };
     },
   });
   const res = createResponse();
@@ -46,8 +46,33 @@ test('paypal webhook route upserts completed payment events', async () => {
   }, res);
 
   assert.equal(res.statusCode, 200);
-  assert.equal(upserts[0].paypalTxnId, 'CAPTURE-123');
-  assert.deepEqual(res.body, { ok: true, ignored: false, orderId: 'order-123' });
+  assert.equal(workflowInputs[0].paypalTxnId, 'CAPTURE-123');
+  assert.deepEqual(res.body, { ok: true, ignored: false, projectId: 'project-123' });
+});
+
+test('paypal webhook route awaits injected event parser before running workflow', async () => {
+  let workflowInput;
+  const handler = createPaypalWebhookHandler({
+    verifySignature: async () => true,
+    parseEvent: async () => ({
+      paypalTxnId: 'CAPTURE-123',
+      buyerEmail: 'buyer@example.com',
+      status: 'paid',
+      totalAmount: '199.00',
+      orderSummary: { baseServiceId: 'mixMaster', songCount: 1, paymentMode: 'full' },
+    }),
+    runPaidProjectWorkflow: async (input) => {
+      workflowInput = input;
+      return { project: { id: 'project-123' } };
+    },
+  });
+  const res = createResponse();
+
+  await handler({ method: 'POST', headers: {}, body: { event_type: 'CHECKOUT.ORDER.COMPLETED' } }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.projectId, 'project-123');
+  assert.equal(workflowInput.buyerEmail, 'buyer@example.com');
 });
 
 test('paypal webhook route treats server configuration errors as internal failures', async () => {

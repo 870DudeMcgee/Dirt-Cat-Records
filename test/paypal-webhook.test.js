@@ -29,6 +29,39 @@ test('parseCompletedPaymentEvent extracts completed capture data', () => {
   assert.equal(record.totalAmount, '149.00');
 });
 
+test('parseCompletedPaymentEvent restores checkout metadata when present', () => {
+  const record = parseCompletedPaymentEvent({
+    event_type: 'CHECKOUT.ORDER.COMPLETED',
+    resource: {
+      id: 'ORDER-123',
+      status: 'COMPLETED',
+      payer: {
+        email_address: 'buyer@example.com',
+        name: { given_name: 'Buyer', surname: 'Person' },
+      },
+      purchase_units: [
+        {
+          custom_id: 'v1;mm;5;d;',
+          payments: {
+            captures: [
+              { id: 'CAPTURE-123', amount: { value: '398.00', currency_code: 'USD' } },
+            ],
+          },
+        },
+      ],
+    },
+  });
+
+  assert.equal(record.paypalTxnId, 'CAPTURE-123');
+  assert.equal(record.paypalOrderId, 'ORDER-123');
+  assert.equal(record.buyerName, 'Buyer Person');
+  assert.equal(record.totalAmount, '796.00');
+  assert.equal(record.amountDueNow, '398.00');
+  assert.equal(record.remainingBalance, '398.00');
+  assert.equal(record.orderSummary.baseServiceId, 'mixMaster');
+  assert.equal(record.orderSummary.paymentMode, 'deposit');
+});
+
 test('parseCompletedPaymentEvent ignores unsupported or incomplete events', () => {
   assert.equal(parseCompletedPaymentEvent({ event_type: 'PAYMENT.CAPTURE.DENIED', resource: {} }), null);
   assert.equal(parseCompletedPaymentEvent({
