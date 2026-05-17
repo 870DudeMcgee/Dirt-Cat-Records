@@ -120,6 +120,37 @@ test('free review endpoint rate limits repeat submissions by email and ip', asyn
   assert.equal(workflowCalls, 1);
 });
 
+test('free review endpoint rate limits repeat submissions from same ip with different emails', async () => {
+  let workflowCalls = 0;
+  const handler = createFreeReviewHandler({
+    rateStore: new Map(),
+    rateLimitMs: 1000,
+    now: () => 1000,
+    runWorkflow: async () => {
+      workflowCalls += 1;
+      return { project: { id: 'project-1' } };
+    },
+  });
+
+  const first = createResponse();
+  const second = createResponse();
+
+  await handler({
+    method: 'POST',
+    headers: { 'x-forwarded-for': '127.0.0.1' },
+    body: JSON.stringify({ email: 'buyer@example.com', message: 'hello' }),
+  }, first);
+  await handler({
+    method: 'POST',
+    headers: { 'x-forwarded-for': '127.0.0.1' },
+    body: JSON.stringify({ email: 'other@example.com', message: 'hello' }),
+  }, second);
+
+  assert.equal(first.statusCode, 200);
+  assert.equal(second.statusCode, 429);
+  assert.equal(workflowCalls, 1);
+});
+
 function createResponse() {
   return {
     statusCode: 0,

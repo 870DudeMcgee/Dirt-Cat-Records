@@ -77,6 +77,30 @@ test('createPaidProjectWorkflow returns existing project on webhook retry withou
   assert.equal(calls.some((call) => call.type === 'email.customer'), false);
 });
 
+test('createPaidProjectWorkflow recovers when a concurrent retry already created the project', async () => {
+  const calls = [];
+  const records = fakeRecords(calls);
+  records.createProject = async () => { throw new Error('duplicate key value violates unique constraint "projects_order_id_unique_idx"'); };
+  records.getProjectByOrderId = async () => ({ id: 'project-concurrent', status: 'awaiting_files' });
+  const workflow = createPaidProjectWorkflow({
+    records,
+    drive: fakeDrive(calls),
+    email: fakeEmail(calls),
+    env: { ADMIN_EMAIL: 'josh@example.com' },
+  });
+
+  const result = await workflow({
+    paypalTxnId: 'CAPTURE-1',
+    buyerEmail: 'buyer@example.com',
+    totalAmount: '199.00',
+    orderSummary: { baseServiceId: 'mixMaster', songCount: 1, paymentMode: 'full' },
+  });
+
+  assert.equal(result.project.id, 'project-concurrent');
+  assert.equal(calls.some((call) => call.type === 'drive.create'), false);
+});
+
+
 test('default email adapter logs failed email without aborting free review workflow', async () => {
   const calls = [];
   const records = fakeRecords(calls);

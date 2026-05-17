@@ -86,10 +86,13 @@ function normalizeReferenceLinks(value) {
 }
 
 function isRateLimited({ req, email, rateStore, now, rateLimitMs }) {
-  const key = `${email}:${getClientIp(req)}`;
-  const lastSubmissionAt = rateStore.get(key);
-  if (lastSubmissionAt && now - lastSubmissionAt < rateLimitMs) return true;
-  rateStore.set(key, now);
+  const ip = getClientIp(req);
+  const keys = [`email-ip:${email}:${ip}`, `ip:${ip}`];
+  if (keys.some((key) => {
+    const lastSubmissionAt = rateStore.get(key);
+    return lastSubmissionAt && now - lastSubmissionAt < rateLimitMs;
+  })) return true;
+  keys.forEach((key) => rateStore.set(key, now));
   return false;
 }
 

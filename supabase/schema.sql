@@ -126,6 +126,17 @@ create table if not exists public.projects (
     )
 );
 
+alter table public.project_files
+  add column if not exists project_id uuid references public.projects(id) on delete cascade;
+
+alter table public.project_files
+  alter column order_id drop not null;
+
+alter table public.project_files
+  drop constraint if exists project_files_order_or_project_check,
+  add constraint project_files_order_or_project_check
+    check (order_id is not null or project_id is not null);
+
 create table if not exists public.leads (
   id uuid primary key default gen_random_uuid(),
   customer_id uuid not null references public.customers(id) on delete restrict,
@@ -285,6 +296,7 @@ create table if not exists public.followup_jobs (
 
 create index if not exists orders_customer_id_idx on public.orders(customer_id);
 create index if not exists project_files_order_id_idx on public.project_files(order_id);
+create index if not exists project_files_project_id_idx on public.project_files(project_id);
 create unique index if not exists customers_auth_user_id_unique_idx on public.customers(auth_user_id)
   where auth_user_id is not null;
 create unique index if not exists orders_id_customer_id_uidx on public.orders(id, customer_id);
@@ -292,6 +304,8 @@ create unique index if not exists projects_id_customer_id_uidx on public.project
 create unique index if not exists quotes_id_project_id_uidx on public.quotes(id, project_id);
 create index if not exists projects_customer_id_idx on public.projects(customer_id);
 create index if not exists projects_order_id_idx on public.projects(order_id);
+create unique index if not exists projects_order_id_unique_idx on public.projects(order_id)
+  where order_id is not null;
 create index if not exists projects_lead_id_idx on public.projects(lead_id);
 create index if not exists projects_active_quote_id_idx on public.projects(active_quote_id);
 create index if not exists projects_status_idx on public.projects(status);
