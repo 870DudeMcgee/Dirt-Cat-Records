@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dirt Cat Records Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <section class="admin-header">
+      <div>
+        <p class="eyebrow">Owner setup</p>
+        <h1>Automation Setup</h1>
+      </div>
+      <button class="btn btn-secondary" id="admin-refresh" type="button">Refresh</button>
+    </section>
+
+    <section class="setup-grid" id="setup-sections" aria-live="polite"></section>
+
+    <section class="setup-actions">
+      <button class="btn" id="run-simulation" type="button">Run Simulation</button>
+      <button class="btn btn-secondary" id="run-sandbox" type="button">Run Sandbox</button>
+      <button class="btn btn-secondary" id="cleanup-run" type="button" disabled>Clean Up Test Data</button>
+    </section>
+
+    <section class="setup-report">
+      <h2>Latest Report</h2>
+      <div id="test-report" class="report-empty">No test run yet.</div>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

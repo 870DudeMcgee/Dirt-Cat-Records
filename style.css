@@ -239,6 +239,125 @@ input::placeholder, textarea::placeholder { color: #bbb; }
   50% { transform: translateX(-50%) scale(1.05); filter: drop-shadow(0 0 20px magenta); }
 }
 
+/*
+  =========================================
+  OWNER ADMIN SETUP WIZARD
+  =========================================
+*/
+.admin-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 56px;
+}
+
+.admin-header,
+.setup-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-header h1,
+.setup-report h2 {
+  margin: 0;
+}
+
+.admin-header .eyebrow {
+  margin: 0 0 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.setup-card {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 16px;
+  background: rgba(20, 20, 25, 0.58);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.38);
+}
+
+.setup-card h2 {
+  margin-top: 0;
+  font-size: 1.35rem;
+}
+
+.setup-card-passed {
+  border-color: rgba(75, 218, 145, 0.44);
+}
+
+.setup-card-failed {
+  border-color: rgba(255, 104, 104, 0.48);
+}
+
+.setup-card dl {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.setup-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.setup-card dt {
+  color: rgba(235, 241, 255, 0.82);
+  overflow-wrap: anywhere;
+}
+
+.setup-card dd {
+  margin: 0;
+  font-weight: 800;
+}
+
+.setup-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.setup-report {
+  margin-top: 28px;
+}
+
+.report-empty,
+.report-step {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.report-status {
+  display: inline-flex;
+  margin-bottom: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.report-steps {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style-position: inside;
+}
+
+.report-step {
+  display: grid;
+  gap: 4px;
+  background: rgba(20, 20, 25, 0.58);
+}
+
 /* 
   =========================================
   FAT FOOTER — PREMIUM REDESIGN
