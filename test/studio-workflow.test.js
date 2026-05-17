@@ -49,6 +49,63 @@ test('createPaidProjectWorkflow leaves project usable when Drive fails', async (
   assert.ok(calls.some((call) => call.type === 'event' && call.message.match(/Drive automation failed/)));
 });
 
+test('createPaidProjectWorkflow returns existing project on webhook retry without side effects', async () => {
+  const calls = [];
+  const records = fakeRecords(calls);
+  records.upsertPaymentAndOrder = async () => ({
+    order: { id: 'order-1', project_id: 'project-existing' },
+    payment: { id: 'payment-1', project_id: 'project-existing' },
+  });
+  records.getProjectById = async () => ({ id: 'project-existing', status: 'awaiting_files' });
+  records.createProject = async () => { throw new Error('createProject should not run on retry'); };
+  const workflow = createPaidProjectWorkflow({
+    records,
+    drive: fakeDrive(calls),
+    email: fakeEmail(calls),
+    env: { ADMIN_EMAIL: 'josh@example.com' },
+  });
+
+  const result = await workflow({
+    paypalTxnId: 'CAPTURE-1',
+    buyerEmail: 'buyer@example.com',
+    totalAmount: '199.00',
+    orderSummary: { baseServiceId: 'mixMaster', songCount: 1, paymentMode: 'full' },
+  });
+
+  assert.equal(result.project.id, 'project-existing');
+  assert.equal(calls.some((call) => call.type === 'drive.create'), false);
+  assert.equal(calls.some((call) => call.type === 'email.customer'), false);
+});
+
+test('default email adapter logs failed email without aborting free review workflow', async () => {
+  const calls = [];
+  const records = fakeRecords(calls);
+  records.createEmailEvent = async (event) => { calls.push({ type: 'email.event', status: event.status }); };
+  const workflow = createFreeReviewWorkflow({
+    records,
+    drive: fakeDrive(calls),
+    resend: { sendStudioEmail: async () => { throw new Error('Resend failed'); } },
+    email: undefined,
+    env: {
+      ADMIN_EMAIL: 'josh@example.com',
+      RESEND_API_KEY: 'resend-key',
+      RESEND_FROM_EMAIL: 'Dirt Cat Records <studio@example.com>',
+      RESEND_REPLY_TO_EMAIL: 'josh@example.com',
+    },
+  });
+
+  const result = await workflow({
+    email: 'Buyer@Example.com',
+    name: 'Buyer',
+    artistName: 'Dude McGee',
+    projectTitle: 'Song One',
+    message: 'Please review this mix.',
+  });
+
+  assert.equal(result.project.status, 'awaiting_files');
+  assert.ok(calls.some((call) => call.type === 'email.event' && call.status === 'failed'));
+});
+
 function fakeRecords(calls) {
   return {
     upsertCustomer: async (input) => ({ id: 'customer-1', email: input.email.toLowerCase(), name: input.name || null }),
@@ -57,6 +114,9 @@ function fakeRecords(calls) {
     updateProject: async (_id, patch) => ({ id: 'project-1', status: 'awaiting_files', ...patch }),
     createProjectEvent: async (event) => { calls.push({ type: 'event', message: event.message }); return { id: 'event-1' }; },
     upsertPaymentAndOrder: async () => ({ order: { id: 'order-1' }, payment: { id: 'payment-1' } }),
+    getProjectById: async () => null,
+    getProjectByOrderId: async () => null,
+    linkOrderPaymentToProject: async () => calls.push({ type: 'link.project' }),
   };
 }
 
