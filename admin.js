@@ -1,13 +1,15 @@
 (function () {
+  let supabaseClient = null;
   let accessToken = null;
-  let latestRunId = null;
+  let latestRunId = window.localStorage.getItem('dcr_latest_test_run_id') || null;
 
   document.addEventListener('DOMContentLoaded', initAdmin);
 
   async function initAdmin() {
     bindActions();
-    accessToken = window.localStorage.getItem('dcr_portal_access_token') || '';
+    await initAuth();
     await loadSetup();
+    await loadRuns();
   }
 
   function bindActions() {
@@ -15,31 +17,80 @@
     document.getElementById('run-simulation')?.addEventListener('click', () => runTest('simulation'));
     document.getElementById('run-sandbox')?.addEventListener('click', () => runTest('sandbox'));
     document.getElementById('cleanup-run')?.addEventListener('click', cleanupRun);
+    document.getElementById('admin-magic-link-form')?.addEventListener('submit', sendMagicLink);
+  }
+
+  async function initAuth() {
+    const configResponse = await fetch('/api/public/config');
+    const config = await configResponse.json();
+    supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabasePublicKey);
+    const { data } = await supabaseClient.auth.getSession();
+    accessToken = data.session?.access_token || '';
+    document.getElementById('cleanup-run').disabled = !latestRunId;
+  }
+
+  async function sendMagicLink(event) {
+    event.preventDefault();
+    const email = new FormData(event.target).get('email');
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href },
+    });
+    setStatus(error ? error.message : 'Check your email for the admin magic link.');
   }
 
   async function loadSetup() {
-    const data = await api('/api/admin/setup');
-    renderSetup(data.setup);
+    try {
+      const data = await api('/api/admin/setup');
+      setStatus('');
+      renderSetup(data.setup);
+    } catch (error) {
+      setStatus(error.message || 'Unable to load setup status.');
+      renderSetup({ sections: {} });
+    }
+  }
+
+  async function loadRuns() {
+    try {
+      const data = await api('/api/admin/test-runs');
+      const latestRun = data.runs?.[0];
+      if (!latestRun) return;
+      latestRunId = latestRun.id;
+      window.localStorage.setItem('dcr_latest_test_run_id', latestRunId);
+      document.getElementById('cleanup-run').disabled = false;
+      renderReport(latestRun.report);
+    } catch (_error) {
+      document.getElementById('cleanup-run').disabled = !latestRunId;
+    }
   }
 
   async function runTest(mode) {
     renderReport({ status: 'running', steps: [{ label: `Running ${mode}`, status: 'running' }] });
-    const data = await api('/api/admin/test-runs', {
-      method: 'POST',
-      body: JSON.stringify({ mode }),
-    });
-    latestRunId = data.id;
-    document.getElementById('cleanup-run').disabled = !latestRunId;
-    renderReport(data.report);
+    try {
+      const data = await api('/api/admin/test-runs', {
+        method: 'POST',
+        body: JSON.stringify({ mode }),
+      });
+      latestRunId = data.id;
+      window.localStorage.setItem('dcr_latest_test_run_id', latestRunId);
+      document.getElementById('cleanup-run').disabled = !latestRunId;
+      renderReport(data.report);
+    } catch (error) {
+      renderReport({ status: 'failed', steps: [{ label: `Run ${mode}`, status: 'failed', error: error.message }] });
+    }
   }
 
   async function cleanupRun() {
     if (!latestRunId) return;
-    const data = await api('/api/admin/cleanup-test-run', {
-      method: 'POST',
-      body: JSON.stringify({ testRunId: latestRunId }),
-    });
-    renderReport(data.report);
+    try {
+      const data = await api('/api/admin/cleanup-test-run', {
+        method: 'POST',
+        body: JSON.stringify({ testRunId: latestRunId }),
+      });
+      renderReport(data.report);
+    } catch (error) {
+      renderReport({ status: 'failed', steps: [{ label: 'Clean up test data', status: 'failed', error: error.message }] });
+    }
   }
 
   async function api(path, options = {}) {
@@ -90,6 +141,11 @@
 
   function titleCase(value) {
     return value.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  function setStatus(message) {
+    const status = document.getElementById('admin-status');
+    if (status) status.textContent = message || '';
   }
 
   function escapeHtml(value) {

@@ -37,6 +37,36 @@ test('cleanup endpoint cleans a stored test run for admin', async () => {
   assert.equal(res.body.report.cleanupStatus, 'cleaned');
 });
 
+test('test-runs endpoint lists stored runs for admin', async () => {
+  const handler = createTestRunsHandler({
+    requireAdminImpl: async () => ({ email: 'josh@example.com' }),
+    records: {
+      listAutomationTestRuns: async () => [{ id: 'run-1', report: { status: 'passed' } }],
+    },
+  });
+  const res = response();
+
+  await handler({ method: 'GET', headers: {} }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.runs[0].id, 'run-1');
+});
+
+test('test-runs endpoint returns stored run detail for admin', async () => {
+  const handler = createTestRunsHandler({
+    requireAdminImpl: async () => ({ email: 'josh@example.com' }),
+    records: {
+      getAutomationTestRun: async (id) => ({ id, report: { status: 'passed' } }),
+    },
+  });
+  const res = response();
+
+  await handler({ method: 'GET', headers: {}, url: '/api/admin/test-runs?testRunId=run-1' }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.run.id, 'run-1');
+});
+
 function response() {
   return {
     statusCode: 0,

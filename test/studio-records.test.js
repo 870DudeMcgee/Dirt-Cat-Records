@@ -3,8 +3,10 @@ const assert = require('node:assert/strict');
 const {
   buildProjectCode,
   createAutomationTestRun,
+  deleteStudioRecord,
   normalizeEmail,
   getAutomationTestRun,
+  listAutomationTestRuns,
   updateAutomationTestRun,
   upsertCustomer,
   upsertPaymentAndOrder,
@@ -166,6 +168,35 @@ test('getAutomationTestRun returns null when run does not exist', async () => {
   });
 
   assert.equal(run, null);
+});
+
+test('listAutomationTestRuns requests recent automation test runs', async () => {
+  const calls = [];
+  await listAutomationTestRuns({
+    env: { SUPABASE_URL: 'https://project.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service-key' },
+    fetchImpl: async (url) => {
+      calls.push(String(url));
+      return jsonResponse([]);
+    },
+  });
+
+  assert.match(calls[0], /\/automation_test_runs\?select=/);
+  assert.match(calls[0], /order=started_at\.desc/);
+});
+
+test('deleteStudioRecord deletes only cleanup-allowed records', async () => {
+  const calls = [];
+  await deleteStudioRecord('orders', 'order-1', {
+    env: { SUPABASE_URL: 'https://project.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service-key' },
+    fetchImpl: async (url, options) => {
+      calls.push({ url: String(url), method: options.method });
+      return jsonResponse({});
+    },
+  });
+
+  assert.match(calls[0].url, /\/orders\?id=eq\.order-1/);
+  assert.equal(calls[0].method, 'DELETE');
+  await assert.rejects(() => deleteStudioRecord('customers', 'customer-1'), /Cleanup cannot delete customers records/);
 });
 
 function jsonResponse(body, status = 200) {

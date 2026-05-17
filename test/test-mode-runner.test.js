@@ -64,6 +64,30 @@ test('runAutomationTest sandbox creates marked artifacts through real adapters',
   assert.equal(calls.find((call) => call.type === 'drive').input.artistName.includes('[TEST]'), true);
 });
 
+test('runAutomationTest sandbox fails when provider adapters fail silently', async () => {
+  const result = await runAutomationTest({
+    mode: 'sandbox',
+    testRunId: 'sandbox-20260517T120000-failed1',
+    env: {
+      ADMIN_EMAIL: 'josh@example.com',
+      TEST_CUSTOMER_EMAIL: 'test@example.com',
+    },
+    records: sandboxRecords([]),
+    drive: {
+      createDriveProjectFolders: async () => {
+        throw new Error('Drive failed');
+      },
+    },
+    email: {
+      sendCustomerEmail: async () => ({ failed: true, error: 'Email failed' }),
+      sendAdminEmail: async () => ({ failed: true, error: 'Email failed' }),
+    },
+  });
+
+  assert.equal(result.report.status, 'failed');
+  assert.match(result.report.errors[0], /Drive folders|Email failed/);
+});
+
 function sandboxRecords(calls) {
   return {
     createAutomationTestRun: async (input) => input,
