@@ -46,7 +46,7 @@
 
   async function loadSetup() {
     try {
-      const data = await api('/api/admin/setup');
+      const data = await api('/api/admin/setup-wizard?action=setup');
       setStatus('');
       renderSetup(data.setup);
     } catch (error) {
@@ -57,7 +57,7 @@
 
   async function loadRuns() {
     try {
-      const data = await api('/api/admin/test-runs');
+      const data = await api('/api/admin/setup-wizard?action=test-runs');
       const latestRun = data.runs?.[0];
       if (!latestRun) return;
       latestRunId = latestRun.id;
@@ -72,7 +72,7 @@
   async function runTest(mode) {
     renderReport({ status: 'running', steps: [{ label: `Running ${mode}`, status: 'running' }] });
     try {
-      const data = await api('/api/admin/test-runs', {
+      const data = await api('/api/admin/setup-wizard?action=test-runs', {
         method: 'POST',
         body: JSON.stringify({ mode }),
       });
@@ -88,7 +88,7 @@
   async function cleanupRun() {
     if (!latestRunId) return;
     try {
-      const data = await api('/api/admin/cleanup-test-run', {
+      const data = await api('/api/admin/setup-wizard?action=cleanup', {
         method: 'POST',
         body: JSON.stringify({ testRunId: latestRunId }),
       });
