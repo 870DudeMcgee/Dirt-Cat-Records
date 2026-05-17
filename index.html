@@ -178,14 +178,15 @@
 <h2 class="section-title" id="mix-review">Send a Track. Get Honest Feedback.</h2>
 <section id="review-panel" class="review-panel">
   <p class="review-intro">Use the free mix review to get direct feedback on what is not working before you spend money on the full mix.</p>
-  <form id="mix-review-form" action="mailto:870joshmclean@gmail.com?subject=Free%20Mix%20Review" method="post" enctype="text/plain">
-    <input type="text" name="Name" placeholder="Name" required>
-    <input type="email" name="Email" placeholder="Email" required>
-    <input type="text" name="Artist Name" placeholder="Artist name">
-    <input type="text" name="Genre" placeholder="Genre">
-    <input type="url" name="Track Link" placeholder="Track link (Drive, Dropbox, SoundCloud)">
-    <textarea name="Mix Notes" rows="5" placeholder="What is not working in the current mix?" required></textarea>
+  <form id="mix-review-form" class="review-form">
+    <input type="text" name="name" placeholder="Name" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="text" name="artistName" placeholder="Artist name">
+    <input type="text" name="projectTitle" placeholder="Song or project title">
+    <input type="url" name="trackLink" placeholder="Track link (Drive, Dropbox, SoundCloud)">
+    <textarea name="message" rows="5" placeholder="What is not working in the current mix?" required></textarea>
     <button type="submit" class="btn btn-primary">Request My Free Mix Review</button>
+    <p class="form-status" id="mix-review-status" role="status" aria-live="polite"></p>
   </form>
 </section>
 

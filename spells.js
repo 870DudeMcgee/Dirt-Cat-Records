@@ -372,4 +372,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function initMixReviewForm() {
+    const form = document.getElementById('mix-review-form');
+    const status = document.getElementById('mix-review-status');
+    if (!form || !status) return;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.textContent = 'Sending...';
+      const formData = new FormData(form);
+      const payload = Object.fromEntries(formData.entries());
+      const trackLink = payload.trackLink ? String(payload.trackLink).trim() : '';
+      if (trackLink) payload.referenceLinks = [trackLink];
+      delete payload.trackLink;
+
+      try {
+        const response = await fetch('/api/public/free-review', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || 'Unable to submit free review.');
+        form.reset();
+        status.textContent = 'Got it. Check your email for your project portal and upload instructions.';
+      } catch (error) {
+        status.textContent = error.message || 'Unable to submit free review.';
+      }
+    });
+  }
+
+  initMixReviewForm();
+
 });
