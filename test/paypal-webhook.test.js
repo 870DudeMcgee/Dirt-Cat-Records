@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
+  getPayPalAccessToken,
   getHeader,
   parseCompletedPaymentEvent,
   verifyPayPalWebhookSignature,
@@ -68,6 +69,32 @@ test('verifyPayPalWebhookSignature posts PayPal headers and event to verificatio
   assert.equal(verified, true);
   assert.equal(calls.length, 2);
   assert.equal(JSON.parse(calls[1].options.body).webhook_id, 'WEBHOOK-123');
+});
+
+test('getPayPalAccessToken attaches non-secret diagnostics on auth failure', async () => {
+  const fetchImpl = async () => jsonResponse({
+    error: 'invalid_client',
+    error_description: 'Client Authentication failed',
+  }, 401);
+
+  await assert.rejects(async () => {
+    await getPayPalAccessToken({
+      fetchImpl,
+      env: {
+        PAYPAL_CLIENT_ID: 'AcileAmmKwccfUWrNRt7kExample',
+        PAYPAL_CLIENT_SECRET: 'secret-value',
+        PAYPAL_ENV: 'live',
+      },
+    });
+  }, (error) => {
+    assert.equal(error.diagnostics.paypalEnv, 'live');
+    assert.equal(error.diagnostics.paypalBaseUrl, 'https://api-m.paypal.com');
+    assert.equal(error.diagnostics.clientIdPrefix, 'AcileA');
+    assert.equal(error.diagnostics.clientIdSuffix, 'xample');
+    assert.equal(error.diagnostics.clientSecretPresent, true);
+    assert.equal(error.diagnostics.clientSecretLength, 12);
+    return true;
+  });
 });
 
 function jsonResponse(body, status = 200) {

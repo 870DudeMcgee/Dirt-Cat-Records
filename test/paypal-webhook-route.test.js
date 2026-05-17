@@ -57,6 +57,11 @@ test('paypal webhook route treats server configuration errors as internal failur
       const error = new Error('PAYPAL_WEBHOOK_ID is required.');
       error.headers = { authorization: 'Bearer secret-token' };
       error.webhookEvent = { payer: { email_address: 'buyer@example.com' } };
+      error.diagnostics = {
+        paypalEnv: 'live',
+        clientIdPrefix: 'AcileA',
+        clientSecretPresent: true,
+      };
       throw error;
     },
     logError: (...args) => logs.push(args),
@@ -70,6 +75,11 @@ test('paypal webhook route treats server configuration errors as internal failur
   assert.deepEqual(logs[0][1], {
     name: 'Error',
     message: 'PAYPAL_WEBHOOK_ID is required.',
+    diagnostics: {
+      paypalEnv: 'live',
+      clientIdPrefix: 'AcileA',
+      clientSecretPresent: true,
+    },
   });
 });
 

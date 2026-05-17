@@ -98,10 +98,16 @@ function createPayloadTooLargeError() {
 }
 
 function sanitizeErrorForLog(error) {
-  return {
+  const sanitized = {
     name: error?.name || 'Error',
     message: error?.message || 'Unknown webhook error',
   };
+
+  if (error?.diagnostics && typeof error.diagnostics === 'object') {
+    sanitized.diagnostics = error.diagnostics;
+  }
+
+  return sanitized;
 }
 
 const handler = createPaypalWebhookHandler();
