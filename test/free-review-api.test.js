@@ -38,6 +38,28 @@ test('free review endpoint rejects invalid email', async () => {
   assert.equal(res.statusCode, 400);
 });
 
+test('free review endpoint rejects null JSON payload', async () => {
+  const handler = createFreeReviewHandler({
+    runWorkflow: async () => { throw new Error('should not run'); },
+  });
+  const res = createResponse();
+  await handler({ method: 'POST', headers: {}, body: 'null' }, res);
+  assert.equal(res.statusCode, 400);
+});
+
+test('free review endpoint rejects whitespace-only message', async () => {
+  const handler = createFreeReviewHandler({
+    runWorkflow: async () => { throw new Error('should not run'); },
+  });
+  const res = createResponse();
+  await handler({
+    method: 'POST',
+    headers: {},
+    body: JSON.stringify({ email: 'buyer@example.com', message: '   ' }),
+  }, res);
+  assert.equal(res.statusCode, 400);
+});
+
 function createResponse() {
   return {
     statusCode: 0,

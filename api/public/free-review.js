@@ -15,9 +15,13 @@ function createFreeReviewHandler(dependencies = {}) {
       return sendJson(res, error.statusCode || 400, { error: error.publicMessage || 'Invalid request' });
     }
 
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return sendJson(res, 400, { error: 'Invalid request payload.' });
+    }
     const email = normalizeEmail(body.email);
+    const message = typeof body.message === 'string' ? body.message.trim() : '';
     if (!email) return sendJson(res, 400, { error: 'A valid email is required.' });
-    if (!body.message || typeof body.message !== 'string') {
+    if (!message) {
       return sendJson(res, 400, { error: 'A short message is required.' });
     }
 
@@ -27,7 +31,7 @@ function createFreeReviewHandler(dependencies = {}) {
         name: body.name || '',
         artistName: body.artistName || '',
         projectTitle: body.projectTitle || '',
-        message: body.message,
+        message,
         referenceLinks: Array.isArray(body.referenceLinks) ? body.referenceLinks : [],
       });
       return sendJson(res, 200, { ok: true, projectId: result.project.id });
