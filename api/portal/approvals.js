@@ -1,10 +1,13 @@
 const { requireUser } = require('../../lib/auth/supabase-auth');
 const { methodNotAllowed, readJsonBody, sendJson } = require('../../lib/http/json');
 const recordsDefault = require('../../lib/db/studio-records');
+const { sendStudioEmail } = require('../../lib/email/resend');
 
 function createApprovalsHandler(dependencies = {}) {
   const requireUserImpl = dependencies.requireUserImpl || requireUser;
   const records = dependencies.records || recordsDefault;
+  const sendEmail = dependencies.sendEmail || sendStudioEmail;
+  const env = dependencies.env || process.env;
 
   return async function approvalsHandler(req, res) {
     if (req.method !== 'POST') return methodNotAllowed(res);
@@ -36,11 +39,35 @@ function createApprovalsHandler(dependencies = {}) {
         message: 'Customer approved the final delivery.',
         metadata: {},
       });
+      await sendAndLogAdminNotification({
+        records,
+        sendEmail,
+        env,
+        project,
+        customer,
+        subject: 'Final approved',
+        text: `${customer.email} approved final delivery for ${project.project_code || project.id}.`,
+      });
       return sendJson(res, 200, { ok: true, project: updatedProject });
     } catch (error) {
       return sendJson(res, 500, { error: 'Unable to approve final delivery.' });
     }
   };
+}
+
+async function sendAndLogAdminNotification({ records, sendEmail, env, project, customer, subject, text }) {
+  const recipient = env.ADMIN_EMAIL;
+  if (!recipient) return;
+  try {
+    const result = await sendEmail({ to: recipient, emailType: 'admin_notification', data: { subject, text } }, { env });
+    if (records.createEmailEvent) {
+      await records.createEmailEvent({ projectId: project.id, customerId: customer.id, emailType: 'admin_notification', recipient, status: 'sent', resendMessageId: result.id || null });
+    }
+  } catch (error) {
+    if (records.createEmailEvent) {
+      await records.createEmailEvent({ projectId: project.id, customerId: customer.id, emailType: 'admin_notification', recipient, status: 'failed', errorMessage: error.message });
+    }
+  }
 }
 
 const handler = createApprovalsHandler();

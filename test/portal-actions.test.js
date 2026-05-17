@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createFileLinksHandler } = require('../api/portal/file-links');
+const { createRevisionsHandler } = require('../api/portal/revisions');
+const { createApprovalsHandler } = require('../api/portal/approvals');
 
 test('portal file link endpoint rejects unauthenticated requests', async () => {
   const handler = createFileLinksHandler({
@@ -42,6 +44,69 @@ test('portal file link endpoint stores external links for owned project', async 
   assert.equal(calls.find((call) => call.type === 'project').patch.status, 'files_submitted');
   assert.equal(calls.find((call) => call.type === 'email').event.status, 'sent');
 });
+
+test('revision endpoint sends and logs admin notification', async () => {
+  const calls = [];
+  const handler = createRevisionsHandler({
+    requireUserImpl: async () => ({ email: 'buyer@example.com' }),
+    env: { ADMIN_EMAIL: 'josh@example.com' },
+    sendEmail: async (message) => { calls.push({ type: 'send', message }); return { id: 'email-1' }; },
+    records: portalRecords(calls, { status: 'delivered', included_revisions: 1, used_revisions: 0 }),
+  });
+
+  const res = response();
+  await handler({
+    method: 'POST',
+    headers: {},
+    body: JSON.stringify({ projectId: 'project-1', notes: 'Bring the vocal up.' }),
+  }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(calls.find((call) => call.type === 'send').message.to, 'josh@example.com');
+  assert.equal(calls.find((call) => call.type === 'email').event.status, 'sent');
+});
+
+test('approval endpoint sends and logs admin notification', async () => {
+  const calls = [];
+  const handler = createApprovalsHandler({
+    requireUserImpl: async () => ({ email: 'buyer@example.com' }),
+    env: { ADMIN_EMAIL: 'josh@example.com' },
+    sendEmail: async (message) => { calls.push({ type: 'send', message }); return { id: 'email-1' }; },
+    records: portalRecords(calls, { status: 'delivered', final_delivery_locked: false }),
+  });
+
+  const res = response();
+  await handler({
+    method: 'POST',
+    headers: {},
+    body: JSON.stringify({ projectId: 'project-1' }),
+  }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(calls.find((call) => call.type === 'send').message.to, 'josh@example.com');
+  assert.equal(calls.find((call) => call.type === 'email').event.status, 'sent');
+});
+
+function portalRecords(calls, projectPatch = {}) {
+  return {
+    getCustomerByEmail: async () => ({ id: 'customer-1', email: 'buyer@example.com' }),
+    getProjectForCustomer: async () => ({
+      id: 'project-1',
+      project_code: 'DCR-000123',
+      order_id: null,
+      included_revisions: 1,
+      used_revisions: 0,
+      extra_revisions_allowed: 0,
+      status: 'delivered',
+      final_delivery_locked: false,
+      ...projectPatch,
+    }),
+    createRevisionRequest: async () => ({ id: 'revision-1' }),
+    updateProject: async (projectId, patch) => { calls.push({ type: 'project', projectId, patch }); return { id: projectId, ...patch }; },
+    createProjectEvent: async (event) => { calls.push({ type: 'event', event }); },
+    createEmailEvent: async (event) => { calls.push({ type: 'email', event }); },
+  };
+}
 
 function response() {
   return {
