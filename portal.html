@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dirt Cat Records Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="portal-shell">
+    <section class="portal-login" id="portal-login">
+      <h1>Project Portal</h1>
+      <form id="magic-link-form">
+        <input type="email" name="email" placeholder="Email" required>
+        <button class="btn" type="submit">Send Magic Link</button>
+      </form>
+      <p id="portal-status" role="status" aria-live="polite"></p>
+    </section>
+    <section class="portal-projects" id="portal-projects" hidden></section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="portal.js"></script>
+</body>
+</html>
