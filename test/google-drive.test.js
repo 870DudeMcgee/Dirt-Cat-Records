@@ -19,11 +19,14 @@ test('getDriveConfig requires server credentials', () => {
 
 test('createDriveProjectFolders creates project subfolders and shares upload folder', async () => {
   const calls = [];
+  let createdFolderCount = 0;
   const fetchImpl = async (url, options = {}) => {
     calls.push({ url: String(url), method: options.method, body: parseRequestBody(options.body) });
     if (String(url).includes('oauth2.googleapis.com')) return jsonResponse({ access_token: 'access-token' });
     if (String(url).includes('/permissions')) return jsonResponse({ id: 'permission-1' });
-    return jsonResponse({ id: `folder-${calls.length}`, webViewLink: `https://drive.test/folder-${calls.length}` });
+    if (options.method === 'GET') return jsonResponse({ files: [] });
+    createdFolderCount += 1;
+    return jsonResponse({ id: `folder-${createdFolderCount}`, webViewLink: `https://drive.test/folder-${createdFolderCount}` });
   };
 
   const result = await createDriveProjectFolders({
@@ -36,9 +39,53 @@ test('createDriveProjectFolders creates project subfolders and shares upload fol
     env: driveEnv(),
   });
 
-  assert.equal(result.projectFolderId, 'folder-2');
-  assert.equal(result.uploadFolderUrl, 'https://drive.test/folder-3');
-  assert.ok(calls.some((call) => call.url.includes('/permissions')));
+  assert.equal(result.projectFolderId, 'folder-1');
+  assert.equal(result.uploadFolderUrl, 'https://drive.test/folder-2');
+  assert.equal(result.finalsFolderUrl, 'https://drive.test/folder-5');
+  assert.equal(createdFolderCount, 6);
+
+  const createCalls = calls.filter((call) => call.method === 'POST' && call.url.includes('/files?'));
+  assert.deepEqual(createCalls.map((call) => call.body.name), [
+    'DCR-000123 - Dude McGee - Song One',
+    '01 Client Uploads',
+    '02 References',
+    '03 Working',
+    '04 Finals',
+    '05 Admin Notes',
+  ]);
+  assert.ok(createCalls.every((call) => call.url.includes('supportsAllDrives=true')));
+  assert.ok(createCalls.every((call) => call.body.mimeType === 'application/vnd.google-apps.folder'));
+
+  const permissionCall = calls.find((call) => call.url.includes('/permissions'));
+  assert.ok(permissionCall.url.includes('supportsAllDrives=true'));
+  assert.equal(permissionCall.body.emailAddress, 'buyer@example.com');
+  assert.equal(permissionCall.body.role, 'writer');
+});
+
+test('createDriveProjectFolders reuses existing folders by parent and name', async () => {
+  const calls = [];
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url: String(url), method: options.method, body: parseRequestBody(options.body) });
+    if (String(url).includes('oauth2.googleapis.com')) return jsonResponse({ access_token: 'access-token' });
+    if (String(url).includes('/permissions')) return jsonResponse({ id: 'permission-1' });
+    if (options.method === 'GET') return jsonResponse({ files: [{ id: 'existing-folder', webViewLink: 'https://drive.test/existing-folder' }] });
+    throw new Error('Create should not be called when matching folders already exist.');
+  };
+
+  const result = await createDriveProjectFolders({
+    projectCode: 'DCR-000123',
+    artistName: 'Dude McGee',
+    projectTitle: 'Song One',
+    customerEmail: 'buyer@example.com',
+  }, {
+    fetchImpl,
+    env: driveEnv(),
+  });
+
+  assert.equal(result.projectFolderId, 'existing-folder');
+  assert.equal(result.uploadFolderId, 'existing-folder');
+  assert.ok(calls.some((call) => call.method === 'GET' && call.url.includes('includeItemsFromAllDrives=true')));
+  assert.equal(calls.filter((call) => call.method === 'POST' && call.url.includes('/files?')).length, 0);
 });
 
 function driveEnv() {

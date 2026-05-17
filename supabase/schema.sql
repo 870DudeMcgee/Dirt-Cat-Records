@@ -38,7 +38,7 @@ create table if not exists public.project_files (
 
 alter table public.customers
   add column if not exists name text,
-  add column if not exists auth_user_id uuid unique;
+  add column if not exists auth_user_id uuid;
 
 alter table public.orders
   add column if not exists project_id uuid,
@@ -47,6 +47,17 @@ alter table public.orders
   add column if not exists amount_due_now numeric(10, 2),
   add column if not exists remaining_balance numeric(10, 2) not null default 0,
   add column if not exists order_summary jsonb not null default '{}'::jsonb;
+
+alter table public.orders
+  drop constraint if exists orders_payment_mode_check,
+  drop constraint if exists orders_amount_due_now_check,
+  drop constraint if exists orders_remaining_balance_check,
+  add constraint orders_payment_mode_check
+    check (payment_mode in ('full', 'deposit')),
+  add constraint orders_amount_due_now_check
+    check (amount_due_now is null or amount_due_now >= 0),
+  add constraint orders_remaining_balance_check
+    check (remaining_balance >= 0);
 
 create table if not exists public.projects (
   id uuid primary key default gen_random_uuid(),
@@ -139,7 +150,7 @@ create table if not exists public.payments (
   order_id uuid references public.orders(id) on delete set null,
   quote_id uuid,
   paypal_order_id text,
-  paypal_capture_id text not null unique,
+  paypal_capture_id text unique,
   payment_purpose text not null,
   status text not null,
   amount numeric(10, 2) not null,
@@ -179,7 +190,19 @@ create table if not exists public.quotes (
   constraint quotes_payment_mode_check
     check (payment_mode in ('full', 'deposit')),
   constraint quotes_song_count_check
-    check (song_count >= 1)
+    check (song_count >= 1),
+  constraint quotes_amounts_check
+    check (
+      catalog_total_cents >= 0
+      and final_total_cents >= 0
+      and final_total_cents = catalog_total_cents + adjustment_cents
+      and deposit_cents >= 0
+      and balance_cents >= 0
+      and (
+        (payment_mode = 'full' and deposit_cents = 0 and balance_cents = 0)
+        or (payment_mode = 'deposit' and deposit_cents > 0 and deposit_cents + balance_cents = final_total_cents)
+      )
+    )
 );
 
 create table if not exists public.quote_line_items (
@@ -262,14 +285,28 @@ create table if not exists public.followup_jobs (
 
 create index if not exists orders_customer_id_idx on public.orders(customer_id);
 create index if not exists project_files_order_id_idx on public.project_files(order_id);
-create index if not exists customers_auth_user_id_idx on public.customers(auth_user_id);
+create unique index if not exists customers_auth_user_id_unique_idx on public.customers(auth_user_id)
+  where auth_user_id is not null;
+create unique index if not exists orders_id_customer_id_uidx on public.orders(id, customer_id);
+create unique index if not exists projects_id_customer_id_uidx on public.projects(id, customer_id);
+create unique index if not exists quotes_id_project_id_uidx on public.quotes(id, project_id);
 create index if not exists projects_customer_id_idx on public.projects(customer_id);
+create index if not exists projects_order_id_idx on public.projects(order_id);
+create index if not exists projects_lead_id_idx on public.projects(lead_id);
+create index if not exists projects_active_quote_id_idx on public.projects(active_quote_id);
 create index if not exists projects_status_idx on public.projects(status);
 create index if not exists leads_customer_id_idx on public.leads(customer_id);
+create index if not exists leads_project_id_idx on public.leads(project_id);
+create index if not exists payments_customer_id_idx on public.payments(customer_id);
 create index if not exists payments_project_id_idx on public.payments(project_id);
+create index if not exists payments_order_id_idx on public.payments(order_id);
+create index if not exists payments_quote_id_idx on public.payments(quote_id);
 create index if not exists quotes_project_id_idx on public.quotes(project_id);
+create index if not exists quote_line_items_quote_id_idx on public.quote_line_items(quote_id);
 create index if not exists project_events_project_id_idx on public.project_events(project_id);
+create index if not exists revision_requests_project_id_idx on public.revision_requests(project_id);
 create index if not exists email_events_project_id_type_idx on public.email_events(project_id, email_type);
+create index if not exists followup_jobs_status_scheduled_for_idx on public.followup_jobs(status, scheduled_for);
 create unique index if not exists followup_jobs_unique_pending_idx
   on public.followup_jobs(project_id, followup_type, status)
   where status = 'pending';
@@ -278,6 +315,9 @@ alter table public.orders
   drop constraint if exists orders_project_id_fkey,
   add constraint orders_project_id_fkey
     foreign key (project_id) references public.projects(id) on delete set null;
+
+alter table public.payments
+  alter column paypal_capture_id drop not null;
 
 alter table public.projects
   drop constraint if exists projects_lead_id_fkey,
@@ -293,6 +333,46 @@ alter table public.payments
   drop constraint if exists payments_quote_id_fkey,
   add constraint payments_quote_id_fkey
     foreign key (quote_id) references public.quotes(id) on delete set null;
+
+alter table public.projects
+  drop constraint if exists projects_order_customer_match_fkey,
+  add constraint projects_order_customer_match_fkey
+    foreign key (order_id, customer_id) references public.orders(id, customer_id) on delete set null (order_id);
+
+alter table public.leads
+  drop constraint if exists leads_project_customer_match_fkey,
+  add constraint leads_project_customer_match_fkey
+    foreign key (project_id, customer_id) references public.projects(id, customer_id) on delete set null (project_id);
+
+alter table public.quotes
+  drop constraint if exists quotes_project_customer_match_fkey,
+  add constraint quotes_project_customer_match_fkey
+    foreign key (project_id, customer_id) references public.projects(id, customer_id) on delete cascade;
+
+alter table public.payments
+  drop constraint if exists payments_project_customer_match_fkey,
+  add constraint payments_project_customer_match_fkey
+    foreign key (project_id, customer_id) references public.projects(id, customer_id) on delete set null (project_id);
+
+alter table public.payments
+  drop constraint if exists payments_order_customer_match_fkey,
+  add constraint payments_order_customer_match_fkey
+    foreign key (order_id, customer_id) references public.orders(id, customer_id) on delete set null (order_id);
+
+alter table public.payments
+  drop constraint if exists payments_quote_project_match_fkey,
+  add constraint payments_quote_project_match_fkey
+    foreign key (quote_id, project_id) references public.quotes(id, project_id) on delete set null (quote_id);
+
+alter table public.revision_requests
+  drop constraint if exists revision_requests_project_customer_match_fkey,
+  add constraint revision_requests_project_customer_match_fkey
+    foreign key (project_id, customer_id) references public.projects(id, customer_id) on delete cascade;
+
+alter table public.followup_jobs
+  drop constraint if exists followup_jobs_project_customer_match_fkey,
+  add constraint followup_jobs_project_customer_match_fkey
+    foreign key (project_id, customer_id) references public.projects(id, customer_id) on delete cascade;
 
 alter table public.customers enable row level security;
 alter table public.orders enable row level security;

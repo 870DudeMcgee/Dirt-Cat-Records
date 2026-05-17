@@ -35,6 +35,34 @@ test('upsertCustomer posts by email conflict and returns the customer', async ()
   assert.equal(calls[0].body.name, 'Buyer Name');
 });
 
+test('upsertCustomer omits name when caller only knows the email', async () => {
+  const calls = [];
+  await upsertCustomer({
+    email: 'buyer@example.com',
+  }, {
+    env: { SUPABASE_URL: 'https://project.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service-key' },
+    fetchImpl: async (url, options) => {
+      calls.push({ url: String(url), body: JSON.parse(options.body) });
+      return jsonResponse([{ id: 'customer-1', email: 'buyer@example.com', name: 'Existing Name' }]);
+    },
+  });
+
+  assert.deepEqual(calls[0].body, { email: 'buyer@example.com' });
+});
+
+test('supabase errors parse non-json response text once', async () => {
+  const { supabaseRequest } = require('../lib/db/studio-records');
+
+  await assert.rejects(() => supabaseRequest('/customers', {
+    env: { SUPABASE_URL: 'https://project.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service-key' },
+    fetchImpl: async () => ({
+      ok: false,
+      status: 500,
+      async text() { return 'plain failure'; },
+    }),
+  }), /Supabase request failed: 500 plain failure/);
+});
+
 test('createProjectEvent stores timeline event metadata', async () => {
   const calls = [];
   await createProjectEvent({
@@ -60,7 +88,6 @@ function jsonResponse(body, status = 200) {
   return {
     ok: status >= 200 && status < 300,
     status,
-    async json() { return body; },
     async text() { return JSON.stringify(body); },
   };
 }
