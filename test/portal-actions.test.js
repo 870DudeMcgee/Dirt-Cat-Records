@@ -1,11 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createFileLinksHandler } = require('../api/portal/file-links');
-const { createRevisionsHandler } = require('../api/portal/revisions');
-const { createApprovalsHandler } = require('../api/portal/approvals');
+const { createPortalActionsHandler } = require('../api/portal/actions');
 
 test('portal file link endpoint rejects unauthenticated requests', async () => {
-  const handler = createFileLinksHandler({
+  const handler = createPortalActionsHandler({
     requireUserImpl: async () => {
       const error = new Error('Authentication required.');
       error.statusCode = 401;
@@ -13,13 +11,13 @@ test('portal file link endpoint rejects unauthenticated requests', async () => {
     },
   });
   const res = response();
-  await handler({ method: 'POST', headers: {}, body: '{}' }, res);
+  await handler({ method: 'POST', headers: {}, url: '/api/portal/actions?action=file-links', body: '{}' }, res);
   assert.equal(res.statusCode, 401);
 });
 
 test('portal file link endpoint stores external links for owned project', async () => {
   const calls = [];
-  const handler = createFileLinksHandler({
+  const handler = createPortalActionsHandler({
     requireUserImpl: async () => ({ email: 'buyer@example.com' }),
     records: {
       getCustomerByEmail: async () => ({ id: 'customer-1', email: 'buyer@example.com' }),
@@ -36,6 +34,7 @@ test('portal file link endpoint stores external links for owned project', async 
   await handler({
     method: 'POST',
     headers: {},
+    url: '/api/portal/actions?action=file-links',
     body: JSON.stringify({ projectId: 'project-1', url: 'https://drive.test/song' }),
   }, res);
 
@@ -47,7 +46,7 @@ test('portal file link endpoint stores external links for owned project', async 
 
 test('revision endpoint sends and logs admin notification', async () => {
   const calls = [];
-  const handler = createRevisionsHandler({
+  const handler = createPortalActionsHandler({
     requireUserImpl: async () => ({ email: 'buyer@example.com' }),
     env: { ADMIN_EMAIL: 'josh@example.com' },
     sendEmail: async (message) => { calls.push({ type: 'send', message }); return { id: 'email-1' }; },
@@ -58,6 +57,7 @@ test('revision endpoint sends and logs admin notification', async () => {
   await handler({
     method: 'POST',
     headers: {},
+    url: '/api/portal/actions?action=revisions',
     body: JSON.stringify({ projectId: 'project-1', notes: 'Bring the vocal up.' }),
   }, res);
 
@@ -68,7 +68,7 @@ test('revision endpoint sends and logs admin notification', async () => {
 
 test('approval endpoint sends and logs admin notification', async () => {
   const calls = [];
-  const handler = createApprovalsHandler({
+  const handler = createPortalActionsHandler({
     requireUserImpl: async () => ({ email: 'buyer@example.com' }),
     env: { ADMIN_EMAIL: 'josh@example.com' },
     sendEmail: async (message) => { calls.push({ type: 'send', message }); return { id: 'email-1' }; },
@@ -79,6 +79,7 @@ test('approval endpoint sends and logs admin notification', async () => {
   await handler({
     method: 'POST',
     headers: {},
+    url: '/api/portal/actions?action=approvals',
     body: JSON.stringify({ projectId: 'project-1' }),
   }, res);
 

@@ -25,7 +25,7 @@ async function initPortal() {
 
 async function renderProjects(accessToken) {
   currentAccessToken = accessToken;
-  const response = await fetch('/api/portal/projects', {
+  const response = await fetch('/api/portal/actions?action=projects', {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const body = await response.json();
@@ -82,14 +82,14 @@ function bindProjectActions(container) {
 
     if (event.target.classList.contains('portal-link-form')) {
       const url = new FormData(event.target).get('url');
-      await postPortalAction('/api/portal/file-links', { projectId, url });
+      await postPortalAction('/api/portal/actions?action=file-links', { projectId, url });
       event.target.reset();
       setPortalStatus('File link submitted.');
     }
 
     if (event.target.classList.contains('portal-revision-form')) {
       const notes = new FormData(event.target).get('notes');
-      await postPortalAction('/api/portal/revisions', { projectId, notes });
+      await postPortalAction('/api/portal/actions?action=revisions', { projectId, notes });
       event.target.reset();
       setPortalStatus('Revision request submitted.');
     }
@@ -100,7 +100,7 @@ function bindProjectActions(container) {
     const projectCard = event.target.closest('.portal-project');
     const projectId = projectCard?.dataset.projectId;
     if (!projectId) return;
-    await postPortalAction('/api/portal/approvals', { projectId });
+    await postPortalAction('/api/portal/actions?action=approvals', { projectId });
     setPortalStatus('Final approved.');
   });
 }
