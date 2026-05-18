@@ -21,7 +21,7 @@ function renderPaidSummary() {
 
   if (!summary.baseServiceLabel) {
     const message = document.createElement('p');
-    message.textContent = 'Order summary is unavailable. Keep your PayPal receipt and email Dirt Cat Records if you need help.';
+    message.textContent = 'Order summary is unavailable. Watch your email for portal instructions and keep your PayPal receipt if you need help.';
     container.replaceChildren(message);
     return;
   }
@@ -31,7 +31,9 @@ function renderPaidSummary() {
   appendSummaryRow(container, 'Songs', String(summary.songCount));
   appendSummaryRow(container, 'Payment mode', summary.paymentMode === 'deposit' ? '50% deposit' : 'Full payment');
   appendSummaryRow(container, 'Paid now', formatMoney(summary.amountDueNowCents));
-  appendSummaryRow(container, 'Remaining balance', formatMoney(summary.remainingBalanceCents));
+  if (Number(summary.remainingBalanceCents || 0) > 0) {
+    appendSummaryRow(container, 'Remaining balance', formatMoney(summary.remainingBalanceCents));
+  }
   appendSummaryRow(container, 'Project', customer.projectName || customer.songTitle || 'Not provided');
 }
 

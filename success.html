@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dirt Cat Records | Project Intake</title>
-  <meta name="description" content="Send project links and notes after paying for a Dirt Cat Records remote mixing or mastering service." />
+  <title>Dirt Cat Records | Payment Received</title>
+  <meta name="description" content="Payment received for a Dirt Cat Records remote mixing or mastering service. Watch your email for portal access and upload instructions." />
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
   <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
   <link rel="stylesheet" href="style.css" />
@@ -22,38 +22,31 @@
     <section class="checkout-hero">
       <img class="checkout-logo" src="assets/Dirt-Cat-Logo.PNG" alt="Dirt Cat Records logo" />
       <p class="hero-kicker">PAYMENT RECEIVED</p>
-      <h1>Send Your Project Files</h1>
-      <p>Send links and notes so the project can start cleanly. Use Drive, Dropbox, WeTransfer, or another private delivery link.</p>
+      <h1>Your Project Is Starting</h1>
+      <p>Watch your email for upload instructions and a project portal link. The portal is where project links, revisions, approvals, and delivery updates belong.</p>
     </section>
 
     <section class="checkout-layout">
-      <form id="intake-form" class="checkout-builder" action="mailto:870joshmclean@gmail.com?subject=Paid%20Project%20Intake" method="post" enctype="text/plain">
-        <fieldset class="checkout-panel">
-          <legend>Project Links</legend>
-          <label class="field-label" for="stem-link">Stem Delivery Link</label>
-          <input id="stem-link" name="Stem Link" type="url" required />
-
-          <label class="field-label" for="rough-link">Rough Mix Link</label>
-          <input id="rough-link" name="Rough Mix Link" type="url" required />
-
-          <label class="field-label" for="reference-tracks">Reference Tracks</label>
-          <textarea id="reference-tracks" name="Reference Tracks" rows="4" placeholder="Links or names of tracks that point toward the target sound."></textarea>
-
-          <label class="field-label" for="deadline">Target Deadline</label>
-          <input id="deadline" name="Deadline" type="text" placeholder="Optional, or note if there is a hard release date." />
-
-          <label class="field-label" for="mix-notes">Mix Notes</label>
-          <textarea id="mix-notes" name="Mix Notes" rows="7" required placeholder="What should the mix feel like? What already works? What needs attention?"></textarea>
-        </fieldset>
-
-        <button type="submit" class="btn btn-primary">Send Project Intake</button>
-      </form>
+      <section class="checkout-builder" aria-label="Next steps">
+        <div class="checkout-panel">
+          <h2>Next Steps</h2>
+          <ol class="next-steps-list">
+            <li>PayPal confirms the payment.</li>
+            <li>Dirt Cat Records creates your project record and upload folder.</li>
+            <li>You receive email instructions with your project portal link.</li>
+          </ol>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="portal.html">Open Project Portal</a>
+            <a class="btn btn-secondary" href="index.html#fat-footer">Contact Josh</a>
+          </div>
+        </div>
+      </section>
 
       <aside class="checkout-summary">
         <p class="checkout-summary-kicker">Paid Order</p>
         <h2>Your Order</h2>
         <div id="paid-summary" class="summary-lines"></div>
-        <p class="field-help secure-note">If this form fails, email these links and notes to 870joshmclean@gmail.com with your PayPal receipt.</p>
+        <p class="field-help secure-note">If your portal email does not arrive, keep your PayPal receipt and contact Josh from the main site.</p>
       </aside>
     </section>
   </main>

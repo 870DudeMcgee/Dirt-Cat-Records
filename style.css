@@ -1208,6 +1208,14 @@ footer {
   padding: 1.35rem;
 }
 
+.checkout-panel h2 {
+  margin: 0 0 1rem;
+  color: #fff;
+  font-size: 1.6rem;
+  line-height: 1.15;
+  text-shadow: none;
+}
+
 .checkout-panel legend {
   padding: 0 0.55rem;
   font-size: 0.86rem;
@@ -1216,6 +1224,21 @@ footer {
   text-transform: uppercase;
   color: #6bd9ff;
   text-shadow: 0 0 14px rgba(107, 217, 255, 0.74);
+}
+
+.next-steps-list {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0 0 1.4rem;
+  padding-left: 1.35rem;
+  color: rgba(238, 244, 255, 0.9);
+  line-height: 1.55;
+  font-weight: 700;
+}
+
+.next-steps-list li::marker {
+  color: #6bd9ff;
+  font-weight: 900;
 }
 
 .choice-grid {
