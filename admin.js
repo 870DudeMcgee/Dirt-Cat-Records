@@ -2,6 +2,7 @@
   let supabaseClient = null;
   let accessToken = null;
   let latestRunId = window.localStorage.getItem('dcr_latest_test_run_id') || null;
+  const PRODUCTION_ORIGIN = 'https://dirtcatrecords.com';
 
   document.addEventListener('DOMContentLoaded', initAdmin);
 
@@ -39,9 +40,17 @@
     const email = new FormData(event.target).get('email');
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: window.location.href },
+      options: { emailRedirectTo: getMagicLinkRedirectUrl() },
     });
     setStatus(error ? error.message : 'Check your email for the admin magic link.');
+  }
+
+  function getMagicLinkRedirectUrl() {
+    const { hostname, origin, pathname } = window.location;
+    if (/\.vercel\.app$/i.test(hostname)) {
+      return `${PRODUCTION_ORIGIN}${pathname}`;
+    }
+    return `${origin}${pathname}`;
   }
 
   async function loadSetup() {

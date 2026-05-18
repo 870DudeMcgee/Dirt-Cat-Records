@@ -1,5 +1,6 @@
 let supabaseClient;
 let currentAccessToken;
+const PRODUCTION_ORIGIN = 'https://dirtcatrecords.com';
 
 async function initPortal() {
   const configResponse = await fetch('/api/public/config');
@@ -17,10 +18,18 @@ async function initPortal() {
     const email = new FormData(form).get('email');
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: window.location.href },
+      options: { emailRedirectTo: getMagicLinkRedirectUrl() },
     });
     setPortalStatus(error ? error.message : 'Check your email for the magic link.');
   });
+}
+
+function getMagicLinkRedirectUrl() {
+  const { hostname, origin, pathname } = window.location;
+  if (/\.vercel\.app$/i.test(hostname)) {
+    return `${PRODUCTION_ORIGIN}${pathname}`;
+  }
+  return `${origin}${pathname}`;
 }
 
 async function renderProjects(accessToken) {
