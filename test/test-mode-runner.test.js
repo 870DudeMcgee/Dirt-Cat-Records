@@ -27,6 +27,23 @@ test('runAutomationTest rejects unsupported modes', async () => {
   await assert.rejects(() => runAutomationTest({ mode: 'live' }), /Unsupported automation test mode/);
 });
 
+test('runAutomationTest tolerates missing test run storage during first-time setup', async () => {
+  const result = await runAutomationTest({
+    mode: 'simulation',
+    env: { ADMIN_EMAIL: 'josh@example.com', SITE_URL: 'https://dirtcatrecords.com' },
+    records: {
+      createAutomationTestRun: async () => {
+        throw new Error("Supabase request failed: 404 Could not find the table 'public.automation_test_runs' in the schema cache");
+      },
+      updateAutomationTestRun: async () => {
+        throw new Error("Supabase request failed: 404 Could not find the table 'public.automation_test_runs' in the schema cache");
+      },
+    },
+  });
+
+  assert.equal(result.report.status, 'passed');
+});
+
 test('runAutomationTest sandbox creates marked artifacts through real adapters', async () => {
   const calls = [];
   const result = await runAutomationTest({

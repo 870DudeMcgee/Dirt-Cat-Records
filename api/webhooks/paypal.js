@@ -1,3 +1,4 @@
+const { ensureRuntimeEnv } = require('../../lib/env/runtime');
 const {
   parseCompletedPaymentEvent,
   verifyPayPalWebhookSignature,
@@ -5,6 +6,8 @@ const {
 const {
   createPaidProjectWorkflow,
 } = require('../../lib/automation/studio-workflow');
+
+ensureRuntimeEnv();
 
 const MAX_WEBHOOK_BODY_BYTES = 64 * 1024;
 

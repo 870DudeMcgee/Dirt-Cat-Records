@@ -1,6 +1,9 @@
+const { ensureRuntimeEnv } = require('../../lib/env/runtime');
 const { requireAdmin } = require('../../lib/auth/supabase-auth');
 const { methodNotAllowed, readJsonBody, sendJson } = require('../../lib/http/json');
 const recordsDefault = require('../../lib/db/studio-records');
+
+ensureRuntimeEnv();
 
 function createSetupWizardHandler(dependencies = {}) {
   const requireAdminImpl = dependencies.requireAdminImpl || requireAdmin;
@@ -37,13 +40,26 @@ async function handleTestRuns({ req, res, dependencies, records, env }) {
   if (req.method === 'GET') {
     const testRunId = getQueryValue(req, 'testRunId');
     if (testRunId) {
-      const run = await records.getAutomationTestRun(testRunId);
+      let run;
+      try {
+        run = await records.getAutomationTestRun(testRunId);
+      } catch (error) {
+        if (isMissingAutomationTestRunsError(error)) {
+          return sendJson(res, 404, { error: 'Test run storage is not set up yet.' });
+        }
+        throw error;
+      }
       if (!run) return sendJson(res, 404, { error: 'Test run not found.' });
       return sendJson(res, 200, { run });
     }
-    const runs = typeof records.listAutomationTestRuns === 'function'
-      ? await records.listAutomationTestRuns({ limit: '20' })
-      : [];
+    let runs = [];
+    if (typeof records.listAutomationTestRuns === 'function') {
+      try {
+        runs = await records.listAutomationTestRuns({ limit: '20' });
+      } catch (error) {
+        if (!isMissingAutomationTestRunsError(error)) throw error;
+      }
+    }
     return sendJson(res, 200, { runs });
   }
 
@@ -85,6 +101,10 @@ function getRunAutomationTest() {
 
 function getCleanupAutomationTestRun() {
   return require('../../lib/automation/test-cleanup').cleanupAutomationTestRun;
+}
+
+function isMissingAutomationTestRunsError(error) {
+  return /automation_test_runs/i.test(error?.message || '');
 }
 
 const handler = createSetupWizardHandler();

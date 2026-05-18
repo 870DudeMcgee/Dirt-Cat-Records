@@ -76,6 +76,23 @@ test('test-runs endpoint returns stored run detail for admin', async () => {
   assert.equal(res.body.run.id, 'run-1');
 });
 
+test('test-runs endpoint tolerates missing test run storage during setup', async () => {
+  const handler = createSetupWizardHandler({
+    requireAdminImpl: async () => ({ email: 'josh@example.com' }),
+    records: {
+      listAutomationTestRuns: async () => {
+        throw new Error("Supabase request failed: 404 Could not find the table 'public.automation_test_runs' in the schema cache");
+      },
+    },
+  });
+  const res = response();
+
+  await handler({ method: 'GET', headers: {}, url: '/api/admin/setup-wizard?action=test-runs' }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.body.runs, []);
+});
+
 function response() {
   return {
     statusCode: 0,

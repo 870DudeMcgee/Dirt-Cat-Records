@@ -1,7 +1,10 @@
+const { ensureRuntimeEnv } = require('../../lib/env/runtime');
 const { requireUser } = require('../../lib/auth/supabase-auth');
 const { methodNotAllowed, readJsonBody, sendJson } = require('../../lib/http/json');
 const recordsDefault = require('../../lib/db/studio-records');
 const { sendStudioEmail } = require('../../lib/email/resend');
+
+ensureRuntimeEnv();
 
 function createPortalActionsHandler(dependencies = {}) {
   const requireUserImpl = dependencies.requireUserImpl || requireUser;

@@ -139,17 +139,20 @@ test('create order route returns 413 for oversized JSON bodies', async () => {
 test('checkout config exposes client id but never client secret', () => {
   const originalClientId = process.env.PAYPAL_CLIENT_ID;
   const originalSecret = process.env.PAYPAL_CLIENT_SECRET;
+  const originalBypass = process.env.ALLOW_LOCAL_ADMIN_BYPASS;
   try {
     process.env.PAYPAL_CLIENT_ID = 'public-client-id';
     process.env.PAYPAL_CLIENT_SECRET = 'server-secret';
+    process.env.ALLOW_LOCAL_ADMIN_BYPASS = '1';
 
     const response = createMockResponse();
-    checkoutConfigRoute({ method: 'GET' }, response);
+    checkoutConfigRoute({ method: 'GET', headers: { host: 'localhost:3000' } }, response);
 
     assert.equal(response.statusCode, 200);
     assert.deepEqual(response.body, {
       paypalClientId: 'public-client-id',
       currency: 'USD',
+      localTestCheckoutEnabled: true,
     });
     assert.equal(JSON.stringify(response.body).includes('server-secret'), false);
   } finally {
@@ -163,6 +166,12 @@ test('checkout config exposes client id but never client secret', () => {
       delete process.env.PAYPAL_CLIENT_SECRET;
     } else {
       process.env.PAYPAL_CLIENT_SECRET = originalSecret;
+    }
+
+    if (originalBypass === undefined) {
+      delete process.env.ALLOW_LOCAL_ADMIN_BYPASS;
+    } else {
+      process.env.ALLOW_LOCAL_ADMIN_BYPASS = originalBypass;
     }
   }
 });

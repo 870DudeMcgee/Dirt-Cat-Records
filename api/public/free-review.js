@@ -1,6 +1,9 @@
+const { ensureRuntimeEnv } = require('../../lib/env/runtime');
 const { methodNotAllowed, readJsonBody, sendJson } = require('../../lib/http/json');
 const { normalizeEmail } = require('../../lib/db/studio-records');
 const { createFreeReviewWorkflow } = require('../../lib/automation/studio-workflow');
+
+ensureRuntimeEnv();
 
 const DEFAULT_RATE_LIMIT_MS = 15 * 60 * 1000;
 const DEFAULT_RATE_STORE = new Map();

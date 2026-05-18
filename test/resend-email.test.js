@@ -20,6 +20,16 @@ test('getResendConfig requires server credentials', () => {
   assert.throws(() => getResendConfig({}), /Resend is not configured/);
 });
 
+test('getResendConfig falls back to ADMIN_EMAIL for reply-to', () => {
+  const config = getResendConfig({
+    RESEND_API_KEY: 'resend-key',
+    RESEND_FROM_EMAIL: 'Dirt Cat Records <studio@example.com>',
+    ADMIN_EMAIL: 'josh@example.com',
+  });
+
+  assert.equal(config.replyTo, 'josh@example.com');
+});
+
 test('sendStudioEmail posts to Resend API', async () => {
   const calls = [];
   const result = await sendStudioEmail({

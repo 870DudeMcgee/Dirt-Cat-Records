@@ -85,6 +85,8 @@ const checkoutState = {
   paymentMode: 'full',
 };
 
+let checkoutConfigPromise = null;
+
 function formatMoney(cents) {
   return `$${(Number(cents || 0) / 100).toFixed(2)}`;
 }
@@ -259,14 +261,66 @@ function getCheckoutPayload() {
   };
 }
 
+function buildClientOrderSummary() {
+  const estimate = calculateClientEstimate();
+  return {
+    baseServiceId: estimate.service.id,
+    baseServiceLabel: estimate.service.label,
+    songCount: estimate.songCount,
+    serviceSubtotalCents: estimate.serviceSubtotalCents,
+    discountEligible: !estimate.service.depositOnly,
+    discountPercent: estimate.discountPercent,
+    discountCents: estimate.discountCents,
+    discountedServiceSubtotalCents: estimate.serviceSubtotalCents - estimate.discountCents,
+    addOnLineItems: estimate.addOnLines.map((line) => ({
+      id: line.id,
+      label: line.label,
+      billing: line.billing,
+      quantity: line.quantity,
+      billedUnits: line.billedUnits,
+      unitPriceCents: line.billedUnits ? Math.round(line.totalCents / line.billedUnits) : 0,
+      totalCents: line.totalCents,
+    })),
+    addOnSubtotalCents: estimate.addOnSubtotalCents,
+    totalCents: estimate.totalCents,
+    depositAllowed: estimate.depositAllowed,
+    paymentMode: checkoutState.paymentMode,
+    amountDueNowCents: 0,
+    remainingBalanceCents: estimate.totalCents,
+    testMode: 'no_charge_local',
+  };
+}
+
+function normalizeOptionalReferenceLink() {
+  const input = document.getElementById('reference-link');
+  if (!input) return;
+  const value = input.value.trim();
+  if (!value || /^[a-z][a-z\d+.-]*:/i.test(value)) return;
+  input.value = `https://${value}`;
+}
+
 function assertFormReady() {
   const form = document.getElementById('checkout-form');
   const error = document.getElementById('checkout-error');
+  normalizeOptionalReferenceLink();
   if (!form.reportValidity()) {
     error.textContent = 'Please complete the required checkout details before payment.';
     throw new Error('Checkout form is incomplete.');
   }
   error.textContent = '';
+}
+
+function getCheckoutConfig() {
+  if (!checkoutConfigPromise) {
+    checkoutConfigPromise = fetch('/api/checkout-config').then(async (response) => {
+      const config = await response.json();
+      if (!response.ok) {
+        throw new Error(config.error || 'Checkout configuration is unavailable.');
+      }
+      return config;
+    });
+  }
+  return checkoutConfigPromise;
 }
 
 function loadScript(src) {
@@ -281,11 +335,7 @@ function loadScript(src) {
 }
 
 async function loadPayPalSdk() {
-  const response = await fetch('/api/checkout-config');
-  const config = await response.json();
-  if (!response.ok) {
-    throw new Error(config.error || 'Checkout configuration is unavailable.');
-  }
+  const config = await getCheckoutConfig();
 
   const params = new URLSearchParams({
     'client-id': config.paypalClientId,
@@ -354,6 +404,31 @@ async function renderPayPalButtons() {
   }).render('#paypal-button-container');
 }
 
+function renderLocalTestCheckout(config) {
+  const container = document.getElementById('test-checkout-container');
+  if (!container) return;
+  if (!config.localTestCheckoutEnabled) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = '<button type="button" class="btn btn-secondary" id="run-no-charge-test">Run No-Charge Test</button><p class="field-help">Local only. Skips PayPal and verifies the success flow without charging money.</p>';
+  document.getElementById('run-no-charge-test')?.addEventListener('click', () => {
+    try {
+      assertFormReady();
+      sessionStorage.setItem('dirtCatPaidOrder', JSON.stringify({
+        status: 'TEST_COMPLETED',
+        paypalOrderId: 'TEST-NO-CHARGE',
+        orderSummary: buildClientOrderSummary(),
+        customer: getCustomerPayload(),
+      }));
+      window.location.href = 'success.html';
+    } catch (error) {
+      document.getElementById('checkout-error').textContent = error.message || 'Unable to run no-charge test checkout.';
+    }
+  });
+}
+
 function wireEvents() {
   document.getElementById('service-options').addEventListener('change', (event) => {
     if (event.target.name !== 'baseServiceId') return;
@@ -402,6 +477,8 @@ async function bootstrapCheckout() {
   wireEvents();
 
   try {
+    const config = await getCheckoutConfig();
+    renderLocalTestCheckout(config);
     await renderPayPalButtons();
   } catch (error) {
     document.getElementById('paypal-button-container').innerHTML = '';

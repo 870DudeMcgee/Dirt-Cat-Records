@@ -1,9 +1,12 @@
+const { ensureRuntimeEnv } = require('../lib/env/runtime');
 const {
   calculateOrder,
 } = require('../lib/checkout/pricing');
 const {
   _private: paypalOrderHelpers,
 } = require('./create-paypal-order');
+
+ensureRuntimeEnv();
 
 function createPaypalCaptureHandler(dependencies = {}) {
   const fetchImpl = dependencies.fetch || globalThis.fetch;

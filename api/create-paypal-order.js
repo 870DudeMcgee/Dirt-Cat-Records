@@ -1,3 +1,4 @@
+const { ensureRuntimeEnv } = require('../lib/env/runtime');
 const {
   calculateOrder,
   centsToDollars,
@@ -6,6 +7,8 @@ const {
   buildOrderMetadata,
   parseOrderMetadata,
 } = require('../lib/paypal/order-metadata');
+
+ensureRuntimeEnv();
 
 const PAYPAL_BASE_URLS = Object.freeze({
   sandbox: 'https://api-m.sandbox.paypal.com',

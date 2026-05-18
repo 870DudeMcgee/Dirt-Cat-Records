@@ -10,6 +10,7 @@ Required Vercel environment variables:
 - `PAYPAL_CLIENT_ID`
 - `PAYPAL_CLIENT_SECRET`
 - `PAYPAL_ENV` set to `sandbox` or `live`
+- `PAYPAL_WEBHOOK_ID`
 
 Safety caveat: `PAYPAL_CLIENT_SECRET` must never be committed, exposed to browser/static JavaScript, or stored in client-visible environment variables. Keep it only in server-side Vercel environment variables.
 
@@ -23,7 +24,7 @@ npm run check:js
 Local Vercel runtime:
 
 ```bash
-npm run dev
+npx vercel dev
 ```
 
-This runs `npx vercel dev`, which downloads and runs the Vercel CLI if it is not already available.
+Do not wrap `vercel dev` inside the `dev` npm script. Vercel treats a `dev` script as the project development command, which causes a recursive startup loop if that script also runs `vercel dev`.

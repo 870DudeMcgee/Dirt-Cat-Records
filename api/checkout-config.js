@@ -1,3 +1,8 @@
+const { ensureRuntimeEnv } = require('../lib/env/runtime');
+const { isLocalAdminBypassAllowed } = require('../lib/auth/supabase-auth');
+
+ensureRuntimeEnv();
+
 function handler(req, res) {
   setJsonHeaders(res);
 
@@ -12,6 +17,7 @@ function handler(req, res) {
   return res.status(200).json({
     paypalClientId: process.env.PAYPAL_CLIENT_ID,
     currency: 'USD',
+    localTestCheckoutEnabled: isLocalAdminBypassAllowed(req, process.env),
   });
 }
 
