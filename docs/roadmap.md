@@ -27,12 +27,12 @@ Goal: after payment, customers should follow the automated portal/email workflow
 
 Goal: customers should see clear next steps and only the actions that apply to the current project state.
 
-- [ ] Add status labels and next-step copy.
-- [ ] Hide final approval until final delivery is ready.
-- [ ] Show revision availability and used/included revision counts.
-- [ ] Show balance due and delivery-lock state.
-- [ ] Add a useful empty state when no projects are found.
-- [ ] Improve portal action error handling.
+- [x] Add status labels and next-step copy.
+- [x] Hide final approval until final delivery is ready.
+- [x] Show revision availability and used/included revision counts.
+- [x] Show balance due and delivery-lock state.
+- [x] Add a useful empty state when no projects are found.
+- [x] Improve portal action error handling.
 
 ## Stage 3: Build Josh's Operational Admin Dashboard
 

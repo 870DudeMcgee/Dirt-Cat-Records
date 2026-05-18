@@ -1,6 +1,7 @@
 let supabaseClient;
 let currentAccessToken;
 const PRODUCTION_ORIGIN = 'https://dirtcatrecords.com';
+const portalView = window.PortalView;
 
 async function initPortal() {
   const configResponse = await fetch('/api/public/config');
@@ -45,41 +46,10 @@ async function renderProjects(accessToken) {
   document.getElementById('portal-login').hidden = true;
   const container = document.getElementById('portal-projects');
   container.hidden = false;
-  container.innerHTML = body.projects.map(renderProjectCard).join('');
+  container.innerHTML = body.projects.length
+    ? body.projects.map((project) => portalView.renderProjectCard(portalView.buildPortalProjectView(project))).join('')
+    : portalView.renderEmptyProjects();
   bindProjectActions(container);
-}
-
-function renderProjectCard(project) {
-  const finalUnlocked = project.final_delivery_url && project.final_delivery_locked === false;
-  const uploadFolderUrl = safeHttpUrl(project.drive_upload_folder_url);
-  const finalDeliveryUrl = safeHttpUrl(project.final_delivery_url);
-  return `
-    <article class="portal-project" data-project-id="${escapeHtml(project.id)}">
-      <h2>${escapeHtml(project.project_title || 'Untitled Project')}</h2>
-      <p>Status: ${escapeHtml(project.status)}</p>
-      ${uploadFolderUrl ? `<a class="btn" href="${escapeHtml(uploadFolderUrl)}" target="_blank" rel="noreferrer">Open Upload Folder</a>` : ''}
-      <form class="portal-link-form">
-        <input type="url" name="url" placeholder="Paste Drive, Dropbox, or WeTransfer link" required>
-        <button class="btn" type="submit">Submit Link</button>
-      </form>
-      <form class="portal-revision-form">
-        <textarea name="notes" placeholder="Revision notes"></textarea>
-        <button class="btn" type="submit">Request Revision</button>
-      </form>
-      ${finalUnlocked && finalDeliveryUrl ? `<a class="btn" href="${escapeHtml(finalDeliveryUrl)}" target="_blank" rel="noreferrer">Open Final Files</a>` : ''}
-      <button class="btn portal-approve-button" type="button">Approve Final</button>
-    </article>
-  `;
-}
-
-function safeHttpUrl(value) {
-  if (!value || typeof value !== 'string') return null;
-  try {
-    const url = new URL(value);
-    return ['http:', 'https:'].includes(url.protocol) ? url.toString() : null;
-  } catch (_error) {
-    return null;
-  }
 }
 
 function bindProjectActions(container) {
@@ -91,16 +61,24 @@ function bindProjectActions(container) {
 
     if (event.target.classList.contains('portal-link-form')) {
       const url = new FormData(event.target).get('url');
-      await postPortalAction('/api/portal/actions?action=file-links', { projectId, url });
-      event.target.reset();
-      setPortalStatus('File link submitted.');
+      try {
+        await postPortalAction('/api/portal/actions?action=file-links', { projectId, url });
+        event.target.reset();
+        setPortalStatus('File link submitted.');
+      } catch (error) {
+        setPortalStatus(error.message || 'Unable to submit file link.');
+      }
     }
 
     if (event.target.classList.contains('portal-revision-form')) {
       const notes = new FormData(event.target).get('notes');
-      await postPortalAction('/api/portal/actions?action=revisions', { projectId, notes });
-      event.target.reset();
-      setPortalStatus('Revision request submitted.');
+      try {
+        await postPortalAction('/api/portal/actions?action=revisions', { projectId, notes });
+        event.target.reset();
+        setPortalStatus('Revision request submitted.');
+      } catch (error) {
+        setPortalStatus(error.message || 'Unable to submit revision request.');
+      }
     }
   });
 
@@ -109,8 +87,12 @@ function bindProjectActions(container) {
     const projectCard = event.target.closest('.portal-project');
     const projectId = projectCard?.dataset.projectId;
     if (!projectId) return;
-    await postPortalAction('/api/portal/actions?action=approvals', { projectId });
-    setPortalStatus('Final approved.');
+    try {
+      await postPortalAction('/api/portal/actions?action=approvals', { projectId });
+      setPortalStatus('Final approved.');
+    } catch (error) {
+      setPortalStatus(error.message || 'Unable to approve final delivery.');
+    }
   });
 }
 
@@ -130,16 +112,6 @@ async function postPortalAction(path, payload) {
 
 function setPortalStatus(message) {
   document.getElementById('portal-status').textContent = message;
-}
-
-function escapeHtml(value) {
-  return String(value || '').replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
-  }[char]));
 }
 
 initPortal().catch((error) => setPortalStatus(error.message || 'Unable to load portal.'));

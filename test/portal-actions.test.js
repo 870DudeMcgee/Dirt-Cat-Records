@@ -44,6 +44,32 @@ test('portal file link endpoint stores external links for owned project', async 
   assert.equal(calls.find((call) => call.type === 'email').event.status, 'sent');
 });
 
+test('portal projects endpoint requests fields needed by the customer portal', async () => {
+  const calls = [];
+  const handler = createPortalActionsHandler({
+    requireUserImpl: async () => ({ email: 'buyer@example.com' }),
+    records: {
+      normalizeEmail: (email) => email.toLowerCase(),
+      supabaseRequest: async (path, options) => {
+        calls.push({ path, options });
+        if (path === '/customers') return [{ id: 'customer-1', email: 'buyer@example.com' }];
+        return [];
+      },
+    },
+  });
+
+  const res = response();
+  await handler({ method: 'GET', headers: {}, url: '/api/portal/actions?action=projects' }, res);
+
+  assert.equal(res.statusCode, 200);
+  const projectSelect = calls.find((call) => call.path === '/projects').options.query.select;
+  assert.match(projectSelect, /included_revisions/);
+  assert.match(projectSelect, /used_revisions/);
+  assert.match(projectSelect, /extra_revisions_allowed/);
+  assert.match(projectSelect, /balance_due/);
+  assert.match(projectSelect, /amount_paid/);
+});
+
 test('revision endpoint sends and logs admin notification', async () => {
   const calls = [];
   const handler = createPortalActionsHandler({

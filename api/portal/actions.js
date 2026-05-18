@@ -40,7 +40,7 @@ async function handleProjects({ req, res, records, user }) {
     const projects = await records.supabaseRequest('/projects', {
       query: {
         customer_id: `eq.${customers[0].id}`,
-        select: 'id,project_code,project_type,status,artist_name,project_title,drive_upload_folder_url,final_delivery_url,balance_due,final_delivery_locked',
+        select: 'id,project_code,project_type,status,artist_name,project_title,drive_upload_folder_url,final_delivery_url,balance_due,amount_paid,final_delivery_locked,included_revisions,used_revisions,extra_revisions_allowed',
         order: 'created_at.desc',
       },
     });
