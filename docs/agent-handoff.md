@@ -7,8 +7,8 @@ This file is the working handoff for continuing Dirt Cat Records development aft
 - Working repo: `/Users/jewelbait/Desktop/DirtCatRecords`
 - Remote: `https://github.com/870DudeMcgee/Dirt-Cat-Records.git`
 - Branch: `main`
-- Latest pushed commit: `b0c30db feat: complete admin extra revision allowance action and sync docs (Stage 3 done, 143 tests pass)`
-- Local git status at handoff update time: dirty with active Stage 4 quote slice changes.
+- Latest pushed commit: `082a0db feat: complete Stage 4 quote workflow end-to-end`
+- Local git status at handoff update time: dirty with active Stage 5 completion work plus architecture-alignment docs and module seams.
 - Commit email used for pushed work: `Josh Mclean <870DudeMcgee@users.noreply.github.com>`
 
 Older local copies were archived under:
@@ -22,7 +22,7 @@ Do not use the archived folders for new work.
 1. Work only in `/Users/jewelbait/Desktop/DirtCatRecords`.
 2. Start by reading `docs/roadmap.md` and this file.
 3. Confirm `git status -sb` still shows the expected modified files on `main...origin/main` before continuing.
-4. Stage 4 is complete. Continue with Stage 5: balance payments and delivery locks.
+4. Stages 4 and 5 are complete. Next focus is Stage 6 follow-up automation.
 5. Use TDD. Existing tests use Node's built-in runner, and server/browser JS files must be added to `npm run check:js`.
 6. Before finishing a slice, run `npm test`, `npm run check:js`, and `git diff --check`.
 
@@ -174,6 +174,26 @@ Done in the remaining Stage 4 slices:
 - Extended `lib/automation/studio-workflow.js` to convert quoted projects correctly after quote payment confirmation.
 - Added quote completion coverage in `test/portal-accept-quote-api.test.js`, `test/paypal-api.test.js`, `test/paypal-webhook.test.js`, `test/studio-workflow.test.js`, `test/portal-view.test.js`, `test/portal-actions.test.js`, and `test/studio-records.test.js`.
 
+Done in the current Stage 5 slices:
+
+- Added `api/portal/pay-balance.js` with authenticated owner checks and balance payment checkout creation.
+- Added portal balance UI action wiring in `portal-view.js` and `portal.js`.
+- Extended `lib/paypal/order-metadata.js` and `lib/paypal/webhook.js` for balance payment metadata parsing.
+- Extended `lib/automation/studio-workflow.js` to apply balance payments to existing projects and unlock final delivery when paid in full.
+- Added/expanded focused coverage in `test/portal-balance-payment-api.test.js`, `test/portal-view.test.js`, `test/paypal-api.test.js`, `test/paypal-webhook.test.js`, and `test/studio-workflow.test.js`.
+- Completed admin finals-ready balance-due notification flow in `api/admin/projects.js`, `lib/db/studio-records.js`, and `admin.js`.
+- Added Stage 5 admin coverage in `test/admin-project-detail-api.test.js` for finals-ready balance-due email behavior.
+
+Done in the architecture-alignment slice:
+
+- Added `CONTEXT.md` as domain and module source-of-truth.
+- Added ADRs under `docs/adr/` for metadata versioning, payment routing, delivery lock rules, and portal validation strategy.
+- Added `lib/paypal/payment-router.js` for purpose dispatch.
+- Added `lib/paypal/client-factory.js` for shared PayPal client configuration.
+- Added `lib/automation/balance-payment-handler.js`, `lib/automation/delivery-lock.js`, and `lib/automation/workflow-recorder.js` for deeper payment/workflow seams.
+- Added `lib/portal/action-rules.js` and `lib/portal/balance-payment-validator.js` for shared portal action logic and server-side validation.
+- Added focused architecture tests: `test/payment-router.test.js`, `test/paypal-client-factory.test.js`, `test/portal-action-rules.test.js`, `test/balance-payment-validator.test.js`, and `test/balance-payment-e2e.test.js`.
+
 ## Verification Evidence
 
 Current verified commands in this workspace:
@@ -222,8 +242,8 @@ git diff --check
 
 Last observed `npm test` result in this workspace:
 
-- 160 tests
-- 160 pass
+- 178 tests
+- 178 pass
 - 0 fail
 
 Focused checks that passed during the extra revision slice:
@@ -290,8 +310,16 @@ git diff --check
 - `api/admin/projects.js` now supports read-only detail, admin status updates, private note creation, final delivery updates, and extra revision allowance.
 - `api/admin/quotes.js` now supports `action=create` and `action=send` for owner-only quote workflows.
 - `api/portal/accept-quote.js` starts quote checkout for authenticated project owners and returns PayPal approval URLs.
+- `api/portal/pay-balance.js` starts balance checkout for authenticated project owners and returns PayPal approval URLs.
 - Quote payment metadata now supports checkout and quote payments in `lib/paypal/order-metadata.js`.
 - Quote payment confirmations in `lib/automation/studio-workflow.js` now mark quotes accepted and convert projects into paid state.
+- Balance payment metadata now supports checkout, quote, and balance flows in `lib/paypal/order-metadata.js`.
+- Balance payment confirmations in `lib/automation/studio-workflow.js` now update project financials and unlock final delivery when the project reaches paid-in-full.
+- Payment-purpose routing is centralized in `lib/paypal/payment-router.js` and used by webhook parsing and paid workflow orchestration.
+- PayPal client configuration is centralized in `lib/paypal/client-factory.js`.
+- Delivery lock semantics are centralized in `lib/automation/delivery-lock.js` and consumed by balance payment handling.
+- Portal action and validation semantics are centralized in `lib/portal/action-rules.js` and `lib/portal/balance-payment-validator.js`.
+- Architecture decisions and domain language now live in `CONTEXT.md` and `docs/adr/*.md`.
 - `admin.js` renders a same-page project detail panel from priority queue `View` buttons and allows owner-only status changes, private notes, final delivery actions, and extra revision allowance from that panel.
 - `getAdminProjectDetail` includes project files linked by `project_id`, and also legacy files linked by `order_id` when the project has an order.
 - `getAdminProjectDetail` now also includes private admin notes from `admin_notes`.
@@ -303,9 +331,9 @@ git diff --check
 
 Suggested next work:
 
-1. Add a balance payment endpoint and portal balance payment action.
-2. Extend PayPal metadata/webhook behavior for balance payments.
-3. Keep final delivery locked until the balance is paid, then unlock on full payment.
+1. Start Stage 6 follow-up selector logic and queue model.
+2. Add protected cron route for follow-up execution.
+3. Run browser visual verification for recent admin/portal balance workflow updates.
 
 Recommended TDD pattern:
 
@@ -319,17 +347,18 @@ Recommended TDD pattern:
 
 - `portal-view.js`
 - `portal.js`
-- `api/portal/accept-quote.js`
-- `api/create-paypal-order.js`
-- `api/webhooks/paypal.js`
-- `api/portal/actions.js`
-- `lib/paypal/order-metadata.js`
-- `lib/automation/studio-workflow.js`
+- `admin.js`
+- `api/admin/projects.js`
+- `api/admin/overview.js`
+- `CONTEXT.md`
+- `docs/adr/0001-paypal-metadata-versioning.md`
+- `docs/adr/0002-payment-purpose-routing.md`
+- `docs/adr/0003-delivery-lock-and-balance-gating.md`
+- `docs/adr/0004-portal-action-validation.md`
 - `lib/db/studio-records.js`
-- `test/portal-actions.test.js`
-- `test/portal-accept-quote-api.test.js`
-- `test/paypal-api.test.js`
-- `test/paypal-webhook.test.js`
+- `lib/automation/studio-workflow.js`
+- `style.css`
+- `test/admin-overview-api.test.js`
 - `docs/roadmap.md`
 
 ## Known Follow-Up Decisions

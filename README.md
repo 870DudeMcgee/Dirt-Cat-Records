@@ -16,19 +16,32 @@ Older local copies were archived outside this repo and should not be used for ne
 
 The staged task list lives in [`docs/roadmap.md`](docs/roadmap.md).
 
-The current priority is Stage 5: balance payments and delivery locks.
+The current priority is Stage 6: follow-up automation for missing files, pending quotes, unpaid balances, and final approval.
+
+Architecture source-of-truth docs:
+
+- `CONTEXT.md`
+- `docs/adr/0001-paypal-metadata-versioning.md`
+- `docs/adr/0002-payment-purpose-routing.md`
+- `docs/adr/0003-delivery-lock-and-balance-gating.md`
+- `docs/adr/0004-portal-action-validation.md`
 
 ## Runtime Overview
 
 - `index.html`, `style.css`, and `spells.js` render the public marketing site and free mix review form.
 - `checkout.html` and `checkout.js` build PayPal checkout orders through Vercel Functions.
 - `success.html` and `success.js` show the post-payment order summary and portal/email-first next steps.
-- `portal.html` and `portal.js` provide Supabase magic-link customer access, including quote cards and quote checkout start actions.
+- `portal.html` and `portal.js` provide Supabase magic-link customer access, including quote cards, quote checkout, and balance payment start actions.
 - `admin.html` and `admin.js` provide the owner operations dashboard, priority queue, project detail with status updates, private admin notes, final delivery controls, and extra revision actions, plus setup checks, sandbox test runs, and cleanup tools.
 - `api/admin/quotes.js` provides protected admin quote draft and send actions.
 - `api/portal/accept-quote.js` starts authenticated quote checkout from the portal.
+- `api/portal/pay-balance.js` starts authenticated balance checkout from the portal.
 - `api/` contains Vercel Functions.
-- `lib/` contains PayPal, Supabase, Google Drive, Resend, auth, pricing, and automation helpers.
+- `lib/` contains PayPal, Supabase, Google Drive, Resend, auth, pricing, automation, and shared portal-rule helpers.
+- `api/webhooks/paypal.js` and `lib/automation/studio-workflow.js` now process checkout, quote, and balance payments, including unlocking final delivery after full balance payment.
+- `lib/paypal/client-factory.js` centralizes PayPal client setup.
+- `lib/paypal/payment-router.js` centralizes payment-purpose routing.
+- `lib/automation/delivery-lock.js` centralizes balance lock and post-payment status decisions.
 - `supabase/schema.sql` contains the database schema and service-role access model.
 
 ## Required Environment Variables

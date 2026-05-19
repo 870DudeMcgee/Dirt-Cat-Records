@@ -1,9 +1,9 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const createOrderRoute = require('../api/create-paypal-order');
-const captureRoute = require('../api/capture-paypal-order');
-const checkoutConfigRoute = require('../api/checkout-config');
-const { calculateOrder } = require('../lib/checkout/pricing');
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const createOrderRoute = require("../api/create-paypal-order");
+const captureRoute = require("../api/capture-paypal-order");
+const checkoutConfigRoute = require("../api/checkout-config");
+const { calculateOrder } = require("../lib/checkout/pricing");
 
 const { createPaypalOrderHandler } = createOrderRoute;
 const {
@@ -14,77 +14,102 @@ const {
   readJsonBody,
 } = createOrderRoute._private;
 
-test('PayPal metadata stays compact and round-trips into server pricing input', () => {
+test("PayPal metadata stays compact and round-trips into server pricing input", () => {
   const orderSummary = calculateOrder({
-    baseServiceId: 'mixMaster',
+    baseServiceId: "mixMaster",
     songCount: 10,
     selectedAddOns: [
-      { addOnId: 'extraRevision', quantity: 2 },
-      { addOnId: 'lightVocalEditing', quantity: 1 },
-      { addOnId: 'cleanRadioEdit', quantity: 1 },
-      { addOnId: 'instrumentalAcapella', quantity: 1 },
-      { addOnId: 'extraStems', quantity: 3 },
-      { addOnId: 'rushDelivery', quantity: 1 },
-      { addOnId: 'consultation', quantity: 1 },
+      { addOnId: "extraRevision", quantity: 2 },
+      { addOnId: "lightVocalEditing", quantity: 1 },
+      { addOnId: "cleanRadioEdit", quantity: 1 },
+      { addOnId: "instrumentalAcapella", quantity: 1 },
+      { addOnId: "extraStems", quantity: 3 },
+      { addOnId: "rushDelivery", quantity: 1 },
+      { addOnId: "consultation", quantity: 1 },
     ],
-    paymentMode: 'deposit',
+    paymentMode: "deposit",
   });
 
   const metadata = buildOrderMetadata(orderSummary);
   assert.ok(metadata.length <= 127);
   assert.deepEqual(parseOrderMetadata(metadata), {
-    baseServiceId: 'mixMaster',
-    songCount: '10',
+    baseServiceId: "mixMaster",
+    songCount: "10",
     selectedAddOns: [
-      { addOnId: 'extraRevision', quantity: '2' },
-      { addOnId: 'lightVocalEditing', quantity: '1' },
-      { addOnId: 'cleanRadioEdit', quantity: '1' },
-      { addOnId: 'instrumentalAcapella', quantity: '1' },
-      { addOnId: 'extraStems', quantity: '3' },
-      { addOnId: 'rushDelivery', quantity: '1' },
-      { addOnId: 'consultation', quantity: '1' },
+      { addOnId: "extraRevision", quantity: "2" },
+      { addOnId: "lightVocalEditing", quantity: "1" },
+      { addOnId: "cleanRadioEdit", quantity: "1" },
+      { addOnId: "instrumentalAcapella", quantity: "1" },
+      { addOnId: "extraStems", quantity: "3" },
+      { addOnId: "rushDelivery", quantity: "1" },
+      { addOnId: "consultation", quantity: "1" },
     ],
-    paymentMode: 'deposit',
+    paymentMode: "deposit",
   });
 });
 
-test('PayPal quote metadata round-trips with quote identifiers', () => {
+test("PayPal quote metadata round-trips with quote identifiers", () => {
   const metadata = buildOrderMetadata({
-    paymentPurpose: 'quote',
-    projectId: 'project-1',
-    quoteId: 'quote-1',
+    paymentPurpose: "quote",
+    projectId: "project-1",
+    quoteId: "quote-1",
     amountCents: 22500,
     totalCents: 45000,
   });
 
   assert.deepEqual(parseOrderMetadata(metadata), {
-    paymentPurpose: 'quote',
-    projectId: 'project-1',
-    quoteId: 'quote-1',
+    paymentPurpose: "quote",
+    projectId: "project-1",
+    quoteId: "quote-1",
     amountCents: 22500,
     totalCents: 45000,
   });
 });
 
-test('normalize quote payment input validates quote checkout payload', () => {
+test("PayPal balance metadata round-trips with project identifier", () => {
+  const metadata = buildOrderMetadata({
+    paymentPurpose: "balance",
+    projectId: "project-1",
+    amountCents: 22500,
+    totalCents: 22500,
+  });
+
+  assert.deepEqual(parseOrderMetadata(metadata), {
+    paymentPurpose: "balance",
+    projectId: "project-1",
+    amountCents: 22500,
+    totalCents: 22500,
+  });
+});
+
+test("normalize quote payment input validates quote checkout payload", () => {
   const normalized = normalizeQuotePaymentInput({
-    paymentPurpose: 'quote',
-    projectId: 'project-1',
-    quoteId: 'quote-1',
+    paymentPurpose: "quote",
+    projectId: "project-1",
+    quoteId: "quote-1",
     amountCents: 22500,
   });
 
-  assert.equal(normalized.paymentPurpose, 'quote');
+  assert.equal(normalized.paymentPurpose, "quote");
   assert.equal(normalized.amountDueNowCents, 22500);
-  assert.throws(() => normalizeQuotePaymentInput({ paymentPurpose: 'quote', projectId: '', quoteId: 'quote-1', amountCents: 22500 }), /Quote payment requires/);
+  assert.throws(
+    () =>
+      normalizeQuotePaymentInput({
+        paymentPurpose: "quote",
+        projectId: "",
+        quoteId: "quote-1",
+        amountCents: 22500,
+      }),
+    /Quote payment requires/
+  );
 });
 
-test('PayPal capture derives checkout summary from server-created metadata', () => {
+test("PayPal capture derives checkout summary from server-created metadata", () => {
   const orderSummary = calculateOrder({
-    baseServiceId: 'mixMaster',
+    baseServiceId: "mixMaster",
     songCount: 5,
-    selectedAddOns: [{ addOnId: 'rushDelivery', quantity: 1 }],
-    paymentMode: 'deposit',
+    selectedAddOns: [{ addOnId: "rushDelivery", quantity: 1 }],
+    paymentMode: "deposit",
   });
 
   const paypalOrder = {
@@ -95,98 +120,124 @@ test('PayPal capture derives checkout summary from server-created metadata', () 
     ],
   };
 
-  const restored = captureRoute._private.getOrderSummaryFromPayPalOrder(paypalOrder);
+  const restored =
+    captureRoute._private.getOrderSummaryFromPayPalOrder(paypalOrder);
   assert.equal(restored.amountDueNowCents, orderSummary.amountDueNowCents);
   assert.equal(restored.totalCents, orderSummary.totalCents);
 });
 
-test('PayPal capture rejects invalid metadata and mismatched currency amounts', () => {
-  assert.throws(() => captureRoute._private.getOrderSummaryFromPayPalOrder({
-    purchase_units: [{ custom_id: 'bad' }],
-  }), /metadata is invalid/);
+test("PayPal capture rejects invalid metadata and mismatched currency amounts", () => {
+  assert.throws(
+    () =>
+      captureRoute._private.getOrderSummaryFromPayPalOrder({
+        purchase_units: [{ custom_id: "bad" }],
+      }),
+    /metadata is invalid/
+  );
 
-  assert.throws(() => captureRoute._private.getOrderSummaryFromPayPalOrder({
-    purchase_units: [{ custom_id: 'v1;m;1;f;;extra' }],
-  }), /metadata is invalid/);
+  assert.throws(
+    () =>
+      captureRoute._private.getOrderSummaryFromPayPalOrder({
+        purchase_units: [{ custom_id: "v1;m;1;f;;extra" }],
+      }),
+    /metadata is invalid/
+  );
 
-  assert.equal(captureRoute._private.capturedAmountMatches({
-    purchase_units: [
+  assert.equal(
+    captureRoute._private.capturedAmountMatches(
       {
-        payments: {
-          captures: [
-            { amount: { currency_code: 'EUR', value: '199.00' } },
-          ],
-        },
+        purchase_units: [
+          {
+            payments: {
+              captures: [{ amount: { currency_code: "EUR", value: "199.00" } }],
+            },
+          },
+        ],
       },
-    ],
-  }, 19900), false);
+      19900
+    ),
+    false
+  );
 });
 
-test('PayPal order payload uses server-calculated amount and compact metadata', async () => {
+test("PayPal order payload uses server-calculated amount and compact metadata", async () => {
   const orderSummary = calculateOrder({
-    baseServiceId: 'mix',
+    baseServiceId: "mix",
     songCount: 2,
-    selectedAddOns: [{ addOnId: 'rushDelivery', quantity: 1 }],
-    paymentMode: 'full',
+    selectedAddOns: [{ addOnId: "rushDelivery", quantity: 1 }],
+    paymentMode: "full",
   });
   let paypalPayload;
   const paypalClient = {
     async post(_path, payload) {
       paypalPayload = payload;
-      return { id: 'ORDER-123' };
+      return { id: "ORDER-123" };
     },
   };
 
   await createPaypalOrder(paypalClient, orderSummary);
 
-  assert.equal(paypalPayload.purchase_units[0].amount.value, '343.20');
-  assert.equal(paypalPayload.purchase_units[0].amount.currency_code, 'USD');
-  assert.equal(typeof paypalPayload.purchase_units[0].custom_id, 'string');
+  assert.equal(paypalPayload.purchase_units[0].amount.value, "343.20");
+  assert.equal(paypalPayload.purchase_units[0].amount.currency_code, "USD");
+  assert.equal(typeof paypalPayload.purchase_units[0].custom_id, "string");
   assert.ok(paypalPayload.purchase_units[0].custom_id.length <= 127);
 });
 
-test('JSON body reader rejects oversized string bodies', async () => {
-  await assert.rejects(() => readJsonBody({
-    body: `${'x'.repeat(32 * 1024 + 1)}`,
-  }), /Request body is too large/);
+test("JSON body reader rejects oversized string bodies", async () => {
+  await assert.rejects(
+    () =>
+      readJsonBody({
+        body: `${"x".repeat(32 * 1024 + 1)}`,
+      }),
+    /Request body is too large/
+  );
 });
 
-test('create order route returns 413 for oversized JSON bodies', async () => {
+test("create order route returns 413 for oversized JSON bodies", async () => {
   const handler = createPaypalOrderHandler({
     fetch: async () => {
-      throw new Error('fetch should not run');
+      throw new Error("fetch should not run");
     },
   });
   const response = createMockResponse();
 
-  await handler({
-    method: 'POST',
-    body: `${'x'.repeat(32 * 1024 + 1)}`,
-  }, response);
+  await handler(
+    {
+      method: "POST",
+      body: `${"x".repeat(32 * 1024 + 1)}`,
+    },
+    response
+  );
 
   assert.equal(response.statusCode, 413);
-  assert.deepEqual(response.body, { error: 'Request body is too large.' });
+  assert.deepEqual(response.body, { error: "Request body is too large." });
 });
 
-test('checkout config exposes client id but never client secret', () => {
+test("checkout config exposes client id but never client secret", () => {
   const originalClientId = process.env.PAYPAL_CLIENT_ID;
   const originalSecret = process.env.PAYPAL_CLIENT_SECRET;
   const originalBypass = process.env.ALLOW_LOCAL_ADMIN_BYPASS;
   try {
-    process.env.PAYPAL_CLIENT_ID = 'public-client-id';
-    process.env.PAYPAL_CLIENT_SECRET = 'server-secret';
-    process.env.ALLOW_LOCAL_ADMIN_BYPASS = '1';
+    process.env.PAYPAL_CLIENT_ID = "public-client-id";
+    process.env.PAYPAL_CLIENT_SECRET = "server-secret";
+    process.env.ALLOW_LOCAL_ADMIN_BYPASS = "1";
 
     const response = createMockResponse();
-    checkoutConfigRoute({ method: 'GET', headers: { host: 'localhost:3000' } }, response);
+    checkoutConfigRoute(
+      { method: "GET", headers: { host: "localhost:3000" } },
+      response
+    );
 
     assert.equal(response.statusCode, 200);
     assert.deepEqual(response.body, {
-      paypalClientId: 'public-client-id',
-      currency: 'USD',
+      paypalClientId: "public-client-id",
+      currency: "USD",
       localTestCheckoutEnabled: true,
     });
-    assert.equal(JSON.stringify(response.body).includes('server-secret'), false);
+    assert.equal(
+      JSON.stringify(response.body).includes("server-secret"),
+      false
+    );
   } finally {
     if (originalClientId === undefined) {
       delete process.env.PAYPAL_CLIENT_ID;

@@ -1,19 +1,17 @@
-const { ensureRuntimeEnv } = require('../lib/env/runtime');
-const {
-  calculateOrder,
-  centsToDollars,
-} = require('../lib/checkout/pricing');
+const { ensureRuntimeEnv } = require("../lib/env/runtime");
+const { calculateOrder, centsToDollars } = require("../lib/checkout/pricing");
 const {
   buildOrderMetadata,
   parseOrderMetadata,
-} = require('../lib/paypal/order-metadata');
+} = require("../lib/paypal/order-metadata");
+const {
+  createPayPalClient,
+  getPayPalBaseUrl,
+  readPayPalJsonResponse,
+} = require("../lib/paypal/client-factory");
 
 ensureRuntimeEnv();
 
-const PAYPAL_BASE_URLS = Object.freeze({
-  sandbox: 'https://api-m.sandbox.paypal.com',
-  live: 'https://api-m.paypal.com',
-});
 const MAX_JSON_BODY_BYTES = 32 * 1024;
 
 function createPaypalOrderHandler(dependencies = {}) {
@@ -23,24 +21,29 @@ function createPaypalOrderHandler(dependencies = {}) {
   return async function paypalOrderHandler(req, res) {
     setJsonHeaders(res);
 
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method not allowed' });
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
     }
 
     let body;
     try {
       body = await readJsonBody(req);
     } catch (error) {
-      return res.status(error.statusCode || 400).json({ error: error.publicMessage || 'Invalid JSON payload' });
+      return res
+        .status(error.statusCode || 400)
+        .json({ error: error.publicMessage || "Invalid JSON payload" });
     }
 
     let orderSummary;
     try {
-      orderSummary = body && body.paymentPurpose === 'quote'
-        ? normalizeQuotePaymentInput(body)
-        : calculateOrder(body);
+      orderSummary =
+        body && body.paymentPurpose === "quote"
+          ? normalizeQuotePaymentInput(body)
+          : calculateOrder(body);
     } catch (error) {
-      return res.status(400).json({ error: error.message || 'Invalid checkout order' });
+      return res
+        .status(400)
+        .json({ error: error.message || "Invalid checkout order" });
     }
 
     try {
@@ -48,8 +51,10 @@ function createPaypalOrderHandler(dependencies = {}) {
       const paypalClient = getPaypalClient(env, fetchImpl);
       const paypalOrder = await createPaypalOrder(paypalClient, orderSummary);
 
-      if (!paypalOrder || typeof paypalOrder.id !== 'string') {
-        return res.status(502).json({ error: 'PayPal did not return an order id' });
+      if (!paypalOrder || typeof paypalOrder.id !== "string") {
+        return res
+          .status(502)
+          .json({ error: "PayPal did not return an order id" });
       }
 
       return res.status(200).json({
@@ -59,20 +64,25 @@ function createPaypalOrderHandler(dependencies = {}) {
     } catch (error) {
       const status = error.statusCode || 500;
       if (status >= 500) {
-        console.error('PayPal order creation failed:', sanitizeErrorForLog(error));
+        console.error(
+          "PayPal order creation failed:",
+          sanitizeErrorForLog(error)
+        );
       }
-      return res.status(status).json({ error: error.publicMessage || 'PayPal order creation failed' });
+      return res
+        .status(status)
+        .json({ error: error.publicMessage || "PayPal order creation failed" });
     }
   };
 }
 
 async function createPaypalOrder(paypalClient, orderSummary) {
-  return paypalClient.post('/v2/checkout/orders', {
-    intent: 'CAPTURE',
+  return paypalClient.post("/v2/checkout/orders", {
+    intent: "CAPTURE",
     purchase_units: [
       {
         amount: {
-          currency_code: 'USD',
+          currency_code: "USD",
           value: centsToDollars(orderSummary.amountDueNowCents),
         },
         description: buildOrderDescription(orderSummary),
@@ -80,31 +90,46 @@ async function createPaypalOrder(paypalClient, orderSummary) {
       },
     ],
     application_context: {
-      brand_name: 'Dirt Cat Records',
-      shipping_preference: 'NO_SHIPPING',
-      user_action: 'PAY_NOW',
+      brand_name: "Dirt Cat Records",
+      shipping_preference: "NO_SHIPPING",
+      user_action: "PAY_NOW",
     },
   });
 }
 
 function buildOrderDescription(orderSummary) {
-  if (orderSummary.paymentPurpose === 'quote') {
+  if (orderSummary.paymentPurpose === "quote") {
     return `Quote payment: ${orderSummary.quoteId}`;
   }
-  const paymentLabel = orderSummary.paymentMode === 'deposit' ? 'Deposit' : 'Full payment';
-  return `${paymentLabel}: ${orderSummary.baseServiceLabel} (${orderSummary.songCount} song${orderSummary.songCount === 1 ? '' : 's'})`;
+  if (orderSummary.paymentPurpose === "balance") {
+    return `Balance payment: ${orderSummary.projectId}`;
+  }
+  const paymentLabel =
+    orderSummary.paymentMode === "deposit" ? "Deposit" : "Full payment";
+  return `${paymentLabel}: ${orderSummary.baseServiceLabel} (${orderSummary.songCount} song${orderSummary.songCount === 1 ? "" : "s"})`;
 }
 
 function normalizeQuotePaymentInput(body) {
-  const quoteId = typeof body.quoteId === 'string' ? body.quoteId.trim() : '';
-  const projectId = typeof body.projectId === 'string' ? body.projectId.trim() : '';
+  const quoteId = typeof body.quoteId === "string" ? body.quoteId.trim() : "";
+  const projectId =
+    typeof body.projectId === "string" ? body.projectId.trim() : "";
   const amountCents = Number(body.amountCents);
-  const totalCents = body.totalCents === undefined ? amountCents : Number(body.totalCents);
-  if (!quoteId || !projectId || !Number.isInteger(amountCents) || amountCents < 1 || !Number.isInteger(totalCents) || totalCents < amountCents) {
-    throw new Error('Quote payment requires projectId, quoteId, and amountCents.');
+  const totalCents =
+    body.totalCents === undefined ? amountCents : Number(body.totalCents);
+  if (
+    !quoteId ||
+    !projectId ||
+    !Number.isInteger(amountCents) ||
+    amountCents < 1 ||
+    !Number.isInteger(totalCents) ||
+    totalCents < amountCents
+  ) {
+    throw new Error(
+      "Quote payment requires projectId, quoteId, and amountCents."
+    );
   }
   return {
-    paymentPurpose: 'quote',
+    paymentPurpose: "quote",
     quoteId,
     projectId,
     amountCents,
@@ -114,40 +139,11 @@ function normalizeQuotePaymentInput(body) {
 }
 
 function getPaypalClient(env, fetchImpl) {
-  const clientId = env.PAYPAL_CLIENT_ID;
-  const clientSecret = env.PAYPAL_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw createHttpError(500, 'PayPal checkout is not configured');
-  }
-
-  if (typeof fetchImpl !== 'function') {
-    throw createHttpError(500, 'Fetch API is not available');
-  }
-
-  const baseUrl = getPaypalBaseUrl(env.PAYPAL_ENV);
-
-  return {
-    async post(path, payload) {
-      const accessToken = await getPaypalAccessToken({
-        baseUrl,
-        clientId,
-        clientSecret,
-        fetchImpl,
-      });
-
-      const response = await fetchImpl(`${baseUrl}${path}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      return readPaypalJsonResponse(response, 'PayPal API request failed');
-    },
-  };
+  return createPayPalClient({
+    env,
+    fetchImpl,
+    mapErrorToHttp: true,
+  });
 }
 
 async function getPaypalAccessToken({
@@ -156,54 +152,36 @@ async function getPaypalAccessToken({
   clientSecret,
   fetchImpl,
 }) {
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-  const response = await fetchImpl(`${baseUrl}/v1/oauth2/token`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
+  const client = createPayPalClient({
+    env: {
+      PAYPAL_CLIENT_ID: clientId,
+      PAYPAL_CLIENT_SECRET: clientSecret,
+      PAYPAL_ENV: baseUrl === getPayPalBaseUrl("live") ? "live" : "sandbox",
     },
-    body: 'grant_type=client_credentials',
+    fetchImpl,
+    mapErrorToHttp: true,
   });
-
-  const data = await readPaypalJsonResponse(response, 'Unable to authenticate with PayPal');
-  if (!data.access_token) {
-    throw createHttpError(502, 'PayPal access token response was invalid');
-  }
-
-  return data.access_token;
+  return client.getAccessToken();
 }
 
 function getPaypalBaseUrl(paypalEnv) {
-  return paypalEnv === 'live' ? PAYPAL_BASE_URLS.live : PAYPAL_BASE_URLS.sandbox;
+  return getPayPalBaseUrl(paypalEnv);
 }
 
 async function readPaypalJsonResponse(response, publicMessage) {
-  let data;
-  try {
-    data = await response.json();
-  } catch (_error) {
-    data = null;
-  }
-
-  if (!response.ok) {
-    const error = createHttpError(502, publicMessage);
-    error.paypalStatus = response.status;
-    error.paypalResponse = data;
-    throw error;
-  }
-
-  return data;
+  return readPayPalJsonResponse(response, publicMessage, {
+    mapErrorToHttp: true,
+  });
 }
 
 async function readJsonBody(req) {
-  if (req.body && typeof req.body === 'object') {
+  if (req.body && typeof req.body === "object") {
     return req.body;
   }
 
-  if (typeof req.body === 'string') {
-    if (Buffer.byteLength(req.body, 'utf8') > MAX_JSON_BODY_BYTES) {
-      throw createHttpError(413, 'Request body is too large.');
+  if (typeof req.body === "string") {
+    if (Buffer.byteLength(req.body, "utf8") > MAX_JSON_BODY_BYTES) {
+      throw createHttpError(413, "Request body is too large.");
     }
     return req.body ? JSON.parse(req.body) : {};
   }
@@ -214,18 +192,18 @@ async function readJsonBody(req) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     totalBytes += buffer.length;
     if (totalBytes > MAX_JSON_BODY_BYTES) {
-      throw createHttpError(413, 'Request body is too large.');
+      throw createHttpError(413, "Request body is too large.");
     }
     chunks.push(buffer);
   }
 
-  const rawBody = Buffer.concat(chunks).toString('utf8');
+  const rawBody = Buffer.concat(chunks).toString("utf8");
   return rawBody ? JSON.parse(rawBody) : {};
 }
 
 function setJsonHeaders(res) {
-  if (typeof res.setHeader === 'function') {
-    res.setHeader('Content-Type', 'application/json');
+  if (typeof res.setHeader === "function") {
+    res.setHeader("Content-Type", "application/json");
   }
 }
 

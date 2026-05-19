@@ -1,27 +1,32 @@
 let supabaseClient;
 let currentAccessToken;
-const PRODUCTION_ORIGIN = 'https://dirtcatrecords.com';
+const PRODUCTION_ORIGIN = "https://dirtcatrecords.com";
 const portalView = window.PortalView;
 
 async function initPortal() {
-  const configResponse = await fetch('/api/public/config');
+  const configResponse = await fetch("/api/public/config");
   const config = await configResponse.json();
-  supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabasePublicKey);
+  supabaseClient = window.supabase.createClient(
+    config.supabaseUrl,
+    config.supabasePublicKey
+  );
 
   const { data } = await supabaseClient.auth.getSession();
   if (data.session) {
     await renderProjects(data.session.access_token);
   }
 
-  const form = document.getElementById('magic-link-form');
-  form.addEventListener('submit', async (event) => {
+  const form = document.getElementById("magic-link-form");
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const email = new FormData(form).get('email');
+    const email = new FormData(form).get("email");
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: getMagicLinkRedirectUrl() },
     });
-    setPortalStatus(error ? error.message : 'Check your email for the magic link.');
+    setPortalStatus(
+      error ? error.message : "Check your email for the magic link."
+    );
   });
 }
 
@@ -35,102 +40,141 @@ function getMagicLinkRedirectUrl() {
 
 async function renderProjects(accessToken) {
   currentAccessToken = accessToken;
-  const response = await fetch('/api/portal/actions?action=projects', {
+  const response = await fetch("/api/portal/actions?action=projects", {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const body = await response.json();
   if (!response.ok) {
-    setPortalStatus(body.error || 'Unable to load projects.');
+    setPortalStatus(body.error || "Unable to load projects.");
     return;
   }
-  document.getElementById('portal-login').hidden = true;
-  const container = document.getElementById('portal-projects');
+  document.getElementById("portal-login").hidden = true;
+  const container = document.getElementById("portal-projects");
   container.hidden = false;
   container.innerHTML = body.projects.length
-    ? body.projects.map((project) => portalView.renderProjectCard(portalView.buildPortalProjectView(project))).join('')
+    ? body.projects
+        .map((project) =>
+          portalView.renderProjectCard(
+            portalView.buildPortalProjectView(project)
+          )
+        )
+        .join("")
     : portalView.renderEmptyProjects();
   bindProjectActions(container);
 }
 
 function bindProjectActions(container) {
-  container.addEventListener('submit', async (event) => {
+  container.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const projectCard = event.target.closest('.portal-project');
+    const projectCard = event.target.closest(".portal-project");
     const projectId = projectCard?.dataset.projectId;
     if (!projectId) return;
 
-    if (event.target.classList.contains('portal-link-form')) {
-      const url = new FormData(event.target).get('url');
+    if (event.target.classList.contains("portal-link-form")) {
+      const url = new FormData(event.target).get("url");
       try {
-        await postPortalAction('/api/portal/actions?action=file-links', { projectId, url });
+        await postPortalAction("/api/portal/actions?action=file-links", {
+          projectId,
+          url,
+        });
         event.target.reset();
-        setPortalStatus('File link submitted.');
+        setPortalStatus("File link submitted.");
       } catch (error) {
-        setPortalStatus(error.message || 'Unable to submit file link.');
+        setPortalStatus(error.message || "Unable to submit file link.");
       }
     }
 
-    if (event.target.classList.contains('portal-revision-form')) {
-      const notes = new FormData(event.target).get('notes');
+    if (event.target.classList.contains("portal-revision-form")) {
+      const notes = new FormData(event.target).get("notes");
       try {
-        await postPortalAction('/api/portal/actions?action=revisions', { projectId, notes });
+        await postPortalAction("/api/portal/actions?action=revisions", {
+          projectId,
+          notes,
+        });
         event.target.reset();
-        setPortalStatus('Revision request submitted.');
+        setPortalStatus("Revision request submitted.");
       } catch (error) {
-        setPortalStatus(error.message || 'Unable to submit revision request.');
+        setPortalStatus(error.message || "Unable to submit revision request.");
       }
     }
   });
 
-  container.addEventListener('click', async (event) => {
-    if (event.target.classList.contains('portal-accept-quote-button')) {
-      const projectCard = event.target.closest('.portal-project');
+  container.addEventListener("click", async (event) => {
+    if (event.target.classList.contains("portal-pay-balance-button")) {
+      const projectCard = event.target.closest(".portal-project");
       const projectId = projectCard?.dataset.projectId;
-      const quoteId = event.target.getAttribute('data-quote-id');
-      if (!projectId || !quoteId) return;
+      if (!projectId) return;
       try {
-        const result = await postPortalAction('/api/portal/accept-quote', { projectId, quoteId });
+        const result = await postPortalAction("/api/portal/pay-balance", {
+          projectId,
+        });
         if (result.approvalUrl) {
-          window.open(result.approvalUrl, '_blank', 'noopener,noreferrer');
-          setPortalStatus('Quote checkout opened in a new tab.');
+          window.open(result.approvalUrl, "_blank", "noopener,noreferrer");
+          setPortalStatus("Balance checkout opened in a new tab.");
         } else {
-          setPortalStatus('Quote checkout started.');
+          setPortalStatus("Balance checkout started.");
         }
       } catch (error) {
-        setPortalStatus(error.message || 'Unable to start quote checkout.');
+        setPortalStatus(error.message || "Unable to start balance checkout.");
       }
       return;
     }
 
-    if (!event.target.classList.contains('portal-approve-button')) return;
-    const projectCard = event.target.closest('.portal-project');
+    if (event.target.classList.contains("portal-accept-quote-button")) {
+      const projectCard = event.target.closest(".portal-project");
+      const projectId = projectCard?.dataset.projectId;
+      const quoteId = event.target.getAttribute("data-quote-id");
+      if (!projectId || !quoteId) return;
+      try {
+        const result = await postPortalAction("/api/portal/accept-quote", {
+          projectId,
+          quoteId,
+        });
+        if (result.approvalUrl) {
+          window.open(result.approvalUrl, "_blank", "noopener,noreferrer");
+          setPortalStatus("Quote checkout opened in a new tab.");
+        } else {
+          setPortalStatus("Quote checkout started.");
+        }
+      } catch (error) {
+        setPortalStatus(error.message || "Unable to start quote checkout.");
+      }
+      return;
+    }
+
+    if (!event.target.classList.contains("portal-approve-button")) return;
+    const projectCard = event.target.closest(".portal-project");
     const projectId = projectCard?.dataset.projectId;
     if (!projectId) return;
     try {
-      await postPortalAction('/api/portal/actions?action=approvals', { projectId });
-      setPortalStatus('Final approved.');
+      await postPortalAction("/api/portal/actions?action=approvals", {
+        projectId,
+      });
+      setPortalStatus("Final approved.");
     } catch (error) {
-      setPortalStatus(error.message || 'Unable to approve final delivery.');
+      setPortalStatus(error.message || "Unable to approve final delivery.");
     }
   });
 }
 
 async function postPortalAction(path, payload) {
   const response = await fetch(path, {
-    method: 'POST',
+    method: "POST",
     headers: {
       Authorization: `Bearer ${currentAccessToken}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
   const body = await response.json();
-  if (!response.ok) throw new Error(body.error || 'Portal action failed.');
+  if (!response.ok) throw new Error(body.error || "Portal action failed.");
   return body;
 }
 
 function setPortalStatus(message) {
-  document.getElementById('portal-status').textContent = message;
+  document.getElementById("portal-status").textContent = message;
 }
 
-initPortal().catch((error) => setPortalStatus(error.message || 'Unable to load portal.'));
+initPortal().catch((error) =>
+  setPortalStatus(error.message || "Unable to load portal.")
+);

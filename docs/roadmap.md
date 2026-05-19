@@ -3,6 +3,7 @@
 This document tracks the staged work needed to turn the current site, checkout, portal, and automation foundation into a reliable studio operations system.
 
 For current handoff context, see [`docs/agent-handoff.md`](agent-handoff.md).
+For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [`docs/adr/`](adr).
 
 ## Stage 0: Stabilize The Source Of Truth
 
@@ -65,12 +66,12 @@ Goal: convert free reviews and custom projects into paid work without manual pay
 
 Goal: make deposits and final delivery safe and clear.
 
-- [ ] Add balance payment endpoint.
-- [ ] Add portal balance payment action.
-- [ ] Extend PayPal webhook handling for balance payments.
-- [ ] Keep final files locked until the balance is paid.
-- [ ] Let admin mark finals ready and send balance-due email.
-- [ ] Unlock final files after full payment.
+- [x] Add balance payment endpoint.
+- [x] Add portal balance payment action.
+- [x] Extend PayPal webhook handling for balance payments.
+- [x] Keep final files locked until the balance is paid.
+- [x] Let admin mark finals ready and send balance-due email.
+- [x] Unlock final files after full payment.
 
 ## Stage 6: Follow-Ups
 
