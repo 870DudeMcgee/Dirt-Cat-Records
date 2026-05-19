@@ -1,13 +1,13 @@
 # Dirt Cat Records
 
-Static marketing site, PayPal checkout, Supabase-backed customer portal, Google Drive project folder automation, Resend transactional email, and owner-only setup tooling for Dirt Cat Records.
+Static marketing site, PayPal checkout, Supabase-backed customer portal, Google Drive project folder automation, Resend transactional email, and a private owner admin dashboard for Dirt Cat Records.
 
 ## Current Source Of Truth
 
 Use this checkout as the working repo:
 
 ```bash
-cd /Users/josh/Desktop/dirt_cat_records_website_final/Dirt-Cat-Records-latest
+cd /Users/jewelbait/Desktop/DirtCatRecords
 ```
 
 Older local copies were archived outside this repo and should not be used for new work.
@@ -16,15 +16,15 @@ Older local copies were archived outside this repo and should not be used for ne
 
 The staged task list lives in [`docs/roadmap.md`](docs/roadmap.md).
 
-The current priority is Stage 0: stabilize the repo, docs, environment examples, and large asset strategy.
+The current priority is Stage 4: custom quote workflow.
 
 ## Runtime Overview
 
 - `index.html`, `style.css`, and `spells.js` render the public marketing site and free mix review form.
 - `checkout.html` and `checkout.js` build PayPal checkout orders through Vercel Functions.
-- `success.html` and `success.js` currently show the post-payment order summary and manual project intake.
+- `success.html` and `success.js` show the post-payment order summary and portal/email-first next steps.
 - `portal.html` and `portal.js` provide Supabase magic-link customer access.
-- `admin.html` and `admin.js` provide owner setup checks, sandbox test runs, and cleanup tools.
+- `admin.html` and `admin.js` provide the owner operations dashboard, priority queue, project detail with status updates, private admin notes, final delivery controls, and extra revision actions, plus setup checks, sandbox test runs, and cleanup tools.
 - `api/` contains Vercel Functions.
 - `lib/` contains PayPal, Supabase, Google Drive, Resend, auth, pricing, and automation helpers.
 - `supabase/schema.sql` contains the database schema and service-role access model.

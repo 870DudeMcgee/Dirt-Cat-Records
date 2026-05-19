@@ -4,11 +4,11 @@ This file is the working handoff for continuing Dirt Cat Records development aft
 
 ## Current Repo State
 
-- Working repo: `/Users/josh/Desktop/dirt_cat_records_website_final/Dirt-Cat-Records-latest`
+- Working repo: `/Users/jewelbait/Desktop/DirtCatRecords`
 - Remote: `https://github.com/870DudeMcgee/Dirt-Cat-Records.git`
 - Branch: `main`
-- Latest pushed commit: `792a8ec feat: add admin project detail view`
-- Local git status at handoff update time: clean and synced with `origin/main`
+- Latest pushed commit: `3d14549 docs: update agent handoff`
+- Local git status at handoff update time: dirty with modified `README.md`, `admin.js`, `api/admin/projects.js`, `docs/agent-handoff.md`, `docs/roadmap.md`, `lib/db/studio-records.js`, `style.css`, and `test/admin-project-detail-api.test.js`
 - Commit email used for pushed work: `Josh Mclean <870DudeMcgee@users.noreply.github.com>`
 
 Older local copies were archived under:
@@ -19,10 +19,10 @@ Do not use the archived folders for new work.
 
 ## Next Agent Start Here
 
-1. Work only in `/Users/josh/Desktop/dirt_cat_records_website_final/Dirt-Cat-Records-latest`.
+1. Work only in `/Users/jewelbait/Desktop/DirtCatRecords`.
 2. Start by reading `docs/roadmap.md` and this file.
-3. Confirm `git status -sb` is clean and on `main...origin/main`.
-4. Continue Stage 3 with the next unchecked item: admin status update action.
+3. Confirm `git status -sb` still shows the expected modified files on `main...origin/main` before continuing.
+4. Stage 3 is complete. Continue with Stage 4: custom quote workflow.
 5. Use TDD. Existing tests use Node's built-in runner, and server/browser JS files must be added to `npm run check:js`.
 6. Before finishing a slice, run `npm test`, `npm run check:js`, and `git diff --check`.
 
@@ -114,9 +114,49 @@ Done in the second Stage 3 slice:
 - Added `test/admin-project-detail-api.test.js`.
 - Added `api/admin/projects.js` to `npm run check:js`.
 
+Done in the third Stage 3 slice:
+
+- Added a protected `/api/admin/projects?action=status` POST action.
+- Added `updateAdminProjectStatus` in `lib/db/studio-records.js`.
+- Validated admin status updates against the project status values already allowed by `supabase/schema.sql`.
+- Logged an `admin_status_updated` `project_events` row when status changes.
+- Updated `admin.js` to render a status control in the project detail panel and refresh the overview after changes.
+- Added active project rows to the admin priority queue so the UI matches the overview counts.
+- Tightened admin link rendering so invalid URLs do not produce empty `href` actions.
+- Expanded `test/admin-project-detail-api.test.js` with status update coverage.
+
+Done in the fourth Stage 3 slice:
+
+- Extended `getAdminProjectDetail` to include `admin_notes` records.
+- Added `addAdminProjectNote` in `lib/db/studio-records.js`.
+- Added a protected `/api/admin/projects?action=notes` POST action.
+- Logged an `admin_note_added` `project_events` row when a private note is saved.
+- Updated `admin.js` to render private note history and a note form in the project detail panel.
+- Added note form styling in `style.css`.
+- Expanded `test/admin-project-detail-api.test.js` with admin note coverage.
+
+Done in the fifth Stage 3 slice:
+
+- Added `updateAdminProjectDelivery` in `lib/db/studio-records.js`.
+- Added a protected `/api/admin/projects?action=delivery` POST action.
+- Saving a final delivery URL now moves projects into `finals_ready` or `balance_due` while keeping delivery locked.
+- Unlocking delivery now requires a valid final delivery URL and zero balance, moves the project to `delivered`, logs a `final_delivery_unlocked` event, and sends the customer a final delivery email.
+- Updated `admin.js` to render final delivery controls in the project detail panel.
+- Added final delivery form styling in `style.css`.
+- Expanded `test/admin-project-detail-api.test.js` with final delivery coverage.
+
+Done in the sixth Stage 3 slice:
+
+- Added `allowAdminExtraRevision` in `lib/db/studio-records.js`.
+- Added a protected `/api/admin/projects?action=extra-revision` POST action.
+- Allowing one extra revision now increments `extra_revisions_allowed` and logs an `admin_extra_revision_allowed` event.
+- Updated `admin.js` to render an extra revision action in the project detail panel.
+- Added extra revision action styling in `style.css`.
+- Expanded `test/admin-project-detail-api.test.js` with extra revision coverage.
+
 ## Verification Evidence
 
-Before the latest push, these commands passed:
+Current verified commands in this workspace:
 
 ```bash
 npm test
@@ -124,13 +164,7 @@ npm run check:js
 git diff --check
 ```
 
-Last observed `npm test` result:
-
-- 109 tests
-- 109 pass
-- 0 fail
-
-Browser visual verification was not completed because the Browser plugin's required Node REPL browser-control tool was not available in the session.
+Browser visual verification has still not been completed in this workspace.
 
 During the Stage 3 overview slice, these focused checks passed:
 
@@ -149,12 +183,6 @@ npm run check:js
 git diff --check
 ```
 
-Last observed `npm test` result after the overview slice:
-
-- 114 tests
-- 114 pass
-- 0 fail
-
 During the Stage 3 project detail slice, these focused checks passed:
 
 ```bash
@@ -172,11 +200,26 @@ npm run check:js
 git diff --check
 ```
 
-Last observed `npm test` result after the project detail slice:
+Last observed `npm test` result in this workspace:
 
-- 122 tests
-- 122 pass
+- 143 tests
+- 143 pass
 - 0 fail
+
+Focused checks that passed during the extra revision slice:
+
+```bash
+node --test test/admin-project-detail-api.test.js
+node --check admin.js
+```
+
+Full checks that passed after the extra revision slice:
+
+```bash
+npm test
+npm run check:js
+git diff --check
+```
 
 ## Important Implementation Notes
 
@@ -196,22 +239,23 @@ Last observed `npm test` result after the project detail slice:
 - The portal renderer lives in `portal-view.js`; keep state/rendering rules there and test them directly.
 - `api/admin/overview.js` returns dashboard queue data.
 - `api/admin/projects.js` currently supports read-only detail via `action=detail&projectId=...`.
-- `admin.js` renders a same-page project detail panel from priority queue `View` buttons.
+- `api/admin/projects.js` now supports read-only detail, admin status updates, private note creation, final delivery updates, and extra revision allowance.
+- `admin.js` renders a same-page project detail panel from priority queue `View` buttons and allows owner-only status changes, private notes, final delivery actions, and extra revision allowance from that panel.
 - `getAdminProjectDetail` includes project files linked by `project_id`, and also legacy files linked by `order_id` when the project has an order.
-- Browser visual verification was blocked in this environment. Localhost binding failed with `EPERM`, and the in-app Browser control execution tool was not available.
+- `getAdminProjectDetail` now also includes private admin notes from `admin_notes`.
+- Unlocking final delivery sends the `final_delivery_unlocked` email template and logs an `email_events` row.
+- Browser visual verification remains unverified in this workspace.
 - GitHub CLI exists but `gh auth status` reported an invalid stored token. Normal `git push origin main` worked after network permission.
 
 ## Recommended Next Work
 
 Continue Stage 3 from `docs/roadmap.md`: Build Josh's Operational Admin Dashboard.
 
-Suggested next Stage 3 slice:
+Suggested next work:
 
-1. Add admin status update action tests.
-2. Add a protected status update handler for known project statuses.
-3. Update the project detail panel with a status control.
-4. Log a `project_events` row when status changes.
-5. Keep admin notes, final delivery unlocks, and extra revision actions for later Stage 3 slices.
+1. Start Stage 4 with quote persistence and API tests.
+2. Add a protected admin quote creation/sending route.
+3. Show quote history and draft/send controls in the admin project detail flow.
 
 Recommended TDD pattern:
 

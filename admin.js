@@ -2,7 +2,27 @@
   let supabaseClient = null;
   let accessToken = null;
   let latestRunId = window.localStorage.getItem('dcr_latest_test_run_id') || null;
+  let selectedProjectId = null;
   const PRODUCTION_ORIGIN = 'https://dirtcatrecords.com';
+  const PROJECT_STATUS_OPTIONS = [
+    'lead_new',
+    'awaiting_files',
+    'files_submitted',
+    'reviewing',
+    'quoted',
+    'quote_sent',
+    'quote_accepted',
+    'paid',
+    'mixing',
+    'revision_requested',
+    'revision_in_progress',
+    'finals_ready',
+    'balance_due',
+    'delivered',
+    'approved',
+    'completed',
+    'closed',
+  ];
 
   document.addEventListener('DOMContentLoaded', initAdmin);
 
@@ -23,6 +43,7 @@
   function bindActions() {
     document.getElementById('admin-refresh')?.addEventListener('click', refreshAdmin);
     document.getElementById('overview-queue')?.addEventListener('click', handleProjectDetailClick);
+    document.getElementById('project-detail')?.addEventListener('submit', handleProjectDetailSubmit);
     document.getElementById('run-simulation')?.addEventListener('click', () => runTest('simulation'));
     document.getElementById('run-sandbox')?.addEventListener('click', () => runTest('sandbox'));
     document.getElementById('cleanup-run')?.addEventListener('click', cleanupRun);
@@ -90,6 +111,7 @@
     if (!projectId) return;
 
     button.disabled = true;
+    selectedProjectId = projectId;
     renderProjectDetailLoading(projectId);
     try {
       const data = await api(`/api/admin/projects?action=detail&projectId=${encodeURIComponent(projectId)}`);
@@ -98,6 +120,141 @@
       renderProjectDetailError(error.message || 'Unable to load project detail.');
     } finally {
       button.disabled = false;
+    }
+  }
+
+  async function handleProjectDetailSubmit(event) {
+    if (event.target.closest('[data-project-status-form]')) {
+      return handleProjectStatusSubmit(event);
+    }
+    if (event.target.closest('[data-admin-note-form]')) {
+      return handleAdminNoteSubmit(event);
+    }
+    if (event.target.closest('[data-project-delivery-form]')) {
+      return handleProjectDeliverySubmit(event);
+    }
+    if (event.target.closest('[data-project-extra-revision-form]')) {
+      return handleProjectExtraRevisionSubmit(event);
+    }
+  }
+
+  async function handleProjectStatusSubmit(event) {
+    const form = event.target.closest('[data-project-status-form]');
+    if (!form) return;
+
+    event.preventDefault();
+    const projectId = form.getAttribute('data-project-id');
+    const statusField = form.querySelector('select[name="status"]');
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (!projectId || !statusField) return;
+
+    const status = statusField.value;
+    submitButton.disabled = true;
+    renderProjectStatusMessage('Saving status...');
+
+    try {
+      const data = await api('/api/admin/projects?action=status', {
+        method: 'POST',
+        body: JSON.stringify({ projectId, status }),
+      });
+      selectedProjectId = projectId;
+      renderProjectDetail(data.project);
+      renderProjectStatusMessage(`Status updated to ${titleCase(status)}.`);
+      await loadOverview();
+    } catch (error) {
+      renderProjectStatusMessage(error.message || 'Unable to update project status.', true);
+    } finally {
+      submitButton.disabled = false;
+    }
+  }
+
+  async function handleAdminNoteSubmit(event) {
+    const form = event.target.closest('[data-admin-note-form]');
+    if (!form) return;
+
+    event.preventDefault();
+    const projectId = form.getAttribute('data-project-id');
+    const noteField = form.querySelector('textarea[name="note"]');
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (!projectId || !noteField) return;
+
+    submitButton.disabled = true;
+    renderProjectNoteMessage('Saving note...');
+
+    try {
+      const data = await api('/api/admin/projects?action=notes', {
+        method: 'POST',
+        body: JSON.stringify({ projectId, note: noteField.value }),
+      });
+      selectedProjectId = projectId;
+      renderProjectDetail(data.project);
+      renderProjectNoteMessage('Note saved.');
+    } catch (error) {
+      renderProjectNoteMessage(error.message || 'Unable to save admin note.', true);
+    } finally {
+      submitButton.disabled = false;
+    }
+  }
+
+  async function handleProjectDeliverySubmit(event) {
+    const form = event.target.closest('[data-project-delivery-form]');
+    if (!form) return;
+
+    event.preventDefault();
+    const projectId = form.getAttribute('data-project-id');
+    const urlField = form.querySelector('input[name="finalDeliveryUrl"]');
+    const unlockField = form.querySelector('input[name="unlockDelivery"]');
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (!projectId || !urlField) return;
+
+    submitButton.disabled = true;
+    renderProjectDeliveryMessage('Saving delivery settings...');
+
+    try {
+      const data = await api('/api/admin/projects?action=delivery', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId,
+          finalDeliveryUrl: urlField.value,
+          unlockDelivery: Boolean(unlockField?.checked),
+        }),
+      });
+      selectedProjectId = projectId;
+      renderProjectDetail(data.project);
+      renderProjectDeliveryMessage(unlockField?.checked ? 'Final delivery unlocked.' : 'Final delivery updated.');
+      await loadOverview();
+    } catch (error) {
+      renderProjectDeliveryMessage(error.message || 'Unable to update final delivery.', true);
+    } finally {
+      submitButton.disabled = false;
+    }
+  }
+
+  async function handleProjectExtraRevisionSubmit(event) {
+    const form = event.target.closest('[data-project-extra-revision-form]');
+    if (!form) return;
+
+    event.preventDefault();
+    const projectId = form.getAttribute('data-project-id');
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (!projectId) return;
+
+    submitButton.disabled = true;
+    renderProjectRevisionMessage('Allowing one extra revision...');
+
+    try {
+      const data = await api('/api/admin/projects?action=extra-revision', {
+        method: 'POST',
+        body: JSON.stringify({ projectId }),
+      });
+      selectedProjectId = projectId;
+      renderProjectDetail(data.project);
+      renderProjectRevisionMessage('One extra revision allowed.');
+      await loadOverview();
+    } catch (error) {
+      renderProjectRevisionMessage(error.message || 'Unable to allow an extra revision.', true);
+    } finally {
+      submitButton.disabled = false;
     }
   }
 
@@ -206,6 +363,7 @@
       })),
       ...(queues.awaitingFiles || []).map((project) => projectQueueItem('Awaiting Files', project)),
       ...(queues.filesSubmitted || []).map((project) => projectQueueItem('Files Submitted', project)),
+      ...(queues.activeProjects || []).map((project) => projectQueueItem('Active Project', project)),
       ...(queues.revisionRequests || []).map((revision) => ({
         label: 'Revision',
         projectId: revision.projectId || '',
@@ -246,7 +404,8 @@
   }
 
   function renderOverviewItem(item) {
-    const action = item.href ? `<a href="${escapeHtml(item.href)}" target="_blank" rel="noreferrer">Open</a>` : '';
+    const safeHref = safeHttpUrl(item.href);
+    const action = safeHref ? `<a href="${escapeHtml(safeHref)}" target="_blank" rel="noreferrer">Open</a>` : '';
     const detailAction = item.projectId ? `<button class="overview-link-button" type="button" data-project-detail-id="${escapeHtml(item.projectId)}">View</button>` : '';
     return `
       <article class="overview-item">
@@ -303,6 +462,48 @@
           <strong>${escapeHtml(detail.financial?.balanceDueLabel || '$0.00')}</strong>
         </div>
       </div>
+      <form class="project-status-form" data-project-status-form data-project-id="${escapeHtml(project.id)}">
+        <label>
+          <span>Status</span>
+          <select name="status">
+            ${PROJECT_STATUS_OPTIONS.map((status) => `<option value="${escapeHtml(status)}"${status === project.status ? ' selected' : ''}>${escapeHtml(titleCase(status))}</option>`).join('')}
+          </select>
+        </label>
+        <button class="btn btn-secondary" type="submit">Update Status</button>
+        <p class="project-status-message" id="project-status-message" role="status" aria-live="polite"></p>
+      </form>
+      <section class="project-note-panel">
+        <div class="project-note-panel-header">
+          <h4>Private Notes</h4>
+          <p>Visible only in the owner dashboard.</p>
+        </div>
+        <form class="project-note-form" data-admin-note-form data-project-id="${escapeHtml(project.id)}">
+          <label>
+            <span>Add Note</span>
+            <textarea name="note" rows="4" placeholder="Add a private project note for mix direction, follow-up, or customer context." required></textarea>
+          </label>
+          <button class="btn btn-secondary" type="submit">Save Note</button>
+          <p class="project-note-message" id="project-note-message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <section class="project-delivery-panel">
+        <div class="project-delivery-panel-header">
+          <h4>Final Delivery</h4>
+          <p>Set the final file link and unlock it when payment rules allow.</p>
+        </div>
+        <form class="project-delivery-form" data-project-delivery-form data-project-id="${escapeHtml(project.id)}">
+          <label>
+            <span>Final Delivery URL</span>
+            <input type="url" name="finalDeliveryUrl" value="${escapeHtml(detail.driveLinks?.finalDelivery || '')}" placeholder="https://drive.google.com/..." required>
+          </label>
+          <label class="project-delivery-toggle">
+            <input type="checkbox" name="unlockDelivery" value="1">
+            <span>Unlock customer access now</span>
+          </label>
+          <button class="btn btn-secondary" type="submit">Save Delivery</button>
+          <p class="project-delivery-message" id="project-delivery-message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
       <div class="project-detail-grid">
         ${renderProjectDetailSection('Customer', [
           ['Email', detail.customer?.email],
@@ -325,11 +526,16 @@
           ['Remaining', detail.revisions?.remaining],
         ])}
       </div>
+      <form class="project-extra-revision-form" data-project-extra-revision-form data-project-id="${escapeHtml(project.id)}">
+        <button class="btn btn-secondary" type="submit">Allow One Extra Revision</button>
+        <p class="project-revision-message" id="project-revision-message" role="status" aria-live="polite"></p>
+      </form>
       ${renderLinkedList('Files', detail.files || [], renderFileItem)}
       ${renderLinkedList('Revision Requests', detail.revisions?.items || [], renderRevisionItem)}
       ${renderLinkedList('Payments', detail.payments || [], renderPaymentItem)}
       ${renderLinkedList('Timeline', detail.timeline || [], renderTimelineItem)}
       ${renderLinkedList('Email Events', detail.emailEvents || [], renderEmailEventItem)}
+      ${renderLinkedList('Admin Notes', detail.adminNotes || [], renderAdminNoteItem)}
     `;
   }
 
@@ -360,10 +566,43 @@
       <section class="project-detail-section">
         <h4>Drive Links</h4>
         <div class="project-link-list">
-          ${rows.map(([label, href]) => href ? `<a href="${escapeHtml(safeHttpUrl(href))}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>` : `<span>${escapeHtml(label)} not set</span>`).join('')}
+          ${rows.map(([label, href]) => {
+            const safeHref = safeHttpUrl(href);
+            return safeHref
+              ? `<a href="${escapeHtml(safeHref)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`
+              : `<span>${escapeHtml(label)} not set</span>`;
+          }).join('')}
         </div>
       </section>
     `;
+  }
+
+  function renderProjectStatusMessage(message, isError = false) {
+    const container = document.getElementById('project-status-message');
+    if (!container) return;
+    container.textContent = message || '';
+    container.classList.toggle('project-status-message-error', Boolean(isError && message));
+  }
+
+  function renderProjectNoteMessage(message, isError = false) {
+    const container = document.getElementById('project-note-message');
+    if (!container) return;
+    container.textContent = message || '';
+    container.classList.toggle('project-note-message-error', Boolean(isError && message));
+  }
+
+  function renderProjectDeliveryMessage(message, isError = false) {
+    const container = document.getElementById('project-delivery-message');
+    if (!container) return;
+    container.textContent = message || '';
+    container.classList.toggle('project-delivery-message-error', Boolean(isError && message));
+  }
+
+  function renderProjectRevisionMessage(message, isError = false) {
+    const container = document.getElementById('project-revision-message');
+    if (!container) return;
+    container.textContent = message || '';
+    container.classList.toggle('project-revision-message-error', Boolean(isError && message));
   }
 
   function renderLinkedList(title, items, renderer) {
@@ -432,6 +671,18 @@
         <div>
           <strong>${escapeHtml(titleCase(item.emailType || 'Email'))}</strong>
           <span>${escapeHtml(`${item.status || 'unknown'} to ${item.recipient || 'unknown recipient'}`)}</span>
+        </div>
+        <time datetime="${escapeHtml(item.createdAt || '')}">${escapeHtml(item.createdAt ? formatDateTime(item.createdAt) : '')}</time>
+      </article>
+    `;
+  }
+
+  function renderAdminNoteItem(item) {
+    return `
+      <article class="project-record project-note-record">
+        <div>
+          <strong>Private Note</strong>
+          <span>${escapeHtml(item.note || '')}</span>
         </div>
         <time datetime="${escapeHtml(item.createdAt || '')}">${escapeHtml(item.createdAt ? formatDateTime(item.createdAt) : '')}</time>
       </article>

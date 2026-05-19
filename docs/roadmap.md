@@ -42,11 +42,11 @@ Goal: manage real studio work from one private dashboard.
 
 - [x] Add admin overview data for leads, awaiting files, active projects, revisions, finals, balances, and recent activity.
 - [x] Add project detail view with customer info, timeline, Drive links, files, revisions, payments, and email events.
-- [ ] Add admin status update action.
-- [ ] Add admin notes.
-- [ ] Add final delivery URL and unlock actions.
-- [ ] Add extra revision allowance action.
-- [ ] Keep setup/sandbox tools available as a setup section.
+- [x] Add admin status update action.
+- [x] Add admin notes.
+- [x] Add final delivery URL and unlock actions.
+- [x] Add extra revision allowance action.
+- [x] Keep setup/sandbox tools available as a setup section.
 
 ## Stage 4: Custom Quote Workflow
 
