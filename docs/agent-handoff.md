@@ -85,6 +85,26 @@ Done in the first Stage 3 slice:
 - Added `test/admin-overview-api.test.js`.
 - Added `api/admin/overview.js` to `npm run check:js`.
 
+Done in the second Stage 3 slice:
+
+- Added a protected `/api/admin/projects?action=detail&projectId=...` endpoint.
+- Added `getAdminProjectDetail` and `buildAdminProjectDetail` in `lib/db/studio-records.js`.
+- The project detail payload includes:
+  - project summary and status
+  - customer email/name
+  - financial totals and balance
+  - Drive project/upload/finals/final-delivery links
+  - submitted project files
+  - revision counts and revision requests
+  - payments
+  - project timeline events
+  - email events
+- Updated the admin overview priority queue with `View` actions for project-backed rows.
+- Added a read-only project detail panel in `admin.html`/`admin.js`.
+- Added project detail styles in `style.css`.
+- Added `test/admin-project-detail-api.test.js`.
+- Added `api/admin/projects.js` to `npm run check:js`.
+
 ## Verification Evidence
 
 Before the latest push, these commands passed:
@@ -126,6 +146,29 @@ Last observed `npm test` result after the overview slice:
 - 114 pass
 - 0 fail
 
+During the Stage 3 project detail slice, these focused checks passed:
+
+```bash
+node --test test/admin-project-detail-api.test.js
+node --check admin.js
+node --check api/admin/projects.js
+node --check lib/db/studio-records.js
+```
+
+These full checks also passed after the Stage 3 project detail slice:
+
+```bash
+npm test
+npm run check:js
+git diff --check
+```
+
+Last observed `npm test` result after the project detail slice:
+
+- 122 tests
+- 122 pass
+- 0 fail
+
 ## Important Implementation Notes
 
 - The project is a static site plus Vercel Functions, not a framework app.
@@ -146,11 +189,11 @@ Continue Stage 3 from `docs/roadmap.md`: Build Josh's Operational Admin Dashboar
 
 Suggested next Stage 3 slice:
 
-1. Add project detail API tests.
-2. Add a server helper that loads one project with customer info, timeline, Drive links, files, revisions, payments, and email events.
-3. Add a project detail endpoint or extend the admin API with a detail action.
-4. Add an admin project detail panel or route from the overview queue.
-5. Keep status update, notes, final delivery unlocks, and extra revision actions for later Stage 3 slices unless the detail view needs read-only placeholders.
+1. Add admin status update action tests.
+2. Add a protected status update handler for known project statuses.
+3. Update the project detail panel with a status control.
+4. Log a `project_events` row when status changes.
+5. Keep admin notes, final delivery unlocks, and extra revision actions for later Stage 3 slices.
 
 Recommended TDD pattern:
 
@@ -165,16 +208,16 @@ Recommended TDD pattern:
 - `admin.html`
 - `admin.js`
 - `api/admin/overview.js` (new)
-- project detail endpoint file when that slice starts
+- `api/admin/projects.js`
 - `lib/db/studio-records.js`
 - `test/admin-overview-api.test.js` (new)
-- project detail test file when that slice starts
+- `test/admin-project-detail-api.test.js`
 - `style.css`
 - `docs/roadmap.md`
 
 ## Known Follow-Up Decisions
 
-- Decide whether project detail should be a same-page panel, a query-string selected state, or a separate `admin-project.html` page.
+- Decide whether the project detail selection should persist in the URL with a query string later. It is currently same-page state only.
 - Decide whether to keep admin setup tools on the same page behind a section or split to a separate setup page later.
 - Decide when to run the fresh-clone setup check. It is useful before another machine or deployment depends on the repo, but it is not blocking Stage 3.
 - Replace WAV listen-section assets with MP3 previews later.

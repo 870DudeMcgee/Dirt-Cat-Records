@@ -22,6 +22,7 @@
 
   function bindActions() {
     document.getElementById('admin-refresh')?.addEventListener('click', refreshAdmin);
+    document.getElementById('overview-queue')?.addEventListener('click', handleProjectDetailClick);
     document.getElementById('run-simulation')?.addEventListener('click', () => runTest('simulation'));
     document.getElementById('run-sandbox')?.addEventListener('click', () => runTest('sandbox'));
     document.getElementById('cleanup-run')?.addEventListener('click', cleanupRun);
@@ -79,6 +80,24 @@
     } catch (error) {
       setStatus(error.message || 'Unable to load admin overview.');
       renderOverview(emptyOverview());
+    }
+  }
+
+  async function handleProjectDetailClick(event) {
+    const button = event.target.closest('[data-project-detail-id]');
+    if (!button) return;
+    const projectId = button.getAttribute('data-project-detail-id');
+    if (!projectId) return;
+
+    button.disabled = true;
+    renderProjectDetailLoading(projectId);
+    try {
+      const data = await api(`/api/admin/projects?action=detail&projectId=${encodeURIComponent(projectId)}`);
+      renderProjectDetail(data.project);
+    } catch (error) {
+      renderProjectDetailError(error.message || 'Unable to load project detail.');
+    } finally {
+      button.disabled = false;
     }
   }
 
@@ -189,6 +208,7 @@
       ...(queues.filesSubmitted || []).map((project) => projectQueueItem('Files Submitted', project)),
       ...(queues.revisionRequests || []).map((revision) => ({
         label: 'Revision',
+        projectId: revision.projectId || '',
         title: revision.projectTitle || revision.artistName || revision.projectCode || 'Revision request',
         detail: revision.notes,
         time: revision.createdAt,
@@ -217,6 +237,7 @@
   function projectQueueItem(label, project) {
     return {
       label,
+      projectId: project.id || '',
       title: project.title || project.projectTitle || project.artistName || project.projectCode || 'Untitled project',
       detail: project.projectCode || project.statusLabel || '',
       time: project.updatedAt || project.createdAt,
@@ -226,6 +247,7 @@
 
   function renderOverviewItem(item) {
     const action = item.href ? `<a href="${escapeHtml(item.href)}" target="_blank" rel="noreferrer">Open</a>` : '';
+    const detailAction = item.projectId ? `<button class="overview-link-button" type="button" data-project-detail-id="${escapeHtml(item.projectId)}">View</button>` : '';
     return `
       <article class="overview-item">
         <div>
@@ -235,8 +257,183 @@
         </div>
         <div class="overview-item-meta">
           ${item.time ? `<time datetime="${escapeHtml(item.time)}">${escapeHtml(formatDateTime(item.time))}</time>` : ''}
+          ${detailAction}
           ${action}
         </div>
+      </article>
+    `;
+  }
+
+  function renderProjectDetailLoading(projectId) {
+    const container = document.getElementById('project-detail');
+    if (!container) return;
+    container.innerHTML = `
+      <h3>Project Detail</h3>
+      <p class="overview-empty">Loading ${escapeHtml(projectId)}...</p>
+    `;
+  }
+
+  function renderProjectDetailError(message) {
+    const container = document.getElementById('project-detail');
+    if (!container) return;
+    container.innerHTML = `
+      <h3>Project Detail</h3>
+      <p class="overview-empty">${escapeHtml(message)}</p>
+    `;
+  }
+
+  function renderProjectDetail(detail) {
+    const container = document.getElementById('project-detail');
+    if (!container) return;
+    if (!detail?.project) {
+      renderProjectDetailError('Project detail was empty.');
+      return;
+    }
+
+    const project = detail.project;
+    container.innerHTML = `
+      <div class="project-detail-header">
+        <div>
+          <p class="portal-status-pill">${escapeHtml(project.statusLabel || titleCase(project.status))}</p>
+          <h3>${escapeHtml(project.title || project.projectCode || 'Project Detail')}</h3>
+          <span>${escapeHtml(project.projectCode || project.id)}</span>
+        </div>
+        <div class="project-detail-total">
+          <span>Balance</span>
+          <strong>${escapeHtml(detail.financial?.balanceDueLabel || '$0.00')}</strong>
+        </div>
+      </div>
+      <div class="project-detail-grid">
+        ${renderProjectDetailSection('Customer', [
+          ['Email', detail.customer?.email],
+          ['Name', detail.customer?.name || 'Not set'],
+          ['Type', project.projectType],
+          ['Service', project.serviceId || 'Not set'],
+          ['Songs', project.songCount],
+        ])}
+        ${renderProjectDetailSection('Money', [
+          ['Total', detail.financial?.totalAmountLabel],
+          ['Paid', detail.financial?.amountPaidLabel],
+          ['Balance', detail.financial?.balanceDueLabel],
+          ['Final Locked', project.finalDeliveryLocked ? 'Yes' : 'No'],
+        ])}
+        ${renderDriveLinks(detail.driveLinks || {})}
+        ${renderProjectDetailSection('Revisions', [
+          ['Included', detail.revisions?.included],
+          ['Used', detail.revisions?.used],
+          ['Extra Allowed', detail.revisions?.extraAllowed],
+          ['Remaining', detail.revisions?.remaining],
+        ])}
+      </div>
+      ${renderLinkedList('Files', detail.files || [], renderFileItem)}
+      ${renderLinkedList('Revision Requests', detail.revisions?.items || [], renderRevisionItem)}
+      ${renderLinkedList('Payments', detail.payments || [], renderPaymentItem)}
+      ${renderLinkedList('Timeline', detail.timeline || [], renderTimelineItem)}
+      ${renderLinkedList('Email Events', detail.emailEvents || [], renderEmailEventItem)}
+    `;
+  }
+
+  function renderProjectDetailSection(title, rows) {
+    return `
+      <section class="project-detail-section">
+        <h4>${escapeHtml(title)}</h4>
+        <dl>
+          ${rows.map(([label, value]) => `
+            <div>
+              <dt>${escapeHtml(label)}</dt>
+              <dd>${escapeHtml(value === undefined || value === null || value === '' ? 'Not set' : value)}</dd>
+            </div>
+          `).join('')}
+        </dl>
+      </section>
+    `;
+  }
+
+  function renderDriveLinks(links) {
+    const rows = [
+      ['Project', links.project],
+      ['Upload', links.upload],
+      ['Finals', links.finals],
+      ['Delivery', links.finalDelivery],
+    ];
+    return `
+      <section class="project-detail-section">
+        <h4>Drive Links</h4>
+        <div class="project-link-list">
+          ${rows.map(([label, href]) => href ? `<a href="${escapeHtml(safeHttpUrl(href))}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>` : `<span>${escapeHtml(label)} not set</span>`).join('')}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderLinkedList(title, items, renderer) {
+    return `
+      <section class="project-detail-section project-detail-wide">
+        <h4>${escapeHtml(title)}</h4>
+        <div class="project-record-list">
+          ${items.length ? items.map(renderer).join('') : '<p class="overview-empty">None yet.</p>'}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderFileItem(file) {
+    const href = safeHttpUrl(file.uploadLink);
+    return `
+      <article class="project-record">
+        <div>
+          <strong>${escapeHtml(file.statusLabel || titleCase(file.status))}</strong>
+          <span>${escapeHtml(file.createdAt ? formatDateTime(file.createdAt) : '')}</span>
+        </div>
+        ${href ? `<a href="${escapeHtml(href)}" target="_blank" rel="noreferrer">Open File Link</a>` : ''}
+      </article>
+    `;
+  }
+
+  function renderRevisionItem(revision) {
+    return `
+      <article class="project-record">
+        <div>
+          <strong>${escapeHtml(titleCase(revision.status))}${revision.isExtraRevision ? ' Extra' : ''}</strong>
+          <span>${escapeHtml(revision.notes || 'No notes')}</span>
+        </div>
+        <time datetime="${escapeHtml(revision.createdAt || '')}">${escapeHtml(revision.createdAt ? formatDateTime(revision.createdAt) : '')}</time>
+      </article>
+    `;
+  }
+
+  function renderPaymentItem(payment) {
+    return `
+      <article class="project-record">
+        <div>
+          <strong>${escapeHtml(payment.amountLabel || '$0.00')} ${escapeHtml(payment.currency || 'USD')}</strong>
+          <span>${escapeHtml(titleCase(payment.paymentPurpose || payment.status))}</span>
+        </div>
+        <time datetime="${escapeHtml(payment.createdAt || '')}">${escapeHtml(payment.createdAt ? formatDateTime(payment.createdAt) : '')}</time>
+      </article>
+    `;
+  }
+
+  function renderTimelineItem(item) {
+    return `
+      <article class="project-record">
+        <div>
+          <strong>${escapeHtml(titleCase(item.eventType || 'Event'))}</strong>
+          <span>${escapeHtml(item.message || '')}</span>
+        </div>
+        <time datetime="${escapeHtml(item.createdAt || '')}">${escapeHtml(item.createdAt ? formatDateTime(item.createdAt) : '')}</time>
+      </article>
+    `;
+  }
+
+  function renderEmailEventItem(item) {
+    return `
+      <article class="project-record">
+        <div>
+          <strong>${escapeHtml(titleCase(item.emailType || 'Email'))}</strong>
+          <span>${escapeHtml(`${item.status || 'unknown'} to ${item.recipient || 'unknown recipient'}`)}</span>
+        </div>
+        <time datetime="${escapeHtml(item.createdAt || '')}">${escapeHtml(item.createdAt ? formatDateTime(item.createdAt) : '')}</time>
       </article>
     `;
   }

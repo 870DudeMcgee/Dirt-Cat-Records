@@ -41,7 +41,7 @@ Goal: customers should see clear next steps and only the actions that apply to t
 Goal: manage real studio work from one private dashboard.
 
 - [x] Add admin overview data for leads, awaiting files, active projects, revisions, finals, balances, and recent activity.
-- [ ] Add project detail view with customer info, timeline, Drive links, files, revisions, payments, and email events.
+- [x] Add project detail view with customer info, timeline, Drive links, files, revisions, payments, and email events.
 - [ ] Add admin status update action.
 - [ ] Add admin notes.
 - [ ] Add final delivery URL and unlock actions.
