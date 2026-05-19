@@ -70,7 +70,7 @@
   }
 
   async function initAuth() {
-    const configResponse = await fetch("/api/public/config");
+    const configResponse = await fetch("/api/checkout-config");
     const config = await configResponse.json();
     supabaseClient = window.supabase.createClient(
       config.supabaseUrl,

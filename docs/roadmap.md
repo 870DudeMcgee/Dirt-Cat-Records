@@ -109,3 +109,11 @@ Goal: owner can run deterministic local/sandbox validation with dummy data and c
 - [x] Add one-click `Run Owner Proof` admin action that focuses the showcase admin project and renders customer portal previews inline.
 - [x] Add automated tests for scenario and cleanup behavior.
 - [x] Document exact owner-run commands in `README.md`.
+
+## Deployment Guardrail
+
+Goal: keep Vercel Hobby deployments under the 12-function limit and fail fast before deploy.
+
+- [x] Consolidate browser-safe config into `api/checkout-config.js`.
+- [x] Add `npm run deploy:preflight` for function-count, test, syntax, and diff checks.
+- [x] Document the deploy workflow in `docs/deployment-preflight.md` and `README.md`.

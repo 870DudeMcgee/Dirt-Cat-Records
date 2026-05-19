@@ -109,6 +109,27 @@ npm test
 npm run check:js
 ```
 
+## Deployment Preflight
+
+This repo is designed to stay within the Vercel Hobby limit of 12 Serverless Functions.
+
+Run this before any production deploy:
+
+```bash
+npm run deploy:preflight
+```
+
+What it checks:
+
+- function count under `/api`
+- full test suite
+- JavaScript syntax checks
+- clean diff whitespace
+
+If the function count ever exceeds 12 again, merge adjacent routes or upgrade the Vercel plan before deploying.
+
+Deployment triage notes live in [`docs/deployment-preflight.md`](docs/deployment-preflight.md).
+
 ## V1 Dummy-Data Harness
 
 Preferred local path: open `admin.html` and click `Run Owner Proof` in the `Setup & Sandbox` section.

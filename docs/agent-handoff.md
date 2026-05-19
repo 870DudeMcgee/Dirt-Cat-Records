@@ -344,7 +344,7 @@ node --check lib/automation/test-mode-runner.js
 - Current pushed Stage 3 commits:
   - `806fef8 feat: add admin operations overview`
   - `792a8ec feat: add admin project detail view`
-- Supabase browser auth uses `SUPABASE_URL` and `SUPABASE_PUBLIC_KEY` from `/api/public/config`.
+- Supabase browser auth uses `SUPABASE_URL` and `SUPABASE_PUBLIC_KEY` from `/api/checkout-config`.
 - Server-side Supabase writes use `SUPABASE_SERVICE_ROLE_KEY` or legacy `SUPABASE_SECRET_KEY`.
 - Admin access is checked against `ADMIN_EMAIL`.
 - Local admin bypass exists only when `ALLOW_LOCAL_ADMIN_BYPASS=1` and host is localhost/127.0.0.1.

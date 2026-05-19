@@ -4,7 +4,7 @@ const PRODUCTION_ORIGIN = "https://dirtcatrecords.com";
 const portalView = window.PortalView;
 
 async function initPortal() {
-  const configResponse = await fetch("/api/public/config");
+  const configResponse = await fetch("/api/checkout-config");
   const config = await configResponse.json();
   supabaseClient = window.supabase.createClient(
     config.supabaseUrl,

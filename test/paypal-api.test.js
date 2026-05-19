@@ -217,10 +217,14 @@ test("checkout config exposes client id but never client secret", () => {
   const originalClientId = process.env.PAYPAL_CLIENT_ID;
   const originalSecret = process.env.PAYPAL_CLIENT_SECRET;
   const originalBypass = process.env.ALLOW_LOCAL_ADMIN_BYPASS;
+  const originalSupabaseUrl = process.env.SUPABASE_URL;
+  const originalSupabasePublicKey = process.env.SUPABASE_PUBLIC_KEY;
   try {
     process.env.PAYPAL_CLIENT_ID = "public-client-id";
     process.env.PAYPAL_CLIENT_SECRET = "server-secret";
     process.env.ALLOW_LOCAL_ADMIN_BYPASS = "1";
+    process.env.SUPABASE_URL = "https://project.supabase.co";
+    process.env.SUPABASE_PUBLIC_KEY = "public-key";
 
     const response = createMockResponse();
     checkoutConfigRoute(
@@ -233,6 +237,8 @@ test("checkout config exposes client id but never client secret", () => {
       paypalClientId: "public-client-id",
       currency: "USD",
       localTestCheckoutEnabled: true,
+      supabaseUrl: "https://project.supabase.co",
+      supabasePublicKey: "public-key",
     });
     assert.equal(
       JSON.stringify(response.body).includes("server-secret"),
@@ -255,6 +261,49 @@ test("checkout config exposes client id but never client secret", () => {
       delete process.env.ALLOW_LOCAL_ADMIN_BYPASS;
     } else {
       process.env.ALLOW_LOCAL_ADMIN_BYPASS = originalBypass;
+    }
+
+    if (originalSupabaseUrl === undefined) {
+      delete process.env.SUPABASE_URL;
+    } else {
+      process.env.SUPABASE_URL = originalSupabaseUrl;
+    }
+
+    if (originalSupabasePublicKey === undefined) {
+      delete process.env.SUPABASE_PUBLIC_KEY;
+    } else {
+      process.env.SUPABASE_PUBLIC_KEY = originalSupabasePublicKey;
+    }
+  }
+});
+
+test("checkout config includes public auth config for browser clients", () => {
+  const originalSupabaseUrl = process.env.SUPABASE_URL;
+  const originalSupabasePublicKey = process.env.SUPABASE_PUBLIC_KEY;
+  try {
+    process.env.SUPABASE_URL = "https://project.supabase.co";
+    process.env.SUPABASE_PUBLIC_KEY = "public-key";
+
+    const response = createMockResponse();
+    checkoutConfigRoute(
+      { method: "GET", headers: { host: "localhost:3000" } },
+      response
+    );
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.supabaseUrl, "https://project.supabase.co");
+    assert.equal(response.body.supabasePublicKey, "public-key");
+  } finally {
+    if (originalSupabaseUrl === undefined) {
+      delete process.env.SUPABASE_URL;
+    } else {
+      process.env.SUPABASE_URL = originalSupabaseUrl;
+    }
+
+    if (originalSupabasePublicKey === undefined) {
+      delete process.env.SUPABASE_PUBLIC_KEY;
+    } else {
+      process.env.SUPABASE_PUBLIC_KEY = originalSupabasePublicKey;
     }
   }
 });
