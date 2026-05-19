@@ -278,9 +278,11 @@ test("checkout config exposes client id but never client secret", () => {
 });
 
 test("checkout config includes public auth config for browser clients", () => {
+  const originalClientId = process.env.PAYPAL_CLIENT_ID;
   const originalSupabaseUrl = process.env.SUPABASE_URL;
   const originalSupabasePublicKey = process.env.SUPABASE_PUBLIC_KEY;
   try {
+    process.env.PAYPAL_CLIENT_ID = "public-client-id";
     process.env.SUPABASE_URL = "https://project.supabase.co";
     process.env.SUPABASE_PUBLIC_KEY = "public-key";
 
@@ -291,9 +293,16 @@ test("checkout config includes public auth config for browser clients", () => {
     );
 
     assert.equal(response.statusCode, 200);
+    assert.equal(response.body.paypalClientId, "public-client-id");
     assert.equal(response.body.supabaseUrl, "https://project.supabase.co");
     assert.equal(response.body.supabasePublicKey, "public-key");
   } finally {
+    if (originalClientId === undefined) {
+      delete process.env.PAYPAL_CLIENT_ID;
+    } else {
+      process.env.PAYPAL_CLIENT_ID = originalClientId;
+    }
+
     if (originalSupabaseUrl === undefined) {
       delete process.env.SUPABASE_URL;
     } else {
