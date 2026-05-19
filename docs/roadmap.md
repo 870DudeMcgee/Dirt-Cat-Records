@@ -5,6 +5,20 @@ This document tracks the staged work needed to turn the current site, checkout, 
 For current handoff context, see [`docs/agent-handoff.md`](agent-handoff.md).
 For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [`docs/adr/`](adr).
 
+Current next focus: Stage 7 launch hardening. Stage 6 follow-up automation now has focused test coverage and a passing local Vercel runtime smoke check.
+
+## Execution Rule
+
+For every implementation step in any stage:
+
+1. Run a context check against plan docs and the live codebase.
+2. Log what will be done in `docs/execution-log.md`.
+3. Implement one bounded step.
+4. Re-check codebase state and validations.
+5. Log what was done and what remains.
+
+Process details: [`docs/execution-trail.md`](execution-trail.md).
+
 ## Stage 0: Stabilize The Source Of Truth
 
 Goal: make the repo clean, understandable, and hard to misuse.
@@ -77,14 +91,14 @@ Goal: make deposits and final delivery safe and clear.
 
 Goal: reduce stale leads, missing files, pending quotes, unpaid balances, and unapproved finals.
 
-- [ ] Add follow-up selector logic.
-- [ ] Add protected Vercel cron route.
-- [ ] Add reminders for missing files.
-- [ ] Add reminders for pending quotes.
-- [ ] Add reminders for balance due.
-- [ ] Add reminders for final approval.
-- [ ] Prevent duplicate pending follow-up jobs.
-- [ ] Log every follow-up attempt.
+- [x] Add follow-up selector logic.
+- [x] Add protected Vercel cron route.
+- [x] Add reminders for missing files.
+- [x] Add reminders for pending quotes.
+- [x] Add reminders for balance due.
+- [x] Add reminders for final approval.
+- [x] Prevent duplicate pending follow-up jobs.
+- [x] Log every follow-up attempt.
 
 ## Stage 7: Live Launch Hardening
 

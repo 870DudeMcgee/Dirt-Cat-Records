@@ -16,7 +16,24 @@ Older local copies were archived outside this repo and should not be used for ne
 
 The staged task list lives in [`docs/roadmap.md`](docs/roadmap.md).
 
-The current priority is Stage 6: follow-up automation for missing files, pending quotes, unpaid balances, and final approval.
+The current priority is Stage 7: launch hardening across the live providers and production configuration.
+
+## Execution Trail (Required)
+
+Every implementation step must be logged with plan and codebase context checks.
+
+Use:
+
+- [`docs/execution-trail.md`](docs/execution-trail.md) for the required process.
+- [`docs/execution-log.md`](docs/execution-log.md) as the append-only working log.
+
+Minimum rule between steps:
+
+1. Run a pre-step context check against plan + codebase.
+2. Record what will be done.
+3. Implement one bounded step.
+4. Run post-step validation/context check.
+5. Record what was done and what needs to be done next.
 
 Architecture source-of-truth docs:
 
@@ -101,6 +118,10 @@ npm run google:refresh-token
 - `TEST_DRIVE_FOLDER_PREFIX`
 
 These are used by admin simulation/sandbox test runs.
+
+### Stage 6 Follow-Up Cron
+
+- `CRON_SECRET`: required token for protected follow-up cron route.
 
 ## Local Checks
 
@@ -192,6 +213,32 @@ npx vercel dev
 ```
 
 Do not wrap `vercel dev` inside the `dev` npm script. Vercel treats a `dev` script as the project development command, which causes a recursive startup loop if that script also runs `vercel dev`.
+
+## Stage 6 Follow-Up Automation
+
+Protected cron endpoint:
+
+- `GET /api/cron/follow-ups`
+
+Behavior:
+
+- default mode is `dryRun=true` (candidate preview only)
+- `dryRun=false` queues follow-up jobs
+- `dryRun=false&dispatch=true` queues and dispatches pending jobs
+
+Example local dry-run:
+
+```bash
+curl -sS "http://localhost:3000/api/cron/follow-ups?dryRun=true" \
+	-H "authorization: Bearer $CRON_SECRET"
+```
+
+Example local queue + dispatch:
+
+```bash
+curl -sS "http://localhost:3000/api/cron/follow-ups?dryRun=false&dispatch=true" \
+	-H "authorization: Bearer $CRON_SECRET"
+```
 
 ## Setup And Launch Checklist
 
