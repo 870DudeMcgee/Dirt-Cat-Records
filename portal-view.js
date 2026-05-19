@@ -65,6 +65,7 @@
     const finalDeliveryUrl = safeHttpUrl(project.final_delivery_url);
     const uploadFolderUrl = safeHttpUrl(project.drive_upload_folder_url);
     const finalUnlocked = Boolean(finalDeliveryUrl && project.final_delivery_locked === false);
+    const activeQuote = normalizeActiveQuote(project.active_quote);
 
     return {
       id: String(project.id || ''),
@@ -76,6 +77,7 @@
       uploadFolderUrl,
       finalDeliveryUrl,
       finalUnlocked,
+      activeQuote,
       balanceDue,
       balanceDueLabel: formatDollars(balanceDue),
       revisionsRemaining,
@@ -91,6 +93,7 @@
       ].includes(project.status),
       canRequestRevision: revisionsRemaining > 0 && !['approved', 'completed', 'closed'].includes(project.status),
       canApproveFinal: finalUnlocked && ['finals_ready', 'delivered'].includes(project.status),
+      canAcceptQuote: Boolean(activeQuote && ['draft', 'sent', 'viewed'].includes(activeQuote.status)),
     };
   }
 
@@ -117,6 +120,7 @@
           ${project.balanceDue > 0 ? `<div class="portal-balance"><span>Balance Due</span><strong>${escapeHtml(project.balanceDueLabel)}</strong></div>` : ''}
         </header>
         <p class="portal-next-step">${escapeHtml(project.nextStep)}</p>
+        ${project.activeQuote ? renderQuoteCard(project) : ''}
         <p class="portal-revision-count">${escapeHtml(project.revisionLabel)}</p>
         <div class="portal-actions">
           ${project.uploadFolderUrl ? `<a class="btn" href="${escapeHtml(project.uploadFolderUrl)}" target="_blank" rel="noreferrer">Open Upload Folder</a>` : ''}
@@ -126,6 +130,19 @@
         ${project.canSubmitFiles ? renderFileLinkForm() : ''}
         ${project.canRequestRevision ? renderRevisionForm() : ''}
       </article>
+    `;
+  }
+
+  function renderQuoteCard(project) {
+    const quote = project.activeQuote;
+    return `
+      <section class="portal-quote-card">
+        <h3>Quote</h3>
+        <p class="portal-quote-total">${escapeHtml(quote.totalLabel)}</p>
+        <p class="portal-quote-status">Status: ${escapeHtml(titleCase(quote.status))}</p>
+        ${quote.expiresLabel ? `<p class="portal-quote-expires">Expires: ${escapeHtml(quote.expiresLabel)}</p>` : ''}
+        ${project.canAcceptQuote ? `<button class="btn portal-accept-quote-button" type="button" data-quote-id="${escapeHtml(quote.id)}">Accept Quote & Pay</button>` : ''}
+      </section>
     `;
   }
 
@@ -180,6 +197,23 @@
 
   function formatDollars(value) {
     return `$${Number(value || 0).toFixed(2)}`;
+  }
+
+  function normalizeActiveQuote(quote) {
+    if (!quote || typeof quote !== 'object') return null;
+    const finalTotalCents = Number(quote.final_total_cents || 0);
+    const expiresAt = quote.expires_at || '';
+    const expiresDate = expiresAt ? new Date(expiresAt) : null;
+    return {
+      id: String(quote.id || ''),
+      status: quote.status || '',
+      paymentMode: quote.payment_mode || 'full',
+      totalCents: finalTotalCents,
+      totalLabel: formatDollars(finalTotalCents / 100),
+      expiresAt,
+      expiresLabel: expiresDate && !Number.isNaN(expiresDate.getTime()) ? expiresDate.toLocaleDateString('en-US') : '',
+      lineItems: Array.isArray(quote.line_items) ? quote.line_items : [],
+    };
   }
 
   function titleCase(value) {

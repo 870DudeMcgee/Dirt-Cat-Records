@@ -7,8 +7,8 @@ This file is the working handoff for continuing Dirt Cat Records development aft
 - Working repo: `/Users/jewelbait/Desktop/DirtCatRecords`
 - Remote: `https://github.com/870DudeMcgee/Dirt-Cat-Records.git`
 - Branch: `main`
-- Latest pushed commit: `3d14549 docs: update agent handoff`
-- Local git status at handoff update time: dirty with modified `README.md`, `admin.js`, `api/admin/projects.js`, `docs/agent-handoff.md`, `docs/roadmap.md`, `lib/db/studio-records.js`, `style.css`, and `test/admin-project-detail-api.test.js`
+- Latest pushed commit: `b0c30db feat: complete admin extra revision allowance action and sync docs (Stage 3 done, 143 tests pass)`
+- Local git status at handoff update time: dirty with active Stage 4 quote slice changes.
 - Commit email used for pushed work: `Josh Mclean <870DudeMcgee@users.noreply.github.com>`
 
 Older local copies were archived under:
@@ -22,7 +22,7 @@ Do not use the archived folders for new work.
 1. Work only in `/Users/jewelbait/Desktop/DirtCatRecords`.
 2. Start by reading `docs/roadmap.md` and this file.
 3. Confirm `git status -sb` still shows the expected modified files on `main...origin/main` before continuing.
-4. Stage 3 is complete. Continue with Stage 4: custom quote workflow.
+4. Stage 4 is complete. Continue with Stage 5: balance payments and delivery locks.
 5. Use TDD. Existing tests use Node's built-in runner, and server/browser JS files must be added to `npm run check:js`.
 6. Before finishing a slice, run `npm test`, `npm run check:js`, and `git diff --check`.
 
@@ -154,6 +154,26 @@ Done in the sixth Stage 3 slice:
 - Added extra revision action styling in `style.css`.
 - Expanded `test/admin-project-detail-api.test.js` with extra revision coverage.
 
+Done in the first Stage 4 slice:
+
+- Added `createAdminQuote` and `sendAdminQuote` helpers in `lib/db/studio-records.js`.
+- Added a protected `/api/admin/quotes` endpoint with `action=create` and `action=send` POST actions.
+- Creating a quote now stores quote headers and line items, sets `projects.active_quote_id`, moves project status to `quoted`, and logs `admin_quote_created`.
+- Sending a quote now updates quote status to `sent`, moves project status to `quote_sent`, sends the `quote_sent` Resend template, logs an `email_events` row, and logs `admin_quote_sent`.
+- Added `test/admin-quotes-api.test.js` and expanded `test/studio-records.test.js` with quote helper coverage.
+- Added `api/admin/quotes.js` to `npm run check:js`.
+
+Done in the remaining Stage 4 slices:
+
+- Extended admin quote creation in `lib/db/studio-records.js` so quotes can build line items from catalog pricing and manual adjustments.
+- Added quote retrieval/update helpers in `lib/db/studio-records.js` for portal quote surfaces.
+- Updated `api/portal/actions.js` to include active quote and quote line-item data in projects responses.
+- Added `api/portal/accept-quote.js` to start authenticated quote checkout and return a PayPal approval URL.
+- Updated `portal-view.js`, `portal.js`, and `style.css` to render quote cards and support quote payment starts.
+- Extended `lib/paypal/order-metadata.js`, `api/create-paypal-order.js`, and `lib/paypal/webhook.js` for quote payment metadata and webhook parsing.
+- Extended `lib/automation/studio-workflow.js` to convert quoted projects correctly after quote payment confirmation.
+- Added quote completion coverage in `test/portal-accept-quote-api.test.js`, `test/paypal-api.test.js`, `test/paypal-webhook.test.js`, `test/studio-workflow.test.js`, `test/portal-view.test.js`, `test/portal-actions.test.js`, and `test/studio-records.test.js`.
+
 ## Verification Evidence
 
 Current verified commands in this workspace:
@@ -202,8 +222,8 @@ git diff --check
 
 Last observed `npm test` result in this workspace:
 
-- 143 tests
-- 143 pass
+- 160 tests
+- 160 pass
 - 0 fail
 
 Focused checks that passed during the extra revision slice:
@@ -214,6 +234,34 @@ node --check admin.js
 ```
 
 Full checks that passed after the extra revision slice:
+
+```bash
+npm test
+npm run check:js
+git diff --check
+```
+
+Focused checks that passed during the first Stage 4 quote slice:
+
+```bash
+node --test test/studio-records.test.js test/admin-quotes-api.test.js
+```
+
+Full checks that passed after the first Stage 4 quote slice:
+
+```bash
+npm test
+npm run check:js
+git diff --check
+```
+
+Focused checks that passed during Stage 4 completion:
+
+```bash
+node --test test/paypal-api.test.js test/paypal-webhook.test.js test/studio-workflow.test.js test/portal-view.test.js test/portal-actions.test.js test/portal-accept-quote-api.test.js test/studio-records.test.js
+```
+
+Full checks that passed after Stage 4 completion:
 
 ```bash
 npm test
@@ -240,6 +288,10 @@ git diff --check
 - `api/admin/overview.js` returns dashboard queue data.
 - `api/admin/projects.js` currently supports read-only detail via `action=detail&projectId=...`.
 - `api/admin/projects.js` now supports read-only detail, admin status updates, private note creation, final delivery updates, and extra revision allowance.
+- `api/admin/quotes.js` now supports `action=create` and `action=send` for owner-only quote workflows.
+- `api/portal/accept-quote.js` starts quote checkout for authenticated project owners and returns PayPal approval URLs.
+- Quote payment metadata now supports checkout and quote payments in `lib/paypal/order-metadata.js`.
+- Quote payment confirmations in `lib/automation/studio-workflow.js` now mark quotes accepted and convert projects into paid state.
 - `admin.js` renders a same-page project detail panel from priority queue `View` buttons and allows owner-only status changes, private notes, final delivery actions, and extra revision allowance from that panel.
 - `getAdminProjectDetail` includes project files linked by `project_id`, and also legacy files linked by `order_id` when the project has an order.
 - `getAdminProjectDetail` now also includes private admin notes from `admin_notes`.
@@ -249,13 +301,11 @@ git diff --check
 
 ## Recommended Next Work
 
-Continue Stage 3 from `docs/roadmap.md`: Build Josh's Operational Admin Dashboard.
-
 Suggested next work:
 
-1. Start Stage 4 with quote persistence and API tests.
-2. Add a protected admin quote creation/sending route.
-3. Show quote history and draft/send controls in the admin project detail flow.
+1. Add a balance payment endpoint and portal balance payment action.
+2. Extend PayPal metadata/webhook behavior for balance payments.
+3. Keep final delivery locked until the balance is paid, then unlock on full payment.
 
 Recommended TDD pattern:
 
@@ -267,12 +317,19 @@ Recommended TDD pattern:
 
 ## Files Most Likely To Change Next
 
-- `admin.html`
-- `admin.js`
-- `api/admin/projects.js`
+- `portal-view.js`
+- `portal.js`
+- `api/portal/accept-quote.js`
+- `api/create-paypal-order.js`
+- `api/webhooks/paypal.js`
+- `api/portal/actions.js`
+- `lib/paypal/order-metadata.js`
+- `lib/automation/studio-workflow.js`
 - `lib/db/studio-records.js`
-- `test/admin-project-detail-api.test.js`
-- `style.css`
+- `test/portal-actions.test.js`
+- `test/portal-accept-quote-api.test.js`
+- `test/paypal-api.test.js`
+- `test/paypal-webhook.test.js`
 - `docs/roadmap.md`
 
 ## Known Follow-Up Decisions

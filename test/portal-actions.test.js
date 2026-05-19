@@ -53,6 +53,9 @@ test('portal projects endpoint requests fields needed by the customer portal', a
       supabaseRequest: async (path, options) => {
         calls.push({ path, options });
         if (path === '/customers') return [{ id: 'customer-1', email: 'buyer@example.com' }];
+        if (path === '/projects') return [{ id: 'project-1', active_quote_id: 'quote-1' }];
+        if (path === '/quotes') return [{ id: 'quote-1', customer_id: 'customer-1', status: 'sent', final_total_cents: 45000 }];
+        if (path === '/quote_line_items') return [{ id: 'line-item-1', quote_id: 'quote-1', label: 'Custom Project Deposit' }];
         return [];
       },
     },
@@ -66,8 +69,11 @@ test('portal projects endpoint requests fields needed by the customer portal', a
   assert.match(projectSelect, /included_revisions/);
   assert.match(projectSelect, /used_revisions/);
   assert.match(projectSelect, /extra_revisions_allowed/);
+  assert.match(projectSelect, /active_quote_id/);
   assert.match(projectSelect, /balance_due/);
   assert.match(projectSelect, /amount_paid/);
+  assert.ok(calls.some((call) => call.path === '/quotes'));
+  assert.ok(calls.some((call) => call.path === '/quote_line_items'));
 });
 
 test('revision endpoint sends and logs admin notification', async () => {

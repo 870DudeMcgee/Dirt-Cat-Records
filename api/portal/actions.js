@@ -40,11 +40,58 @@ async function handleProjects({ req, res, records, user }) {
     const projects = await records.supabaseRequest('/projects', {
       query: {
         customer_id: `eq.${customers[0].id}`,
-        select: 'id,project_code,project_type,status,artist_name,project_title,drive_upload_folder_url,final_delivery_url,balance_due,amount_paid,final_delivery_locked,included_revisions,used_revisions,extra_revisions_allowed',
+        select: 'id,project_code,project_type,status,artist_name,project_title,drive_upload_folder_url,final_delivery_url,balance_due,amount_paid,final_delivery_locked,included_revisions,used_revisions,extra_revisions_allowed,active_quote_id',
         order: 'created_at.desc',
       },
     });
-    return sendJson(res, 200, { projects });
+
+    const quoteIds = projects.map((project) => project.active_quote_id).filter(Boolean);
+    let quotes = [];
+    let quoteLineItems = [];
+    if (quoteIds.length > 0) {
+      if (records.listQuotesForCustomer && records.listQuoteLineItemsForQuotes) {
+        const allQuotes = await records.listQuotesForCustomer(customers[0].id, { limit: '100' });
+        quotes = allQuotes.filter((quote) => quoteIds.includes(quote.id));
+        quoteLineItems = await records.listQuoteLineItemsForQuotes(quoteIds);
+      } else {
+        quotes = await records.supabaseRequest('/quotes', {
+          query: {
+            id: `in.(${quoteIds.join(',')})`,
+            customer_id: `eq.${customers[0].id}`,
+            select: '*',
+          },
+        });
+        quoteLineItems = await records.supabaseRequest('/quote_line_items', {
+          query: {
+            quote_id: `in.(${quoteIds.join(',')})`,
+            select: '*',
+            order: 'created_at.asc',
+          },
+        });
+      }
+    }
+
+    const quoteById = new Map(quotes.map((quote) => [quote.id, quote]));
+    const quoteItemsByQuoteId = quoteLineItems.reduce((acc, item) => {
+      const key = item.quote_id;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    }, {});
+
+    const projectsWithQuotes = projects.map((project) => {
+      const activeQuote = project.active_quote_id ? quoteById.get(project.active_quote_id) : null;
+      if (!activeQuote) return project;
+      return {
+        ...project,
+        active_quote: {
+          ...activeQuote,
+          line_items: quoteItemsByQuoteId[activeQuote.id] || [],
+        },
+      };
+    });
+
+    return sendJson(res, 200, { projects: projectsWithQuotes });
   } catch (error) {
     return sendJson(res, error.statusCode || 500, {
       error: error.statusCode ? error.message : 'Unable to load projects.',

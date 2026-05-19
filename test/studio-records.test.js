@@ -2,11 +2,13 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   buildProjectCode,
+  createAdminQuote,
   createAutomationTestRun,
   deleteStudioRecord,
   normalizeEmail,
   getAutomationTestRun,
   listAutomationTestRuns,
+  sendAdminQuote,
   updateAutomationTestRun,
   upsertCustomer,
   upsertPaymentAndOrder,
@@ -117,6 +119,172 @@ test('upsertPaymentAndOrder stores project total separately from captured deposi
   assert.equal(calls[0].body.amount_due_now, '398.00');
   assert.equal(calls[0].body.remaining_balance, '398.00');
   assert.equal(calls[1].body.amount, '398.00');
+});
+
+test('createAdminQuote stores quote, line items, updates active quote, and logs an admin event', async () => {
+  const calls = [];
+  const quote = await createAdminQuote('project-1', {
+    baseServiceId: 'custom_deposit',
+    songCount: 1,
+    paymentMode: 'deposit',
+    catalogTotalCents: 50000,
+    adjustmentCents: -5000,
+    depositCents: 22500,
+    notes: 'Bundle discount for EP scope.',
+    expiresAt: '2026-06-01T00:00:00.000Z',
+    lineItems: [
+      { itemType: 'service', itemId: 'custom_deposit', label: 'Custom Project Deposit', quantity: 1, unitCents: 50000 },
+      { itemType: 'adjustment', label: 'Bundle discount', quantity: 1, unitCents: -5000 },
+    ],
+  }, {
+    adminEmail: 'josh@example.com',
+    env: { SUPABASE_URL: 'https://project.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service-key' },
+    fetchImpl: async (url, options = {}) => {
+      const method = options.method || 'GET';
+      const body = options.body ? JSON.parse(options.body) : null;
+      calls.push({ url: String(url), method, body });
+
+      if (String(url).includes('/projects?id=eq.project-1') && method === 'GET') {
+        return jsonResponse([{ id: 'project-1', customer_id: 'customer-1', status: 'reviewing' }]);
+      }
+      if (String(url).includes('/quotes') && method === 'POST') {
+        return jsonResponse([{ id: 'quote-1', project_id: 'project-1', customer_id: 'customer-1', status: 'draft', final_total_cents: 45000, payment_mode: 'deposit', deposit_cents: 22500, balance_cents: 22500 }]);
+      }
+      if (String(url).includes('/quote_line_items') && method === 'POST') {
+        return jsonResponse([{ id: 'line-item-1', quote_id: 'quote-1' }]);
+      }
+      if (String(url).includes('/projects?id=eq.project-1') && method === 'PATCH') {
+        return jsonResponse([{ id: 'project-1', active_quote_id: 'quote-1', status: 'quoted' }]);
+      }
+      if (String(url).includes('/project_events') && method === 'POST') {
+        return jsonResponse([{ id: 'event-1', project_id: 'project-1', event_type: 'admin_quote_created' }]);
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    },
+  });
+
+  assert.equal(quote.id, 'quote-1');
+  assert.equal(quote.finalTotalCents, 45000);
+  assert.equal(quote.paymentMode, 'deposit');
+  assert.equal(quote.depositCents, 22500);
+  assert.equal(quote.balanceCents, 22500);
+
+  const quoteInsert = calls.find((call) => call.url.includes('/quotes') && call.method === 'POST');
+  assert.equal(quoteInsert.body.final_total_cents, 45000);
+
+  const lineItemInserts = calls.filter((call) => call.url.includes('/quote_line_items') && call.method === 'POST');
+  assert.equal(lineItemInserts.length, 2);
+
+  const projectPatch = calls.find((call) => call.url.includes('/projects?id=eq.project-1') && call.method === 'PATCH');
+  assert.equal(projectPatch.body.active_quote_id, 'quote-1');
+  assert.equal(projectPatch.body.status, 'quoted');
+
+  const eventInsert = calls.find((call) => call.url.includes('/project_events') && call.method === 'POST');
+  assert.equal(eventInsert.body.event_type, 'admin_quote_created');
+  assert.equal(eventInsert.body.metadata.adminEmail, 'josh@example.com');
+});
+
+test('sendAdminQuote sends quote email, updates quote and project status, and logs email event', async () => {
+  const calls = [];
+  const quote = await sendAdminQuote('project-1', 'quote-1', {
+    adminEmail: 'josh@example.com',
+    env: {
+      SUPABASE_URL: 'https://project.supabase.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-key',
+      SITE_URL: 'https://dirtcatrecords.com',
+    },
+    fetchImpl: async (url, options = {}) => {
+      const method = options.method || 'GET';
+      const body = options.body ? JSON.parse(options.body) : null;
+      calls.push({ url: String(url), method, body });
+
+      if (String(url).includes('/projects?id=eq.project-1') && method === 'GET') {
+        return jsonResponse([{ id: 'project-1', customer_id: 'customer-1', project_code: 'DCR-000123', status: 'quoted', active_quote_id: 'quote-1', customers: { id: 'customer-1', email: 'client@example.com', name: 'Client' } }]);
+      }
+      if (String(url).includes('/quotes?id=eq.quote-1') && method === 'GET') {
+        return jsonResponse([{ id: 'quote-1', project_id: 'project-1', customer_id: 'customer-1', status: 'draft', final_total_cents: 45000 }]);
+      }
+      if (String(url).includes('/quotes?id=eq.quote-1') && method === 'PATCH') {
+        return jsonResponse([{ id: 'quote-1', status: 'sent', sent_at: '2026-05-19T15:00:00.000Z' }]);
+      }
+      if (String(url).includes('/projects?id=eq.project-1') && method === 'PATCH') {
+        return jsonResponse([{ id: 'project-1', active_quote_id: 'quote-1', status: 'quote_sent' }]);
+      }
+      if (String(url).includes('/project_events') && method === 'POST') {
+        return jsonResponse([{ id: 'event-1', project_id: 'project-1', event_type: 'admin_quote_sent' }]);
+      }
+      if (String(url).includes('/email_events') && method === 'POST') {
+        return jsonResponse([{ id: 'email-1', project_id: 'project-1', email_type: 'quote_sent', status: 'sent' }]);
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    },
+    sendEmailImpl: async (message) => {
+      calls.push({ type: 'sendEmail', message });
+      return { id: 'resend-1' };
+    },
+  });
+
+  assert.equal(quote.id, 'quote-1');
+  assert.equal(quote.status, 'sent');
+
+  const sendEmailCall = calls.find((call) => call.type === 'sendEmail');
+  assert.equal(sendEmailCall.message.emailType, 'quote_sent');
+  assert.equal(sendEmailCall.message.to, 'client@example.com');
+  assert.match(sendEmailCall.message.data.quoteUrl, /portal\.html\?project=project-1&quote=quote-1/);
+  assert.equal(sendEmailCall.message.data.totalLabel, '$450.00');
+
+  const projectPatch = calls.find((call) => call.url && call.url.includes('/projects?id=eq.project-1') && call.method === 'PATCH');
+  assert.equal(projectPatch.body.status, 'quote_sent');
+
+  const emailEventInsert = calls.find((call) => call.url && call.url.includes('/email_events') && call.method === 'POST');
+  assert.equal(emailEventInsert.body.email_type, 'quote_sent');
+  assert.equal(emailEventInsert.body.status, 'sent');
+});
+
+test('createAdminQuote can build quote line items from catalog inputs and adjustment', async () => {
+  const calls = [];
+  await createAdminQuote('project-1', {
+    baseServiceId: 'mix',
+    songCount: 2,
+    selectedAddOns: [{ addOnId: 'rushDelivery', quantity: 1 }],
+    paymentMode: 'full',
+    adjustmentCents: -1000,
+    adjustmentLabel: 'Loyalty discount',
+    expiresAt: '2026-06-01T00:00:00.000Z',
+  }, {
+    adminEmail: 'josh@example.com',
+    env: { SUPABASE_URL: 'https://project.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service-key' },
+    fetchImpl: async (url, options = {}) => {
+      const method = options.method || 'GET';
+      const body = options.body ? JSON.parse(options.body) : null;
+      calls.push({ url: String(url), method, body });
+
+      if (String(url).includes('/projects?id=eq.project-1') && method === 'GET') {
+        return jsonResponse([{ id: 'project-1', customer_id: 'customer-1', status: 'reviewing' }]);
+      }
+      if (String(url).includes('/quotes') && method === 'POST') {
+        return jsonResponse([{ id: 'quote-1', project_id: 'project-1', customer_id: 'customer-1', status: 'draft', final_total_cents: 33220, payment_mode: 'full', deposit_cents: 0, balance_cents: 0 }]);
+      }
+      if (String(url).includes('/quote_line_items') && method === 'POST') {
+        return jsonResponse([{ id: 'line-item-1', quote_id: 'quote-1' }]);
+      }
+      if (String(url).includes('/projects?id=eq.project-1') && method === 'PATCH') {
+        return jsonResponse([{ id: 'project-1', active_quote_id: 'quote-1', status: 'quoted' }]);
+      }
+      if (String(url).includes('/project_events') && method === 'POST') {
+        return jsonResponse([{ id: 'event-1', project_id: 'project-1', event_type: 'admin_quote_created' }]);
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    },
+  });
+
+  const lineItemBodies = calls
+    .filter((call) => call.url.includes('/quote_line_items') && call.method === 'POST')
+    .map((call) => call.body);
+
+  assert.ok(lineItemBodies.some((item) => item.item_type === 'service'));
+  assert.ok(lineItemBodies.some((item) => item.item_type === 'add_on'));
+  assert.ok(lineItemBodies.some((item) => item.item_type === 'adjustment' && item.label === 'Loyalty discount'));
 });
 
 test('createAutomationTestRun stores a redacted report shell', async () => {

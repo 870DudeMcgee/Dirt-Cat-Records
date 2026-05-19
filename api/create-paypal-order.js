@@ -36,7 +36,9 @@ function createPaypalOrderHandler(dependencies = {}) {
 
     let orderSummary;
     try {
-      orderSummary = calculateOrder(body);
+      orderSummary = body && body.paymentPurpose === 'quote'
+        ? normalizeQuotePaymentInput(body)
+        : calculateOrder(body);
     } catch (error) {
       return res.status(400).json({ error: error.message || 'Invalid checkout order' });
     }
@@ -86,8 +88,29 @@ async function createPaypalOrder(paypalClient, orderSummary) {
 }
 
 function buildOrderDescription(orderSummary) {
+  if (orderSummary.paymentPurpose === 'quote') {
+    return `Quote payment: ${orderSummary.quoteId}`;
+  }
   const paymentLabel = orderSummary.paymentMode === 'deposit' ? 'Deposit' : 'Full payment';
   return `${paymentLabel}: ${orderSummary.baseServiceLabel} (${orderSummary.songCount} song${orderSummary.songCount === 1 ? '' : 's'})`;
+}
+
+function normalizeQuotePaymentInput(body) {
+  const quoteId = typeof body.quoteId === 'string' ? body.quoteId.trim() : '';
+  const projectId = typeof body.projectId === 'string' ? body.projectId.trim() : '';
+  const amountCents = Number(body.amountCents);
+  const totalCents = body.totalCents === undefined ? amountCents : Number(body.totalCents);
+  if (!quoteId || !projectId || !Number.isInteger(amountCents) || amountCents < 1 || !Number.isInteger(totalCents) || totalCents < amountCents) {
+    throw new Error('Quote payment requires projectId, quoteId, and amountCents.');
+  }
+  return {
+    paymentPurpose: 'quote',
+    quoteId,
+    projectId,
+    amountCents,
+    totalCents,
+    amountDueNowCents: amountCents,
+  };
 }
 
 function getPaypalClient(env, fetchImpl) {
@@ -234,6 +257,7 @@ module.exports._private = {
   getPaypalAccessToken,
   getPaypalBaseUrl,
   getPaypalClient,
+  normalizeQuotePaymentInput,
   parseOrderMetadata,
   readJsonBody,
   readPaypalJsonResponse,

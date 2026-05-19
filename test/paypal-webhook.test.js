@@ -62,6 +62,35 @@ test('parseCompletedPaymentEvent restores checkout metadata when present', () =>
   assert.equal(record.orderSummary.paymentMode, 'deposit');
 });
 
+test('parseCompletedPaymentEvent parses quote metadata into quote payment records', () => {
+  const record = parseCompletedPaymentEvent({
+    event_type: 'CHECKOUT.ORDER.COMPLETED',
+    resource: {
+      id: 'ORDER-123',
+      status: 'COMPLETED',
+      payer: {
+        email_address: 'buyer@example.com',
+      },
+      purchase_units: [
+        {
+          custom_id: 'v2;q;project-1;quote-1;22500.45000',
+          payments: {
+            captures: [
+              { id: 'CAPTURE-123', amount: { value: '225.00', currency_code: 'USD' } },
+            ],
+          },
+        },
+      ],
+    },
+  });
+
+  assert.equal(record.paymentPurpose, 'quote');
+  assert.equal(record.projectId, 'project-1');
+  assert.equal(record.quoteId, 'quote-1');
+  assert.equal(record.totalAmount, '450.00');
+  assert.equal(record.remainingBalance, '225.00');
+});
+
 test('parseCompletedPaymentEvent ignores unsupported or incomplete events', () => {
   assert.equal(parseCompletedPaymentEvent({ event_type: 'PAYMENT.CAPTURE.DENIED', resource: {} }), null);
   assert.equal(parseCompletedPaymentEvent({

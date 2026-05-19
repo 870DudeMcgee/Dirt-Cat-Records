@@ -100,6 +100,48 @@ test('createPaidProjectWorkflow recovers when a concurrent retry already created
   assert.equal(calls.some((call) => call.type === 'drive.create'), false);
 });
 
+test('createPaidProjectWorkflow converts quoted projects when quote payment is confirmed', async () => {
+  const calls = [];
+  const records = fakeRecords(calls);
+  records.getQuoteById = async () => ({
+    id: 'quote-1',
+    base_service_id: 'mixMaster',
+    song_count: 3,
+    payment_mode: 'deposit',
+    balance_cents: 22500,
+  });
+  records.getProjectById = async () => ({
+    id: 'project-1',
+    status: 'quote_sent',
+    project_type: 'free_review',
+  });
+  records.updateQuote = async (_quoteId, patch) => {
+    calls.push({ type: 'quote.patch', patch });
+  };
+
+  const workflow = createPaidProjectWorkflow({
+    records,
+    drive: fakeDrive(calls),
+    email: fakeEmail(calls),
+    env: { ADMIN_EMAIL: 'josh@example.com' },
+  });
+
+  const result = await workflow({
+    paymentPurpose: 'quote',
+    quoteId: 'quote-1',
+    projectId: 'project-1',
+    paypalTxnId: 'CAPTURE-1',
+    buyerEmail: 'buyer@example.com',
+    totalAmount: '450.00',
+    amountDueNow: '225.00',
+    remainingBalance: '225.00',
+  });
+
+  assert.equal(result.project.project_type, 'paid');
+  assert.equal(result.project.status, 'balance_due');
+  assert.ok(calls.some((call) => call.type === 'quote.patch' && call.patch.status === 'accepted'));
+});
+
 
 test('default email adapter logs failed email without aborting free review workflow', async () => {
   const calls = [];

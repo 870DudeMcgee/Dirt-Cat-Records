@@ -52,14 +52,14 @@ Goal: manage real studio work from one private dashboard.
 
 Goal: convert free reviews and custom projects into paid work without manual payment handling.
 
-- [ ] Add `api/admin/quotes.js` for creating and sending quotes.
-- [ ] Add quote persistence helpers in `lib/db/studio-records.js`.
-- [ ] Build quote line items from catalog pricing plus manual adjustments.
-- [ ] Send quote emails through Resend.
-- [ ] Show quote cards in the customer portal.
-- [ ] Add `api/portal/accept-quote.js`.
-- [ ] Extend PayPal metadata and webhook handling for quote payments.
-- [ ] Mark accepted quotes and converted projects correctly after PayPal confirmation.
+- [x] Add `api/admin/quotes.js` for creating and sending quotes.
+- [x] Add quote persistence helpers in `lib/db/studio-records.js`.
+- [x] Build quote line items from catalog pricing plus manual adjustments.
+- [x] Send quote emails through Resend.
+- [x] Show quote cards in the customer portal.
+- [x] Add `api/portal/accept-quote.js`.
+- [x] Extend PayPal metadata and webhook handling for quote payments.
+- [x] Mark accepted quotes and converted projects correctly after PayPal confirmation.
 
 ## Stage 5: Balance Payments And Delivery Locks
 

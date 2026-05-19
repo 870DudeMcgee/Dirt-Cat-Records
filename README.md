@@ -16,15 +16,17 @@ Older local copies were archived outside this repo and should not be used for ne
 
 The staged task list lives in [`docs/roadmap.md`](docs/roadmap.md).
 
-The current priority is Stage 4: custom quote workflow.
+The current priority is Stage 5: balance payments and delivery locks.
 
 ## Runtime Overview
 
 - `index.html`, `style.css`, and `spells.js` render the public marketing site and free mix review form.
 - `checkout.html` and `checkout.js` build PayPal checkout orders through Vercel Functions.
 - `success.html` and `success.js` show the post-payment order summary and portal/email-first next steps.
-- `portal.html` and `portal.js` provide Supabase magic-link customer access.
+- `portal.html` and `portal.js` provide Supabase magic-link customer access, including quote cards and quote checkout start actions.
 - `admin.html` and `admin.js` provide the owner operations dashboard, priority queue, project detail with status updates, private admin notes, final delivery controls, and extra revision actions, plus setup checks, sandbox test runs, and cleanup tools.
+- `api/admin/quotes.js` provides protected admin quote draft and send actions.
+- `api/portal/accept-quote.js` starts authenticated quote checkout from the portal.
 - `api/` contains Vercel Functions.
 - `lib/` contains PayPal, Supabase, Google Drive, Resend, auth, pricing, and automation helpers.
 - `supabase/schema.sql` contains the database schema and service-role access model.

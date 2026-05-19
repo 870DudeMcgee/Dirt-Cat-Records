@@ -83,6 +83,25 @@ function bindProjectActions(container) {
   });
 
   container.addEventListener('click', async (event) => {
+    if (event.target.classList.contains('portal-accept-quote-button')) {
+      const projectCard = event.target.closest('.portal-project');
+      const projectId = projectCard?.dataset.projectId;
+      const quoteId = event.target.getAttribute('data-quote-id');
+      if (!projectId || !quoteId) return;
+      try {
+        const result = await postPortalAction('/api/portal/accept-quote', { projectId, quoteId });
+        if (result.approvalUrl) {
+          window.open(result.approvalUrl, '_blank', 'noopener,noreferrer');
+          setPortalStatus('Quote checkout opened in a new tab.');
+        } else {
+          setPortalStatus('Quote checkout started.');
+        }
+      } catch (error) {
+        setPortalStatus(error.message || 'Unable to start quote checkout.');
+      }
+      return;
+    }
+
     if (!event.target.classList.contains('portal-approve-button')) return;
     const projectCard = event.target.closest('.portal-project');
     const projectId = projectCard?.dataset.projectId;

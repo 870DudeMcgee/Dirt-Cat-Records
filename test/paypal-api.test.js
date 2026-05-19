@@ -9,6 +9,7 @@ const { createPaypalOrderHandler } = createOrderRoute;
 const {
   buildOrderMetadata,
   createPaypalOrder,
+  normalizeQuotePaymentInput,
   parseOrderMetadata,
   readJsonBody,
 } = createOrderRoute._private;
@@ -45,6 +46,37 @@ test('PayPal metadata stays compact and round-trips into server pricing input', 
     ],
     paymentMode: 'deposit',
   });
+});
+
+test('PayPal quote metadata round-trips with quote identifiers', () => {
+  const metadata = buildOrderMetadata({
+    paymentPurpose: 'quote',
+    projectId: 'project-1',
+    quoteId: 'quote-1',
+    amountCents: 22500,
+    totalCents: 45000,
+  });
+
+  assert.deepEqual(parseOrderMetadata(metadata), {
+    paymentPurpose: 'quote',
+    projectId: 'project-1',
+    quoteId: 'quote-1',
+    amountCents: 22500,
+    totalCents: 45000,
+  });
+});
+
+test('normalize quote payment input validates quote checkout payload', () => {
+  const normalized = normalizeQuotePaymentInput({
+    paymentPurpose: 'quote',
+    projectId: 'project-1',
+    quoteId: 'quote-1',
+    amountCents: 22500,
+  });
+
+  assert.equal(normalized.paymentPurpose, 'quote');
+  assert.equal(normalized.amountDueNowCents, 22500);
+  assert.throws(() => normalizeQuotePaymentInput({ paymentPurpose: 'quote', projectId: '', quoteId: 'quote-1', amountCents: 22500 }), /Quote payment requires/);
 });
 
 test('PayPal capture derives checkout summary from server-created metadata', () => {

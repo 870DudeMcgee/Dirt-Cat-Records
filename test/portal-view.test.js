@@ -67,3 +67,27 @@ test('empty portal projects state gives a useful next step', () => {
   assert.match(html, /No projects found for this email/);
   assert.match(html, /If you just paid/);
 });
+
+test('portal project card renders active quote details and accept action', () => {
+  const project = buildPortalProjectView({
+    id: 'project-4',
+    project_title: 'Quoted Song',
+    status: 'quote_sent',
+    active_quote: {
+      id: 'quote-1',
+      status: 'sent',
+      final_total_cents: 45000,
+      payment_mode: 'full',
+      expires_at: '2026-06-01T00:00:00.000Z',
+      line_items: [],
+    },
+    included_revisions: 1,
+    used_revisions: 0,
+  });
+  const html = renderProjectCard(project);
+
+  assert.match(html, /Quote/);
+  assert.match(html, /\$450\.00/);
+  assert.match(html, /Status: Sent/);
+  assert.match(html, /Accept Quote & Pay/);
+});

@@ -2112,6 +2112,33 @@ footer {
   font-weight: 700;
 }
 
+.portal-quote-card {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(107, 217, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.portal-quote-card h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.portal-quote-total,
+.portal-quote-status,
+.portal-quote-expires {
+  margin: 0.35rem 0 0;
+  color: rgba(238, 244, 255, 0.78);
+  text-shadow: none;
+}
+
+.portal-quote-total {
+  color: rgba(107, 217, 255, 0.9);
+  font-weight: 900;
+}
+
 .portal-revision-count {
   margin: 0 0 1rem;
   color: rgba(107, 217, 255, 0.88);
