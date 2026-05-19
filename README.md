@@ -36,8 +36,10 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 - Deploy guardrails are active: portal payment starts were consolidated into `api/portal/actions.js`, the repo stays under the 12-function Hobby limit, and `.husky/pre-push` runs `npm run deploy:preflight` before push.
 - The local credential sanity gate now passes with the live Google Drive probe and a local custom Resend sender on `dirtcatrecords.com`.
 - The Stage 7 `v1-usability` sandbox run now passes locally end to end against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events.
-- Vercel production env parity is now in place for live testing. Preview still lacks key server/runtime values, so preview should be treated as incomplete until its Supabase service-role and PayPal sandbox vars are added.
-- The remaining work is Stage 7 real-provider validation and launch-checklist completion.
+- Vercel production and preview PayPal env separation is now in place, including distinct preview and production webhook ids.
+- The latest preview deployment is publicly reachable for PayPal sandbox webhook testing because Vercel Authentication was temporarily disabled at the project level.
+- Preview browser validation now reaches sandbox PayPal from the deployed checkout flow.
+- The remaining work is the last Stage 7 live-provider slice: complete one full sandbox payment plus webhook round-trip on preview, verify production magic-link behavior, verify Google Drive sharing and Resend deliverability, then restore preview protection and finish the launch checklist.
 
 ## Execution Trail (Required)
 
@@ -98,6 +100,10 @@ Start from `.env.example`. The same values need to be configured in Vercel for d
 - `PAYPAL_ENV`: `sandbox` or `live`.
 - `PAYPAL_WEBHOOK_ID`: PayPal webhook id for signature verification.
 
+Deployment note: keep the variable names the same across environments, but use different values per environment. Preview should use sandbox credentials and webhook id, while production should use live credentials and webhook id.
+
+Webhook note: `PAYPAL_WEBHOOK_ID` is environment-specific and must match the PayPal app and environment currently in use. A live webhook id will not validate sandbox webhook signatures, and a sandbox webhook id will not validate live webhook signatures.
+
 Safety caveat: `PAYPAL_CLIENT_SECRET` must never be committed, exposed to browser/static JavaScript, or stored in client-visible environment variables. Keep it only in server-side Vercel environment variables.
 
 ### Supabase
@@ -154,6 +160,7 @@ Use this checklist any time you set up `.env.local`, update Vercel environment v
 3. Set `ADMIN_EMAIL` to the real owner/admin inbox that should access admin APIs.
 4. Fill PayPal credentials from the PayPal developer dashboard:
    `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENV`, `PAYPAL_WEBHOOK_ID`.
+   Use sandbox values for Preview and live values for Production.
 5. Fill Supabase credentials from the Supabase project settings:
    `SUPABASE_URL`, `SUPABASE_PUBLIC_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
 6. Fill Google Drive automation credentials:

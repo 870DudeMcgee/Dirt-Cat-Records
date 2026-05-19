@@ -660,3 +660,84 @@ Roadmap link: `docs/roadmap.md` (Stage 7: Verify Vercel environment variables ar
 - Verify production magic-link redirects on the canonical domain.
 - Verify real-provider behavior that the local sandbox path does not fully prove: PayPal browser/webhook flow, Drive sharing permissions, and Resend deliverability.
 - Fill the still-missing preview server/runtime values so preview can use sandbox PayPal safely.
+
+---
+
+## Step 14 - Split Preview PayPal Runtime And Validate Sandbox Browser Flow
+
+Date/Time: 2026-05-19
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Verify PayPal sandbox checkout and webhook)
+
+### Will Be Done
+
+- Separate preview and production PayPal runtime values in Vercel, deploy a preview build, and verify the deployed preview checkout reaches sandbox PayPal instead of live PayPal.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `README.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: clean `main...origin/main` at `fb74cb0`, but Vercel preview configuration and docs still reflected an incomplete preview PayPal setup
+- Target files/tests: Vercel env listings, Vercel preview deployments, preview browser checks, `docs/execution-log.md`
+
+### Done
+
+- Verified that preview and production now use separate `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENV`, and `PAYPAL_WEBHOOK_ID` values in Vercel.
+- Created a new preview deployment and identified the latest preview URL.
+- Verified the deployed preview portal and admin pages load.
+- Verified the deployed preview checkout renders PayPal and reaches PayPal sandbox from the hosted checkout step.
+- Confirmed the hosted preview PayPal flow exposes `env=sandbox` and routes into `www.sandbox.paypal.com`.
+
+### Context Check (After)
+
+- Validation run:
+  - `npx vercel env ls preview` (pass, preview PayPal vars separated)
+  - `npx vercel env ls production` (pass, production PayPal vars separated)
+  - `npx vercel ls --yes | head -n 25` (pass, preview deployment identified)
+  - Browser validation on the latest preview deployment (pass, checkout reaches PayPal sandbox)
+- Codebase delta summary:
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Make the preview deployment publicly reachable so PayPal sandbox webhooks can hit the preview webhook endpoint.
+- Run one full sandbox payment and confirm the webhook round-trip.
+
+---
+
+## Step 15 - Temporarily Disable Preview Protection For Webhook Testing
+
+Date/Time: 2026-05-19
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Verify PayPal sandbox checkout and webhook)
+
+### Will Be Done
+
+- Temporarily disable Vercel Authentication so the preview deployment is reachable by PayPal sandbox webhook delivery, then verify the preview pages and webhook route respond without browser-auth cookies.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `README.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: clean `main...origin/main` at `fb74cb0`, preview browser flow verified against sandbox PayPal, but preview was still protected by Vercel Authentication for unauthenticated callers
+- Target files/tests: Vercel project protection settings, latest preview deployment URL, non-browser HTTP reachability checks, `docs/execution-log.md`
+
+### Done
+
+- Queried the linked Vercel project settings and confirmed deployment protection was still active.
+- Patched the Vercel project to set `ssoProtection` to `null`, temporarily disabling Vercel Authentication.
+- Confirmed the latest preview deployment is now reachable without browser auth.
+- Confirmed unauthenticated HTTP checks hit the real preview app and webhook route instead of the Vercel login wall.
+- Left preview public intentionally so the next session can run a full sandbox payment and webhook test.
+
+### Context Check (After)
+
+- Validation run:
+  - `npx vercel api /v10/projects/prj_A6POqolK5I68ypAUtOaRRu82VzNp --raw | node -e '...'` (pass, `ssoProtection` is `null`)
+  - `curl -I -s https://dirt-cat-records-pvh5lrqj6-dirt-cat-records-projects.vercel.app/checkout.html` (pass, `200`)
+  - `curl -s -o /dev/null -w '%{http_code}\n' -X POST https://dirt-cat-records-pvh5lrqj6-dirt-cat-records-projects.vercel.app/api/webhooks/paypal` (pass, `400`, confirming app reachability)
+- Codebase delta summary:
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Run one full sandbox payment on the public preview deployment and confirm the webhook event is accepted and processed.
+- Re-enable Vercel Authentication after webhook validation is complete.

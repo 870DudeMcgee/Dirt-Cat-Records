@@ -7,11 +7,11 @@ This file is the current handoff for Dirt Cat Records. Keep it compact and curre
 - Working repo: `/Users/jewelbait/Desktop/DirtCatRecords`
 - Remote: `https://github.com/870DudeMcgee/Dirt-Cat-Records.git`
 - Branch: `main`
-- Last pushed commit: `3162aa2 fix deploy guardrail and setup checks`
-- Current worktree: dirty with uncommitted Stage 7 Resend setup-gate hardening, local env change, and docs updates on top of `origin/main`.
+- Last pushed commit: `fb74cb0 harden stage 7 launch checks`
+- Current worktree: clean `main`, aligned with `origin/main` before the docs-only handoff sync in this step.
 - Commit email used for pushed work: `Josh Mclean <870DudeMcgee@users.noreply.github.com>`
 
-Do not reset, discard, or restage blindly. Start from the live worktree.
+Do not reset, discard, or restage blindly. Start from the live worktree and re-check Vercel project settings before changing preview protection again.
 
 ## Read First
 
@@ -23,7 +23,7 @@ Do not reset, discard, or restage blindly. Start from the live worktree.
 
 ## Current Focus
 
-Stage 7 launch hardening is now the only major delivery slice left. The feature foundation is in place through Stage 6, the local setup gate passes again, the local `v1-usability` sandbox run now passes end to end, and the public production runtime is responding on the canonical `www` host. Production env parity is now in place for live testing. The next gap is the remaining live-verification work plus the still-incomplete preview env set for safe preview testing.
+Stage 7 launch hardening is now the only major delivery slice left. The feature foundation is in place through Stage 6, the local setup gate passes again, the local `v1-usability` sandbox run now passes end to end, the public production runtime is responding on the canonical `www` host, and preview now has the correct sandbox PayPal env split. The immediate next gap is the first real end-to-end sandbox payment plus webhook round-trip on the now-public preview deployment, followed by the remaining provider and magic-link checks.
 
 Deployment guardrail status:
 
@@ -79,15 +79,20 @@ Stage 7 validation note:
 - The Stage 7 sandbox run `sandbox-20260519T113900-stage7c` passed end to end.
 - The cleanup path for `sandbox-20260519T113900-stage7c` also passed with `cleanupStatus: cleaned`.
 - `npx vercel env ls production` now shows the required site/admin, Resend, Google Drive, cron, PayPal, and Supabase env names for the documented runtime.
-- `npx vercel env ls preview` now shows the added site/admin, Resend, Google Drive, and cron vars, but is still missing `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and PayPal vars.
+- `npx vercel env ls preview` now shows the required site/admin, Resend, Google Drive, cron, Supabase, and sandbox PayPal env names for the documented preview runtime.
 - `https://www.dirtcatrecords.com/portal.html` and `https://www.dirtcatrecords.com/admin.html` return `200`.
 - `GET https://www.dirtcatrecords.com/api/checkout-config` returns valid public runtime config.
 - `GET https://www.dirtcatrecords.com/api/admin/setup-wizard?action=setup` returns `401` without admin auth, which is expected.
 - `npm run deploy:preflight` passed locally before push, and the same preflight passed again inside the successful `git push origin main`.
+- Latest preview deployment: `https://dirt-cat-records-pvh5lrqj6-dirt-cat-records-projects.vercel.app`.
+- Preview portal and admin pages load on the latest deployment.
+- Preview checkout on the latest deployment renders PayPal and reaches `www.sandbox.paypal.com` with `env=sandbox` during the hosted checkout step.
+- Vercel Authentication is temporarily disabled at the project level (`ssoProtection: null`) so PayPal sandbox webhooks can reach preview.
+- Unauthenticated HTTP checks against the latest preview deployment now return app responses instead of a Vercel login wall: `GET /checkout.html` returns `200`, and malformed `POST /api/webhooks/paypal` returns `400`.
 
 Last successful push summary:
 
-- Commit: `3162aa2 fix deploy guardrail and setup checks`
+- Commit: `fb74cb0 harden stage 7 launch checks`
 - Branch state after push: clean `main`, aligned with `origin/main`
 
 Pre-commit review status:
@@ -99,11 +104,11 @@ Pre-commit review status:
 
 ## Next Session Start Here
 
-1. Verify Supabase magic-link redirects on the production domain.
-2. Verify PayPal sandbox checkout plus webhook behavior beyond the sandbox-like automation path.
+1. Run one full sandbox payment on `https://dirt-cat-records-pvh5lrqj6-dirt-cat-records-projects.vercel.app/checkout.html` and confirm the preview webhook path receives and processes the real PayPal sandbox event.
+2. Verify Supabase magic-link redirects on the production domain.
 3. Verify Google Drive folder sharing permissions from the successful Stage 7 sandbox path.
 4. Verify Resend sender, reply-to, and deliverability behavior beyond provider acceptance.
-5. Fill the still-missing preview env values so preview can use sandbox PayPal safely.
+5. Restore Vercel Authentication after preview webhook testing is complete.
 6. Document the final launch checklist in `README.md` and mark the completed Stage 7 items in `docs/roadmap.md`.
 
 ## Source Of Truth Rules

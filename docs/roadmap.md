@@ -7,7 +7,7 @@ For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [
 
 Current next focus: Stage 7 launch hardening through real-provider validation and launch-checklist completion.
 
-Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run now passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, and production runtime smoke is healthy on the canonical `www` host. Production env parity is now in place for live testing. The remaining work is the narrower launch-hardening slice: complete production-domain magic-link behavior, finish provider checks, and fill the still-incomplete preview env set for safe preview testing.
+Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run now passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, and preview now has the correct sandbox PayPal environment split. The latest preview deployment is public enough for webhook testing and its deployed checkout flow now reaches sandbox PayPal. The remaining work is the narrower launch-hardening slice: complete one end-to-end sandbox payment plus webhook round-trip on preview, verify production-domain magic-link behavior, verify Drive sharing and Resend deliverability, then restore preview protection and close the launch checklist.
 
 Permanent workflow constraint: before every commit/push meant to be runtime-ready, run the credential sanity gate from `README.md` and `docs/execution-trail.md`, including the raw Google Drive folder id check.
 
@@ -114,10 +114,13 @@ Current status:
 - Deploy guardrails pass locally and on push.
 - Production public runtime responds correctly on the canonical `www` host.
 - Production env names now cover the documented runtime requirements.
+- Preview env names now cover the documented sandbox PayPal and server runtime requirements.
+- The latest preview deployment is temporarily public for PayPal sandbox webhook testing.
+- Preview browser checkout now reaches sandbox PayPal from the deployed preview URL.
 - The remaining work is live-provider verification, not foundational feature buildout.
 
 - [x] Run the admin sandbox test against real providers.
-- [ ] Verify PayPal sandbox checkout and webhook.
+- [ ] Verify PayPal sandbox checkout and webhook end to end.
 - [ ] Verify Supabase magic link redirects on the production domain.
 - [ ] Verify Resend sender domain, reply-to, and deliverability.
 - [ ] Verify Google Drive folder creation and sharing permissions.
