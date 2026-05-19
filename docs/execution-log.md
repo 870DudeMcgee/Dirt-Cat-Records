@@ -274,6 +274,153 @@ Roadmap link: `docs/roadmap.md` (Stage 6 completion gate before Stage 7)
 - Review the final Stage 6 worktree once more, then commit and push.
 - Begin Stage 7 launch hardening from `docs/roadmap.md`.
 
+## Step 6 - Stage 7 Provider Readiness And Sandbox Gate
+
+Date/Time: 2026-05-19
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Run the admin sandbox test against real providers)
+
+### Will Be Done
+
+- Verify whether the local environment is ready for the Stage 7 admin sandbox run, then run the setup endpoint and sandbox test path against the local Vercel runtime to capture real blockers or pass evidence.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/execution-trail.md`, `README.md`, `docs/agent-handoff.md`
+- Codebase state: clean `main...origin/main`, HEAD `85dddab`
+- Target files/tests: `docs/execution-log.md`, runtime commands from `README.md`, `api/admin/setup-wizard.js`, `lib/automation/setup-checks.js`, `lib/automation/test-mode-runner.js`
+
+### Done
+
+- Confirmed Stage 7 starts from clean `main` at `85dddab`.
+- Applied process skills before execution: `using-superpowers`, `executing-plans`, and `verification-before-completion`.
+- Ran the live admin setup endpoint through local `vercel dev`.
+- Ran a deterministic sandbox run: `sandbox-20260519T160000-stage7a`.
+- Confirmed the sandbox currently fails in the free-review workflow because Drive folders are not created.
+- Queried the recorded `drive_failed` project event from Supabase and captured the concrete provider error.
+- Added a real Google Drive access probe to `runSetupChecks` so Stage 7 setup now fails early instead of reporting a false pass.
+- Added focused tests for the Drive access probe and setup-check wiring.
+- Verified the actual storage blocker: the configured `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` value is a full Drive URL in the runtime environment, but the app expects the raw folder id.
+- Updated docs to clarify that `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` must be the raw folder id.
+
+### Context Check (After)
+
+- Validation run:
+  - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` before fix (pass but misleading)
+  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs" ...` with `testRunId=sandbox-20260519T160000-stage7a` (fail: `Sandbox free review did not create all required Drive folders.`)
+  - direct Supabase `project_events` query for `event_type=drive_failed` (captured `Unable to search Google Drive folders: File not found: ...`)
+  - `node --test test/google-drive.test.js test/setup-checks.test.js` (pass)
+  - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` after fix (expected fail in `storage` with explicit Drive folder access error)
+- Codebase delta summary:
+  - Updated `lib/google/drive.js`
+  - Updated `lib/automation/setup-checks.js`
+  - Updated `test/google-drive.test.js`
+  - Updated `test/setup-checks.test.js`
+  - Updated `README.md`
+  - Updated `.env.example`
+  - Updated `docs/execution-log.md`
+  - Updated `docs/agent-handoff.md`
+
+### Needs To Be Done Next
+
+- Fix the `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` value in the active runtime environment so it is the raw folder id, not the full Drive URL.
+- Re-run `GET /api/admin/setup-wizard?action=setup` and confirm `storage` passes.
+- Re-run the deterministic sandbox path for `sandbox-20260519T160000-stage7a` or a fresh Stage 7 test run after the Drive config is corrected.
+
+## Step 7 - Credential Workflow And Commit Gate Documentation
+
+Date/Time: 2026-05-19
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: harden the operator workflow around runtime credentials)
+
+### Will Be Done
+
+- Add a permanent credential checklist and pre-commit/pre-push workflow guardrail to the repo docs, including explicit instructions for extracting the raw Google Drive folder id.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/execution-trail.md`, `README.md`, `docs/deployment-preflight.md`, `docs/agent-handoff.md`
+- Codebase state: dirty with uncommitted Stage 7 setup-check hardening and docs updates on `main...origin/main`, HEAD `85dddab`
+- Target files/tests: `README.md`, `.env.example`, `docs/deployment-preflight.md`, `docs/execution-trail.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+
+### Done
+
+- Added a permanent credential todo list to `README.md` covering the required `.env.local` / Vercel provider values.
+- Added explicit raw Google Drive folder id extraction instructions, including correct and incorrect examples.
+- Added a required `Before Every Commit And Push` runtime credential gate to `README.md`.
+- Added the same credential/provider gate to `docs/deployment-preflight.md` and `docs/execution-trail.md` so it is part of the documented workflow, not just setup notes.
+- Clarified `.env.example` so `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` shows the raw-id-only rule next to the variable.
+- Updated `docs/roadmap.md` and `docs/agent-handoff.md` so the permanent credential sanity constraint is visible in the repo state docs.
+
+### Context Check (After)
+
+- Validation run:
+  - `git diff --check` (pass)
+  - spot-check reads for `README.md`, `.env.example`, `docs/deployment-preflight.md`, and `docs/execution-trail.md` (pass)
+- Codebase delta summary:
+  - Updated `README.md`
+  - Updated `.env.example`
+  - Updated `docs/deployment-preflight.md`
+  - Updated `docs/execution-trail.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Fix the active runtime value for `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` so it is the raw folder id.
+- Re-run the Stage 7 setup and sandbox checks using the new credential sanity gate before the next commit/push.
+
+---
+
+## Step 8 - Enforce Vercel Function Guardrail
+
+Date/Time: 2026-05-19
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Deployment Guardrail)
+
+### Will Be Done
+
+- Remove the extra deployable portal functions and make `git push` fail locally unless deploy preflight passes.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `README.md`, `docs/deployment-preflight.md`, `docs/execution-trail.md`, `docs/agent-handoff.md`
+- Codebase state: Vercel production deploys failing on `main` because Hobby only allows 12 serverless functions and the repo had 13 deployable files under `api/`
+- Target files/tests: `api/portal/actions.js`, `portal.js`, `test/portal-actions.test.js`, `test/portal-accept-quote-api.test.js`, `test/portal-balance-payment-api.test.js`, `package.json`, `.husky/pre-push`, `README.md`, `docs/deployment-preflight.md`, `docs/execution-trail.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+
+### Done
+
+- Consolidated portal quote checkout and balance checkout starts into `api/portal/actions.js`.
+- Removed `api/portal/accept-quote.js` and `api/portal/pay-balance.js` so the deployed function count dropped to 11.
+- Updated the portal client and focused API tests to use `api/portal/actions.js` for both payment starts.
+- Added `.husky/pre-push` so every normal `git push` runs `npm run deploy:preflight` locally before Vercel sees the commit.
+- Updated repo workflow docs and handoff notes to reflect the enforced push rule and the current consolidated route shape.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/portal-actions.test.js test/portal-accept-quote-api.test.js test/portal-balance-payment-api.test.js` (pass)
+  - `node scripts/check-vercel-function-limit.js` (pass: `11/12`)
+- Codebase delta summary:
+  - Updated `api/portal/actions.js`
+  - Updated `portal.js`
+  - Updated `test/portal-accept-quote-api.test.js`
+  - Updated `test/portal-balance-payment-api.test.js`
+  - Updated `package.json`
+  - Added `.husky/pre-push`
+  - Updated `README.md`
+  - Updated `docs/deployment-preflight.md`
+  - Updated `docs/execution-trail.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Fix the active runtime value for `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` so the Stage 7 provider checks can pass.
+- Re-run the Stage 7 setup and sandbox checks after the credential fix.
+
 ---
 
 ## Step N - <short title>

@@ -7,8 +7,8 @@ This file is the current handoff for Dirt Cat Records. Keep it compact and curre
 - Working repo: `/Users/jewelbait/Desktop/DirtCatRecords`
 - Remote: `https://github.com/870DudeMcgee/Dirt-Cat-Records.git`
 - Branch: `main`
-- Last pushed commit: `26bf039 fix: consolidate public config for vercel limit`
-- Current worktree: dirty with uncommitted Stage 6 follow-up automation, a runtime smoke fix, and documentation updates.
+- Last pushed commit: `85dddab feat: add stage 6 follow-up automation`
+- Current worktree: dirty with uncommitted Stage 7 setup-check hardening and permanent credential-workflow documentation updates.
 - Commit email used for pushed work: `Josh Mclean <870DudeMcgee@users.noreply.github.com>`
 
 Do not reset, discard, or restage blindly. Start from the live worktree.
@@ -23,22 +23,23 @@ Do not reset, discard, or restage blindly. Start from the live worktree.
 
 ## Current Focus
 
-Stage 6 follow-up automation is implemented locally, validated with focused tests, and now smoke-tested through the running local Vercel runtime, but not yet committed.
+Stage 7 launch hardening has started. The first real-provider sandbox attempt is blocked by Google Drive configuration, setup checks now surface that blocker directly, and the repo docs now define a permanent credential sanity gate before commit/push.
+
+Deployment guardrail status:
+
+- Vercel Hobby function count is back under the limit after consolidating portal quote/balance checkout into `api/portal/actions.js`.
+- `.husky/pre-push` now runs `npm run deploy:preflight`, so a normal push fails locally before Vercel receives an over-limit deploy.
 
 What is in the worktree now:
 
-- execution-trail process docs in `docs/execution-trail.md` and `docs/execution-log.md`
-- Stage 6 cron auth in `lib/auth/cron-auth.js`
-- Stage 6 selector logic in `lib/automation/follow-up-selector.js`
-- Stage 6 dispatcher logic in `lib/automation/follow-up-dispatcher.js`
-- Stage 6 route in `api/cron/follow-ups.js`
-- follow-up queue/candidate/status helpers in `lib/db/studio-records.js`
-- focused tests for selector, cron route, dispatcher, and records
-- runtime fix for qualified `followup_jobs -> projects` embedding in `listPendingFollowUpJobs`
+- Stage 7 setup-check hardening in `lib/automation/setup-checks.js`
+- Google Drive readiness probe in `lib/google/drive.js`
+- focused tests for the Drive readiness probe in `test/google-drive.test.js` and `test/setup-checks.test.js`
+- execution updates in `docs/execution-log.md`, `README.md`, `.env.example`, `docs/deployment-preflight.md`, and `docs/execution-trail.md`
 
 ## Validation Already Run
 
-These passed after the review-driven dispatcher fix:
+These passed after Stage 6 completion:
 
 ```bash
 node --test test/follow-up-dispatcher.test.js test/follow-up-cron-api.test.js test/follow-up-selector.test.js test/studio-records.test.js
@@ -56,11 +57,15 @@ curl -sS "http://localhost:3000/api/cron/follow-ups?dryRun=false&dispatch=true" 
 node --test test/follow-up-dispatcher.test.js test/follow-up-cron-api.test.js test/studio-records.test.js
 ```
 
-Smoke-run note:
+Stage 7 validation note:
 
-- The first dispatch-path smoke exposed a Supabase embed ambiguity in `listPendingFollowUpJobs` because `followup_jobs` has multiple relations to `projects`.
-- That was fixed locally by qualifying the embed with `projects!followup_jobs_project_id_fkey` and adding a regression test.
-- Local smoke currently returns zero candidates and zero pending jobs, so the dispatch path was exercised without sending follow-up email.
+- `GET /api/admin/setup-wizard?action=setup` originally reported `overallStatus: passed`, which was misleading.
+- The first Stage 7 sandbox run (`sandbox-20260519T160000-stage7a`) failed with `Sandbox free review did not create all required Drive folders.`
+- The recorded `drive_failed` event showed the real provider error: `Unable to search Google Drive folders: File not found: ...`
+- Setup checks now run a live Google Drive access probe, and the setup endpoint correctly fails in `storage` when the Drive folder configuration is invalid.
+- The concrete blocker is that `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` is configured as a full Google Drive URL in the runtime environment, but the app expects the raw folder id.
+- The docs now include a permanent credential todo list, raw Drive folder id extraction steps, and a required pre-commit/pre-push credential sanity gate.
+- Portal quote checkout and balance payment start actions now live in `api/portal/actions.js`, which keeps the deployed function count at 11.
 
 Pre-commit review status:
 
@@ -71,14 +76,11 @@ Pre-commit review status:
 
 ## Next Session Start Here
 
-1. Run `git status -sb` and confirm the same dirty Stage 6 worktree is present.
-2. Read `docs/execution-log.md` Steps 0-5 before editing anything.
-3. Run one final pre-commit verification pass:
-   - `node --test test/follow-up-dispatcher.test.js test/follow-up-cron-api.test.js test/follow-up-selector.test.js test/studio-records.test.js`
-   - `npm run check:js`
-   - `git diff --check`
-4. If no new review concerns appear, commit and push the Stage 6 worktree.
-5. After push, move to Stage 7 launch hardening from `docs/roadmap.md`.
+1. Fix the active runtime value for `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` so it is the raw folder id, not the full `drive.google.com` URL.
+2. Follow the credential sanity gate in `README.md` before the next commit/push.
+3. Run `GET /api/admin/setup-wizard?action=setup` and confirm `storage` passes.
+4. Re-run the Stage 7 sandbox path from `README.md`.
+5. If Drive passes, continue the remaining Stage 7 checklist items from `docs/roadmap.md`.
 
 ## Source Of Truth Rules
 

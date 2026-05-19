@@ -51,8 +51,7 @@ Architecture source-of-truth docs:
 - `portal.html` and `portal.js` provide Supabase magic-link customer access, including quote cards, quote checkout, and balance payment start actions.
 - `admin.html` and `admin.js` provide the owner operations dashboard, priority queue, project detail with status updates, private admin notes, final delivery controls, and extra revision actions, plus setup checks, sandbox test runs, and cleanup tools.
 - `api/admin/quotes.js` provides protected admin quote draft and send actions.
-- `api/portal/accept-quote.js` starts authenticated quote checkout from the portal.
-- `api/portal/pay-balance.js` starts authenticated balance checkout from the portal.
+- `api/portal/actions.js` handles authenticated portal project loads, file-link submissions, revision requests, final approvals, quote checkout starts, and balance checkout starts.
 - `api/` contains Vercel Functions.
 - `lib/` contains PayPal, Supabase, Google Drive, Resend, auth, pricing, automation, and shared portal-rule helpers.
 - `api/webhooks/paypal.js` and `lib/automation/studio-workflow.js` now process checkout, quote, and balance payments, including unlocking final delivery after full balance payment.
@@ -94,7 +93,7 @@ Safety caveat: `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_SECRET_KEY` are server-
 - `GOOGLE_CLIENT_ID`: Google OAuth client id.
 - `GOOGLE_CLIENT_SECRET`: Google OAuth client secret.
 - `GOOGLE_REFRESH_TOKEN`: refresh token for Drive automation.
-- `GOOGLE_DRIVE_PROJECTS_FOLDER_ID`: parent Drive folder id for project folders.
+- `GOOGLE_DRIVE_PROJECTS_FOLDER_ID`: raw parent Drive folder id for project folders, not the full `drive.google.com` folder URL.
 - `GOOGLE_OAUTH_SCOPE`: defaults to `https://www.googleapis.com/auth/drive`.
 
 Generate a refresh token with:
@@ -123,6 +122,88 @@ These are used by admin simulation/sandbox test runs.
 
 - `CRON_SECRET`: required token for protected follow-up cron route.
 
+## Credential Todo List
+
+Use this checklist any time you set up `.env.local`, update Vercel environment variables, or debug provider communication.
+
+1. Copy `.env.example` to `.env.local` and fill every required value before testing runtime behavior.
+2. Set `SITE_URL` to the real site origin for deployed environments and to `http://localhost:3000` when you need local runtime links.
+3. Set `ADMIN_EMAIL` to the real owner/admin inbox that should access admin APIs.
+4. Fill PayPal credentials from the PayPal developer dashboard:
+   `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENV`, `PAYPAL_WEBHOOK_ID`.
+5. Fill Supabase credentials from the Supabase project settings:
+   `SUPABASE_URL`, `SUPABASE_PUBLIC_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+6. Fill Google Drive automation credentials:
+   `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`, `GOOGLE_DRIVE_PROJECTS_FOLDER_ID`.
+7. Fill Resend credentials:
+   `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and optionally `RESEND_REPLY_TO_EMAIL`.
+8. Set `TEST_CUSTOMER_EMAIL` and `TEST_EMAIL_RECIPIENT` to your own inbox while running sandbox/provider tests so test traffic stays contained.
+9. Re-check `.env.local` and Vercel env vars against `.env.example` whenever a provider test fails unexpectedly.
+
+## Google Drive Folder ID
+
+`GOOGLE_DRIVE_PROJECTS_FOLDER_ID` must be the raw Google Drive folder id, not the full URL.
+
+How to get it:
+
+1. Open the parent projects folder in Google Drive.
+2. Copy the browser URL.
+3. Find the segment after `/folders/` and before `?` or the end of the URL.
+4. Paste only that segment into `GOOGLE_DRIVE_PROJECTS_FOLDER_ID`.
+
+Example:
+
+```text
+https://drive.google.com/drive/folders/1dOrK3U5gNqMjMdPDvH-Vgd1oMTtxGXar?usp=sharing
+```
+
+Correct value:
+
+```text
+1dOrK3U5gNqMjMdPDvH-Vgd1oMTtxGXar
+```
+
+Wrong value:
+
+```text
+https://drive.google.com/drive/folders/1dOrK3U5gNqMjMdPDvH-Vgd1oMTtxGXar?usp=sharing
+```
+
+If setup checks report `File not found`, the two most likely causes are:
+
+1. The env var contains the full URL instead of the raw folder id.
+2. The configured Google OAuth client/refresh token does not have access to that folder.
+
+## Before Every Commit And Push
+
+This is a required gate for this repo when runtime, provider, docs, or deployment behavior might be affected.
+
+1. Compare `.env.local` and the target Vercel environment against `.env.example`.
+2. Confirm `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` is the raw folder id only.
+3. Start local runtime with `npx vercel dev`.
+4. Run the admin setup check:
+
+```bash
+curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"
+```
+
+5. If `storage` fails, do not commit or push as runtime-ready until the Drive config is fixed.
+6. Run the narrowest relevant workflow checks, then at minimum run:
+
+```bash
+npm test
+npm run check:js
+git diff --check
+```
+
+7. `git push` is guarded by Husky `pre-push`, which runs:
+
+```bash
+npm run deploy:preflight
+```
+
+8. If Husky blocks the push, fix the reported issue locally and rerun the push only after the preflight is green.
+
 ## Local Checks
 
 ```bash
@@ -134,7 +215,7 @@ npm run check:js
 
 This repo is designed to stay within the Vercel Hobby limit of 12 Serverless Functions.
 
-Run this before any production deploy:
+`git push` already runs this automatically through `.husky/pre-push`, and you can still run it manually before a production deploy:
 
 ```bash
 npm run deploy:preflight
@@ -252,6 +333,8 @@ curl -sS "http://localhost:3000/api/cron/follow-ups?dryRun=false&dispatch=true" 
 8. Run simulation mode.
 9. Run sandbox mode before taking real customer payments.
 10. Run `npm test` and `npm run check:js` before every deploy.
+
+Stage 7 note: the admin setup check now performs a live Google Drive access probe for `GOOGLE_DRIVE_PROJECTS_FOLDER_ID`. If storage fails with `File not found`, verify that the value is the raw folder id and that the OAuth client can access that folder.
 
 ## Asset Notes
 

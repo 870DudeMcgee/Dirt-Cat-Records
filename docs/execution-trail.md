@@ -47,6 +47,24 @@ Minimum expectations:
 When preparing to ship a slice, also run:
 
 1. `npm run deploy:preflight`
+2. Confirm `.husky/pre-push` is still present so `git push` enforces the same preflight automatically.
+
+## Credential Sanity Gate (Required Before Commit And Push)
+
+Before any commit/push that is meant to be runtime-ready, run this gate:
+
+1. Compare `.env.local` and target Vercel env values against `.env.example`.
+2. Confirm `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` is the raw folder id only, not the full Google Drive URL.
+3. Start local runtime with `npx vercel dev`.
+4. Run:
+
+```bash
+curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"
+```
+
+5. If `setup.sections.storage.status` is `failed`, stop and fix credentials before committing/pushing as ready.
+6. If the step touches provider workflows, run the relevant simulation/sandbox validation before pushing.
+7. Do not bypass the Husky `pre-push` preflight unless you intentionally want a non-deployable push.
 
 ## Required Log Record Format
 

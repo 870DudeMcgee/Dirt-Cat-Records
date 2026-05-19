@@ -105,9 +105,12 @@ function bindProjectActions(container) {
       const projectId = projectCard?.dataset.projectId;
       if (!projectId) return;
       try {
-        const result = await postPortalAction("/api/portal/pay-balance", {
-          projectId,
-        });
+        const result = await postPortalAction(
+          "/api/portal/actions?action=pay-balance",
+          {
+            projectId,
+          }
+        );
         if (result.approvalUrl) {
           window.open(result.approvalUrl, "_blank", "noopener,noreferrer");
           setPortalStatus("Balance checkout opened in a new tab.");
@@ -126,10 +129,13 @@ function bindProjectActions(container) {
       const quoteId = event.target.getAttribute("data-quote-id");
       if (!projectId || !quoteId) return;
       try {
-        const result = await postPortalAction("/api/portal/accept-quote", {
-          projectId,
-          quoteId,
-        });
+        const result = await postPortalAction(
+          "/api/portal/actions?action=accept-quote",
+          {
+            projectId,
+            quoteId,
+          }
+        );
         if (result.approvalUrl) {
           window.open(result.approvalUrl, "_blank", "noopener,noreferrer");
           setPortalStatus("Quote checkout opened in a new tab.");

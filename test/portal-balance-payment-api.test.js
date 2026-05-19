@@ -1,11 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const {
-  createPortalBalancePaymentHandler,
-} = require("../api/portal/pay-balance");
+const { createPortalActionsHandler } = require("../api/portal/actions");
 
 test("portal balance endpoint validates project id", async () => {
-  const handler = createPortalBalancePaymentHandler({
+  const handler = createPortalActionsHandler({
     requireUserImpl: async () => ({ email: "buyer@example.com" }),
     records: {
       getCustomerByEmail: async () => ({ id: "customer-1" }),
@@ -13,7 +11,15 @@ test("portal balance endpoint validates project id", async () => {
   });
   const res = response();
 
-  await handler({ method: "POST", headers: {}, body: {} }, res);
+  await handler(
+    {
+      method: "POST",
+      headers: {},
+      url: "/api/portal/actions?action=pay-balance",
+      body: {},
+    },
+    res
+  );
 
   assert.equal(res.statusCode, 400);
   assert.equal(res.body.error, "projectId is required.");
@@ -21,7 +27,7 @@ test("portal balance endpoint validates project id", async () => {
 
 test("portal balance endpoint creates paypal order for remaining balance", async () => {
   const calls = [];
-  const handler = createPortalBalancePaymentHandler({
+  const handler = createPortalActionsHandler({
     requireUserImpl: async () => ({ email: "buyer@example.com" }),
     records: {
       getCustomerByEmail: async () => ({
@@ -58,7 +64,12 @@ test("portal balance endpoint creates paypal order for remaining balance", async
 
   const res = response();
   await handler(
-    { method: "POST", headers: {}, body: { projectId: "project-1" } },
+    {
+      method: "POST",
+      headers: {},
+      url: "/api/portal/actions?action=pay-balance",
+      body: { projectId: "project-1" },
+    },
     res
   );
 

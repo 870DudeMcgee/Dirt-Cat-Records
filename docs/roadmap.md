@@ -7,6 +7,10 @@ For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [
 
 Current next focus: Stage 7 launch hardening. Stage 6 follow-up automation now has focused test coverage and a passing local Vercel runtime smoke check.
 
+Current Stage 7 blocker: `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` is configured in the active runtime as a full Drive URL, but the app expects the raw folder id. The setup check now surfaces this in the `storage` section before sandbox runs.
+
+Permanent workflow constraint: before every commit/push meant to be runtime-ready, run the credential sanity gate from `README.md` and `docs/execution-trail.md`, including the raw Google Drive folder id check.
+
 ## Execution Rule
 
 For every implementation step in any stage:
@@ -129,5 +133,7 @@ Goal: owner can run deterministic local/sandbox validation with dummy data and c
 Goal: keep Vercel Hobby deployments under the 12-function limit and fail fast before deploy.
 
 - [x] Consolidate browser-safe config into `api/checkout-config.js`.
+- [x] Consolidate portal quote and balance checkout starts into `api/portal/actions.js`.
 - [x] Add `npm run deploy:preflight` for function-count, test, syntax, and diff checks.
+- [x] Enforce `npm run deploy:preflight` in `.husky/pre-push`.
 - [x] Document the deploy workflow in `docs/deployment-preflight.md` and `README.md`.
