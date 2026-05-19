@@ -423,6 +423,47 @@ Roadmap link: `docs/roadmap.md` (Deployment Guardrail)
 
 ---
 
+## Step 9 - Synchronize Post-Push Project State Docs
+
+Date/Time: 2026-05-19
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: launch hardening)
+
+### Will Be Done
+
+- Update the main repo docs so the next agent sees the real pushed state, the end-product goal, and the remaining Stage 7 work.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `README.md`, `docs/execution-log.md`, `CONTEXT.md`
+- Codebase state: clean `main...origin/main` at `3162aa2`, but handoff/roadmap text still describes the pre-fix Drive blocker and pre-push repo state
+- Target files/tests: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+
+### Done
+
+- Added a concise end-product goal and current-status snapshot to `README.md`.
+- Updated `docs/roadmap.md` so Stage 7 reflects the current reality: local setup gate passes and the remaining work is provider verification plus launch-checklist completion.
+- Updated `docs/agent-handoff.md` so it now reflects the pushed commit, clean repo state, current validation evidence, and the correct next actions.
+- Logged this synchronization step in `docs/execution-log.md` so the documentation trail matches the shipped repo state.
+
+### Context Check (After)
+
+- Validation run:
+  - spot-check reads for `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and `docs/execution-log.md` (pass)
+  - `git diff --check` (pass)
+- Codebase delta summary:
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Run the Stage 7 real-provider sandbox flow from `README.md` and record the results.
+- Convert those results into completed or narrowed-down Stage 7 checklist items.
+
+---
+
 ## Step N - <short title>
 
 Date/Time:
@@ -452,3 +493,170 @@ Roadmap link:
 
 - <next immediate bounded step>
 - <risks/blockers if any>
+
+---
+
+## Step 10 - Re-Run Stage 7 Provider Sandbox Flow
+
+Date/Time: 2026-05-19
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Run the admin sandbox test against real providers)
+
+### Will Be Done
+
+- Re-run the Stage 7 setup endpoint and deterministic `v1-usability` sandbox flow against the local Vercel runtime, then capture whether the real-provider path now passes or which provider still fails.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/execution-trail.md`, `README.md`, `docs/agent-handoff.md`, `CONTEXT.md`
+- Codebase state: dirty `main...origin/main` at `3162aa2` with local updates in `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and `docs/execution-log.md`
+- Target files/tests: `docs/execution-log.md`, runtime commands from `README.md`, `api/admin/setup-wizard.js`, `lib/automation/test-mode-runner.js`
+
+### Done
+
+- Re-ran `GET /api/admin/setup-wizard?action=setup` against local `vercel dev` and confirmed the setup gate now passes, including the live Google Drive probe.
+- Ran the deterministic `v1-usability` sandbox scenario with `testRunId=sandbox-20260519T112619-stage7b`.
+- Confirmed the sandbox now fails in the email provider path, not the Drive path.
+- Captured the persisted sandbox report and the concrete provider error: Resend rejects the configured sender because the `gmail.com` domain is not verified.
+
+### Context Check (After)
+
+- Validation run:
+  - `git status -sb && git log -1 --oneline --decorate` (dirty docs on `main...origin/main`, HEAD `3162aa2`)
+  - `npx vercel dev` (pass, local runtime ready)
+  - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` (pass, `storage` provider passed)
+  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs" ...` with `testRunId=sandbox-20260519T112619-stage7b` (fail: `Sandbox free review email failed: Resend email failed: The gmail.com domain is not verified.`)
+  - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=test-runs&testRunId=sandbox-20260519T112619-stage7b"` (pass, persisted report fetched)
+- Codebase delta summary:
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Make the setup-check email section fail early when `RESEND_FROM_EMAIL` is not on a sending-ready Resend domain.
+- Re-run `GET /api/admin/setup-wizard?action=setup` and confirm the email provider failure is explicit before the next sandbox attempt.
+
+---
+
+## Step 11 - Add Early Resend Sender Verification
+
+Date/Time: 2026-05-19
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Verify Resend sender domain, reply-to, and deliverability)
+
+### Will Be Done
+
+- Add a live Resend sender-domain check to the setup gate so Stage 7 email misconfiguration fails early with an explicit provider error instead of surfacing only during sandbox runs.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/execution-trail.md`, `README.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: dirty `main...origin/main` at `3162aa2` with local updates in `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and `docs/execution-log.md`
+- Target files/tests: `lib/email/resend.js`, `lib/automation/setup-checks.js`, `test/resend-email.test.js`, `test/setup-checks.test.js`, `README.md`, `docs/execution-log.md`
+
+### Done
+
+- Added `verifyResendSender` in `lib/email/resend.js` so setup checks fail early when `RESEND_FROM_EMAIL` is a public inbox domain like `gmail.com`.
+- Wired the setup email section in `lib/automation/setup-checks.js` through the new Resend sender validation.
+- Added focused coverage in `test/resend-email.test.js` and `test/setup-checks.test.js` for the new setup-gate behavior.
+- Updated `README.md` so the Resend setup requirement is explicit: `RESEND_FROM_EMAIL` must use a domain controlled in Resend and configured for both send and receive.
+- Verified that the live setup endpoint now fails early and explicitly on the current runtime Resend misconfiguration instead of waiting for the sandbox run to fail.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/resend-email.test.js test/setup-checks.test.js` (pass)
+  - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` (fail as expected in `email`: `RESEND_FROM_EMAIL must use a domain you control in Resend with send and receive configured; public inbox domains like gmail.com are not valid senders.`)
+- Codebase delta summary:
+  - Updated `lib/email/resend.js`
+  - Updated `lib/automation/setup-checks.js`
+  - Updated `test/resend-email.test.js`
+  - Updated `test/setup-checks.test.js`
+  - Updated `README.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Change the active runtime `RESEND_FROM_EMAIL` to a custom domain configured in Resend for both send and receive.
+- Re-run `GET /api/admin/setup-wizard?action=setup` and the Stage 7 sandbox flow after the Resend sender is fixed.
+
+---
+
+## Step 12 - Switch Local Resend Sender To Studio Domain
+
+Date/Time: 2026-05-19
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Verify Resend sender domain, reply-to, and deliverability)
+
+### Will Be Done
+
+- Update the local runtime Resend sender from the Gmail inbox to the intended Dirt Cat Records studio address, then re-run the setup gate and Stage 7 sandbox flow to capture the next real-provider result.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/execution-trail.md`, `README.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: dirty `main...origin/main` at `3162aa2` with local Stage 7 setup-gate hardening and docs updates in progress
+- Target files/tests: `.env.local`, runtime commands from `README.md`, `docs/execution-log.md`
+
+### Done
+
+- Updated `.env.local` so the local runtime uses `Dirt Cat Records <studio@dirtcatrecords.com>` as the Resend sender and `studio@dirtcatrecords.com` as the reply-to address.
+- Re-ran `GET /api/admin/setup-wizard?action=setup` and confirmed the setup gate now passes again with the local custom Resend domain.
+- Ran the deterministic Stage 7 sandbox flow with `testRunId=sandbox-20260519T113900-stage7c` and confirmed the full `v1-usability` scenario passes end to end.
+- Captured evidence that the successful sandbox run exercised Supabase writes, Google Drive folder creation, Resend-backed workflow email acceptance, and sandbox-like PayPal payment events.
+- Cleaned up the same sandbox run after verification so the test artifacts were not left behind.
+
+### Context Check (After)
+
+- Validation run:
+  - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` before sender update (fail in `email` on Gmail sender)
+  - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` after sender update (pass)
+  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs" ...` with `testRunId=sandbox-20260519T113900-stage7c` (pass, full `v1-usability` scenario)
+  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=cleanup" ...` with `testRunId=sandbox-20260519T113900-stage7c` (pass, `cleanupStatus: cleaned`)
+- Codebase delta summary:
+  - Updated `.env.local`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Update repo status docs so Stage 7 reflects the now-passing local sandbox run.
+- Verify the remaining launch-hardening items that were not proven by the local sandbox run: production magic-link redirect behavior, production env parity, and any final checklist documentation.
+
+---
+
+## Step 13 - Audit Vercel Environment Parity
+
+Date/Time: 2026-05-19
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Verify Vercel environment variables are set for production)
+
+### Will Be Done
+
+- Audit the configured Vercel production and preview environment variable names so Stage 7 can distinguish between local validation success and actual deploy readiness.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/execution-trail.md`, `README.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: dirty `main...origin/main` at `3162aa2` with local Stage 7 setup-gate hardening, local env change, and docs updates in progress
+- Target files/tests: Vercel CLI environment listings, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+
+### Done
+
+- Listed the configured Vercel production environment variable names.
+- Listed the configured Vercel preview environment variable names.
+- Confirmed the redeployed production env now includes the required site/admin, Resend, Google Drive, cron, PayPal, and Supabase variable names for the documented runtime.
+- Confirmed preview now includes the added site/admin, Resend, Google Drive, and cron names, but is still missing key server/runtime values including `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and PayPal vars.
+- Ran production-safe runtime smokes on the canonical `www` host: public pages return `200`, `GET /api/checkout-config` returns valid public config JSON, and the admin setup route returns `401` as expected without admin auth.
+
+### Context Check (After)
+
+- Validation run:
+  - `npx vercel env ls production` (pass, names listed)
+  - `npx vercel env ls preview` (pass, names listed)
+- Codebase delta summary:
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Verify production magic-link redirects on the canonical domain.
+- Verify real-provider behavior that the local sandbox path does not fully prove: PayPal browser/webhook flow, Drive sharing permissions, and Resend deliverability.
+- Fill the still-missing preview server/runtime values so preview can use sandbox PayPal safely.

@@ -88,6 +88,12 @@ test("defaultProviders storage check fails when drive access probe fails", async
           );
         },
       },
+      resend: {
+        verifyResendSender: async () => ({
+          status: "passed",
+          detail: "email ready",
+        }),
+      },
     }),
     database: {
       check: async () => ({ status: "passed", detail: "database ready" }),
@@ -101,6 +107,51 @@ test("defaultProviders storage check fails when drive access probe fails", async
   assert.equal(
     report.sections.storage.provider.error,
     "Unable to access Google Drive projects folder: File not found: ."
+  );
+});
+
+test("defaultProviders email check fails when Resend sender verification fails", async () => {
+  const env = {
+    SUPABASE_URL: "https://project.supabase.co",
+    SUPABASE_SERVICE_ROLE_KEY: "service-key",
+    SUPABASE_PUBLIC_KEY: "public-key",
+    GOOGLE_CLIENT_ID: "google-id",
+    GOOGLE_CLIENT_SECRET: "google-secret",
+    GOOGLE_REFRESH_TOKEN: "refresh-token",
+    GOOGLE_DRIVE_PROJECTS_FOLDER_ID: "folder-id",
+    RESEND_API_KEY: "resend-key",
+    RESEND_FROM_EMAIL: "Dirt Cat Records <studio@gmail.com>",
+    PAYPAL_CLIENT_ID: "paypal-id",
+    PAYPAL_CLIENT_SECRET: "paypal-secret",
+    PAYPAL_WEBHOOK_ID: "webhook-id",
+    ADMIN_EMAIL: "josh@example.com",
+  };
+  const providers = {
+    ...defaultProviders({
+      env,
+      drive: {
+        verifyDriveAccess: async () => undefined,
+      },
+      resend: {
+        verifyResendSender: async () => {
+          throw new Error(
+            "Resend sender domain gmail.com is not configured in Resend."
+          );
+        },
+      },
+    }),
+    database: {
+      check: async () => ({ status: "passed", detail: "database ready" }),
+    },
+  };
+
+  const report = await runSetupChecks({ env, providers });
+  assert.equal(report.overallStatus, "failed");
+  assert.equal(report.sections.email.status, "failed");
+  assert.equal(report.sections.email.provider.status, "failed");
+  assert.equal(
+    report.sections.email.provider.error,
+    "Resend sender domain gmail.com is not configured in Resend."
   );
 });
 

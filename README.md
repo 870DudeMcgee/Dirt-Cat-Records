@@ -18,6 +18,27 @@ The staged task list lives in [`docs/roadmap.md`](docs/roadmap.md).
 
 The current priority is Stage 7: launch hardening across the live providers and production configuration.
 
+## End Product Goal
+
+The target end product is a reliable studio operations system for Dirt Cat Records that:
+
+- captures new paid work through PayPal checkout;
+- converts free reviews and custom inquiries into tracked Projects and Quotes;
+- gives customers a real portal for uploads, revisions, quote acceptance, balance payment, and final approval;
+- gives the owner a private admin dashboard for day-to-day operations;
+- automates Google Drive folder creation, transactional email, payment-state transitions, delivery locking, and stale-project follow-ups;
+- stays safe to operate on the Vercel Hobby plan with documented and enforced deploy guardrails.
+
+## Current Status
+
+- Stages 0 through 6 are implemented and covered by the current automated test suite.
+- The V1 owner-proof sandbox harness is implemented and documented.
+- Deploy guardrails are active: portal payment starts were consolidated into `api/portal/actions.js`, the repo stays under the 12-function Hobby limit, and `.husky/pre-push` runs `npm run deploy:preflight` before push.
+- The local credential sanity gate now passes with the live Google Drive probe and a local custom Resend sender on `dirtcatrecords.com`.
+- The Stage 7 `v1-usability` sandbox run now passes locally end to end against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events.
+- Vercel production env parity is now in place for live testing. Preview still lacks key server/runtime values, so preview should be treated as incomplete until its Supabase service-role and PayPal sandbox vars are added.
+- The remaining work is Stage 7 real-provider validation and launch-checklist completion.
+
 ## Execution Trail (Required)
 
 Every implementation step must be logged with plan and codebase context checks.
@@ -107,6 +128,8 @@ npm run google:refresh-token
 - `RESEND_API_KEY`: Resend API key.
 - `RESEND_FROM_EMAIL`: verified sender, for example `Dirt Cat Records <studio@dirtcatrecords.com>`.
 - `RESEND_REPLY_TO_EMAIL`: reply-to address. Falls back to `ADMIN_EMAIL` when omitted.
+
+Safety caveat: `RESEND_FROM_EMAIL` must use a domain you control that is configured in Resend for both send and receive. Free inbox domains like `gmail.com` are not valid senders for this workflow.
 
 ### Optional Test Settings
 
@@ -335,6 +358,14 @@ curl -sS "http://localhost:3000/api/cron/follow-ups?dryRun=false&dispatch=true" 
 10. Run `npm test` and `npm run check:js` before every deploy.
 
 Stage 7 note: the admin setup check now performs a live Google Drive access probe for `GOOGLE_DRIVE_PROJECTS_FOLDER_ID`. If storage fails with `File not found`, verify that the value is the raw folder id and that the OAuth client can access that folder.
+
+Current verification state:
+
+- Local setup checks pass with the custom `dirtcatrecords.com` Resend sender.
+- Local `v1-usability` sandbox run passed with `testRunId=sandbox-20260519T113900-stage7c` and cleanup also passed.
+- Vercel production env parity is now present for the documented runtime requirements.
+- Preview env coverage is still incomplete and is missing at least `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, PayPal vars, and likely should use `PAYPAL_ENV=sandbox` for safe preview testing.
+- Production-safe runtime smoke now passes on `https://www.dirtcatrecords.com`: `portal.html` and `admin.html` return `200`, `GET /api/checkout-config` returns valid public config JSON, and `GET /api/admin/setup-wizard?action=setup` returns `401` without admin auth as expected.
 
 ## Asset Notes
 

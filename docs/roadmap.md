@@ -5,9 +5,9 @@ This document tracks the staged work needed to turn the current site, checkout, 
 For current handoff context, see [`docs/agent-handoff.md`](agent-handoff.md).
 For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [`docs/adr/`](adr).
 
-Current next focus: Stage 7 launch hardening. Stage 6 follow-up automation now has focused test coverage and a passing local Vercel runtime smoke check.
+Current next focus: Stage 7 launch hardening through real-provider validation and launch-checklist completion.
 
-Current Stage 7 blocker: `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` is configured in the active runtime as a full Drive URL, but the app expects the raw folder id. The setup check now surfaces this in the `storage` section before sandbox runs.
+Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run now passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, and production runtime smoke is healthy on the canonical `www` host. Production env parity is now in place for live testing. The remaining work is the narrower launch-hardening slice: complete production-domain magic-link behavior, finish provider checks, and fill the still-incomplete preview env set for safe preview testing.
 
 Permanent workflow constraint: before every commit/push meant to be runtime-ready, run the credential sanity gate from `README.md` and `docs/execution-trail.md`, including the raw Google Drive folder id check.
 
@@ -76,7 +76,7 @@ Goal: convert free reviews and custom projects into paid work without manual pay
 - [x] Build quote line items from catalog pricing plus manual adjustments.
 - [x] Send quote emails through Resend.
 - [x] Show quote cards in the customer portal.
-- [x] Add `api/portal/accept-quote.js`.
+- [x] Add authenticated quote checkout start flow in the portal API.
 - [x] Extend PayPal metadata and webhook handling for quote payments.
 - [x] Mark accepted quotes and converted projects correctly after PayPal confirmation.
 
@@ -84,7 +84,7 @@ Goal: convert free reviews and custom projects into paid work without manual pay
 
 Goal: make deposits and final delivery safe and clear.
 
-- [x] Add balance payment endpoint.
+- [x] Add balance payment start flow.
 - [x] Add portal balance payment action.
 - [x] Extend PayPal webhook handling for balance payments.
 - [x] Keep final files locked until the balance is paid.
@@ -108,12 +108,20 @@ Goal: reduce stale leads, missing files, pending quotes, unpaid balances, and un
 
 Goal: verify the complete production story before relying on it for real clients.
 
-- [ ] Run the admin sandbox test against real providers.
+Current status:
+
+- Local setup-wizard credential gate passes again with the custom `dirtcatrecords.com` Resend sender.
+- Deploy guardrails pass locally and on push.
+- Production public runtime responds correctly on the canonical `www` host.
+- Production env names now cover the documented runtime requirements.
+- The remaining work is live-provider verification, not foundational feature buildout.
+
+- [x] Run the admin sandbox test against real providers.
 - [ ] Verify PayPal sandbox checkout and webhook.
 - [ ] Verify Supabase magic link redirects on the production domain.
 - [ ] Verify Resend sender domain, reply-to, and deliverability.
 - [ ] Verify Google Drive folder creation and sharing permissions.
-- [ ] Verify Vercel environment variables are set for production.
+- [x] Verify Vercel environment variables are set for production.
 - [ ] Document the launch checklist in `README.md`.
 
 ## V1 Usability/Testability Contract
