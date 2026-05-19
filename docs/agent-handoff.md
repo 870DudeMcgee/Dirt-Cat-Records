@@ -7,8 +7,8 @@ This file is the working handoff for continuing Dirt Cat Records development aft
 - Working repo: `/Users/josh/Desktop/dirt_cat_records_website_final/Dirt-Cat-Records-latest`
 - Remote: `https://github.com/870DudeMcgee/Dirt-Cat-Records.git`
 - Branch: `main`
-- Latest pushed commit: `265ae5c feat: improve customer portal project state`
-- Local git status at handoff time before this file: clean and synced with `origin/main`
+- Latest pushed commit: `792a8ec feat: add admin project detail view`
+- Local git status at handoff update time: clean and synced with `origin/main`
 - Commit email used for pushed work: `Josh Mclean <870DudeMcgee@users.noreply.github.com>`
 
 Older local copies were archived under:
@@ -16,6 +16,15 @@ Older local copies were archived under:
 - `/Users/josh/Desktop/dirt_cat_records_website_final/ARCHIVED_OLD_REPOS_REVIEW_BEFORE_DELETE`
 
 Do not use the archived folders for new work.
+
+## Next Agent Start Here
+
+1. Work only in `/Users/josh/Desktop/dirt_cat_records_website_final/Dirt-Cat-Records-latest`.
+2. Start by reading `docs/roadmap.md` and this file.
+3. Confirm `git status -sb` is clean and on `main...origin/main`.
+4. Continue Stage 3 with the next unchecked item: admin status update action.
+5. Use TDD. Existing tests use Node's built-in runner, and server/browser JS files must be added to `npm run check:js`.
+6. Before finishing a slice, run `npm test`, `npm run check:js`, and `git diff --check`.
 
 ## Completed Work
 
@@ -175,6 +184,9 @@ Last observed `npm test` result after the project detail slice:
 - `package.json` uses `"type": "commonjs"`.
 - Tests use Node's built-in test runner: `node --test`.
 - `check:js` is a long `node --check ...` command. Add new browser/server JS files to it.
+- Current pushed Stage 3 commits:
+  - `806fef8 feat: add admin operations overview`
+  - `792a8ec feat: add admin project detail view`
 - Supabase browser auth uses `SUPABASE_URL` and `SUPABASE_PUBLIC_KEY` from `/api/public/config`.
 - Server-side Supabase writes use `SUPABASE_SERVICE_ROLE_KEY` or legacy `SUPABASE_SECRET_KEY`.
 - Admin access is checked against `ADMIN_EMAIL`.
@@ -182,6 +194,12 @@ Last observed `npm test` result after the project detail slice:
 - PayPal webhook automation creates paid projects, Drive folders, and emails upload instructions.
 - The success page should remain portal/email-first, not `mailto:` first.
 - The portal renderer lives in `portal-view.js`; keep state/rendering rules there and test them directly.
+- `api/admin/overview.js` returns dashboard queue data.
+- `api/admin/projects.js` currently supports read-only detail via `action=detail&projectId=...`.
+- `admin.js` renders a same-page project detail panel from priority queue `View` buttons.
+- `getAdminProjectDetail` includes project files linked by `project_id`, and also legacy files linked by `order_id` when the project has an order.
+- Browser visual verification was blocked in this environment. Localhost binding failed with `EPERM`, and the in-app Browser control execution tool was not available.
+- GitHub CLI exists but `gh auth status` reported an invalid stored token. Normal `git push origin main` worked after network permission.
 
 ## Recommended Next Work
 
@@ -207,10 +225,8 @@ Recommended TDD pattern:
 
 - `admin.html`
 - `admin.js`
-- `api/admin/overview.js` (new)
 - `api/admin/projects.js`
 - `lib/db/studio-records.js`
-- `test/admin-overview-api.test.js` (new)
 - `test/admin-project-detail-api.test.js`
 - `style.css`
 - `docs/roadmap.md`
