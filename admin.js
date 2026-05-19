@@ -10,16 +10,18 @@
     bindActions();
     try {
       await initAuth();
+      await loadOverview();
       await loadSetup();
       await loadRuns();
     } catch (error) {
       setStatus(error.message || 'Unable to initialize admin setup.');
+      renderOverview(emptyOverview());
       renderSetup({ sections: {} });
     }
   }
 
   function bindActions() {
-    document.getElementById('admin-refresh')?.addEventListener('click', loadSetup);
+    document.getElementById('admin-refresh')?.addEventListener('click', refreshAdmin);
     document.getElementById('run-simulation')?.addEventListener('click', () => runTest('simulation'));
     document.getElementById('run-sandbox')?.addEventListener('click', () => runTest('sandbox'));
     document.getElementById('cleanup-run')?.addEventListener('click', cleanupRun);
@@ -33,6 +35,12 @@
     const { data } = await supabaseClient.auth.getSession();
     accessToken = data.session?.access_token || '';
     document.getElementById('cleanup-run').disabled = !latestRunId;
+  }
+
+  async function refreshAdmin() {
+    await loadOverview();
+    await loadSetup();
+    await loadRuns();
   }
 
   async function sendMagicLink(event) {
@@ -61,6 +69,16 @@
     } catch (error) {
       setStatus(error.message || 'Unable to load setup status.');
       renderSetup({ sections: {} });
+    }
+  }
+
+  async function loadOverview() {
+    try {
+      const data = await api('/api/admin/overview');
+      renderOverview(data.overview || emptyOverview());
+    } catch (error) {
+      setStatus(error.message || 'Unable to load admin overview.');
+      renderOverview(emptyOverview());
     }
   }
 
@@ -137,6 +155,117 @@
     `).join('');
   }
 
+  function renderOverview(overview) {
+    renderOverviewMetrics(overview.metrics || []);
+    renderOverviewQueue(overview.queues || {});
+    renderOverviewEvents(overview.recentEvents || []);
+
+    const updated = document.getElementById('overview-updated');
+    if (updated) updated.textContent = overview.generatedAt ? `Updated ${formatDateTime(overview.generatedAt)}` : '';
+  }
+
+  function renderOverviewMetrics(metrics) {
+    const container = document.getElementById('overview-metrics');
+    if (!container) return;
+    container.innerHTML = metrics.map((metric) => `
+      <article class="overview-metric">
+        <span>${escapeHtml(metric.label)}</span>
+        <strong>${escapeHtml(metric.count)}</strong>
+      </article>
+    `).join('');
+  }
+
+  function renderOverviewQueue(queues) {
+    const container = document.getElementById('overview-queue');
+    if (!container) return;
+    const items = [
+      ...(queues.newLeads || []).map((lead) => ({
+        label: 'New Lead',
+        title: lead.projectTitle || lead.artistName || lead.email || 'Untitled lead',
+        detail: lead.email,
+        time: lead.createdAt,
+      })),
+      ...(queues.awaitingFiles || []).map((project) => projectQueueItem('Awaiting Files', project)),
+      ...(queues.filesSubmitted || []).map((project) => projectQueueItem('Files Submitted', project)),
+      ...(queues.revisionRequests || []).map((revision) => ({
+        label: 'Revision',
+        title: revision.projectTitle || revision.artistName || revision.projectCode || 'Revision request',
+        detail: revision.notes,
+        time: revision.createdAt,
+      })),
+      ...(queues.finalsReady || []).map((project) => projectQueueItem('Finals Ready', project)),
+      ...(queues.balancesDue || []).map((project) => ({
+        ...projectQueueItem('Balance Due', project),
+        detail: `${project.balanceDueLabel} remaining`,
+      })),
+    ].slice(0, 12);
+
+    container.innerHTML = items.length ? items.map(renderOverviewItem).join('') : '<p class="overview-empty">No priority items.</p>';
+  }
+
+  function renderOverviewEvents(events) {
+    const container = document.getElementById('overview-events');
+    if (!container) return;
+    container.innerHTML = events.length ? events.slice(0, 12).map((event) => renderOverviewItem({
+      label: titleCase(event.eventType || 'Event'),
+      title: event.message || event.projectId || 'Project event',
+      detail: event.actorType ? `By ${titleCase(event.actorType)}` : '',
+      time: event.createdAt,
+    })).join('') : '<p class="overview-empty">No recent activity.</p>';
+  }
+
+  function projectQueueItem(label, project) {
+    return {
+      label,
+      title: project.title || project.projectTitle || project.artistName || project.projectCode || 'Untitled project',
+      detail: project.projectCode || project.statusLabel || '',
+      time: project.updatedAt || project.createdAt,
+      href: safeHttpUrl(project.driveProjectFolderUrl || project.driveUploadFolderUrl || project.driveFinalsFolderUrl || project.finalDeliveryUrl),
+    };
+  }
+
+  function renderOverviewItem(item) {
+    const action = item.href ? `<a href="${escapeHtml(item.href)}" target="_blank" rel="noreferrer">Open</a>` : '';
+    return `
+      <article class="overview-item">
+        <div>
+          <p>${escapeHtml(item.label)}</p>
+          <h4>${escapeHtml(item.title)}</h4>
+          ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ''}
+        </div>
+        <div class="overview-item-meta">
+          ${item.time ? `<time datetime="${escapeHtml(item.time)}">${escapeHtml(formatDateTime(item.time))}</time>` : ''}
+          ${action}
+        </div>
+      </article>
+    `;
+  }
+
+  function emptyOverview() {
+    const metrics = [
+      ['newLeads', 'New Leads'],
+      ['awaitingFiles', 'Awaiting Files'],
+      ['filesSubmitted', 'Files Submitted'],
+      ['activeProjects', 'Active Projects'],
+      ['revisionRequests', 'Revision Requests'],
+      ['finalsReady', 'Finals Ready'],
+      ['balancesDue', 'Balances Due'],
+    ].map(([key, label]) => ({ key, label, count: 0 }));
+    return {
+      metrics,
+      queues: {
+        newLeads: [],
+        awaitingFiles: [],
+        filesSubmitted: [],
+        activeProjects: [],
+        revisionRequests: [],
+        finalsReady: [],
+        balancesDue: [],
+      },
+      recentEvents: [],
+    };
+  }
+
   function renderReport(report) {
     const container = document.getElementById('test-report');
     if (!container) return;
@@ -154,7 +283,28 @@
   }
 
   function titleCase(value) {
-    return value.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+    return String(value || '').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  function formatDateTime(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date);
+  }
+
+  function safeHttpUrl(value) {
+    if (!value || typeof value !== 'string') return '';
+    try {
+      const url = new URL(value);
+      return ['http:', 'https:'].includes(url.protocol) ? url.toString() : '';
+    } catch (_error) {
+      return '';
+    }
   }
 
   function setStatus(message) {

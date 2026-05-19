@@ -2,6 +2,8 @@
 
 This document tracks the staged work needed to turn the current site, checkout, portal, and automation foundation into a reliable studio operations system.
 
+For current handoff context, see [`docs/agent-handoff.md`](agent-handoff.md).
+
 ## Stage 0: Stabilize The Source Of Truth
 
 Goal: make the repo clean, understandable, and hard to misuse.
@@ -38,7 +40,7 @@ Goal: customers should see clear next steps and only the actions that apply to t
 
 Goal: manage real studio work from one private dashboard.
 
-- [ ] Add admin overview data for leads, awaiting files, active projects, revisions, finals, balances, and recent activity.
+- [x] Add admin overview data for leads, awaiting files, active projects, revisions, finals, balances, and recent activity.
 - [ ] Add project detail view with customer info, timeline, Drive links, files, revisions, payments, and email events.
 - [ ] Add admin status update action.
 - [ ] Add admin notes.
