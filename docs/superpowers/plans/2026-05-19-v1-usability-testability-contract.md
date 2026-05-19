@@ -1,7 +1,7 @@
 # Dirt Cat Records V1 Usability And Testability Contract
 
 Date: 2026-05-19
-Status: Proposed for immediate execution by a fresh agent
+Status: In progress with one-click owner proof flow implemented locally
 
 ## Why This Exists
 
@@ -69,6 +69,7 @@ V1 is not done until all items below exist and are documented:
 3. A repeatable way to force project into finals-ready locked state for balance testing.
 4. A single scripted checklist that exercises both admin and customer surfaces.
 5. A reset/cleanup path that removes dummy artifacts between runs.
+6. A one-click owner trigger that runs the scenario and shows both admin and customer-facing states without session switching.
 
 ## Acceptance Checklist (Owner-Run)
 

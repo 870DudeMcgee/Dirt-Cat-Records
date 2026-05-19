@@ -4,6 +4,7 @@
   let latestRunId =
     window.localStorage.getItem("dcr_latest_test_run_id") || null;
   let selectedProjectId = null;
+  const portalView = window.PortalView;
   const PRODUCTION_ORIGIN = "https://dirtcatrecords.com";
   const PROJECT_STATUS_OPTIONS = [
     "lead_new",
@@ -51,6 +52,9 @@
     document
       .getElementById("project-detail")
       ?.addEventListener("submit", handleProjectDetailSubmit);
+    document
+      .getElementById("run-owner-proof")
+      ?.addEventListener("click", runOwnerProof);
     document
       .getElementById("run-simulation")
       ?.addEventListener("click", () => runTest("simulation"));
@@ -131,13 +135,8 @@
     if (!projectId) return;
 
     button.disabled = true;
-    selectedProjectId = projectId;
-    renderProjectDetailLoading(projectId);
     try {
-      const data = await api(
-        `/api/admin/projects?action=detail&projectId=${encodeURIComponent(projectId)}`
-      );
-      renderProjectDetail(data.project);
+      await loadProjectDetail(projectId);
     } catch (error) {
       renderProjectDetailError(
         error.message || "Unable to load project detail."
@@ -306,30 +305,61 @@
     try {
       const data = await api("/api/admin/setup-wizard?action=test-runs");
       const latestRun = data.runs?.[0];
-      if (!latestRun) return;
+      if (!latestRun) {
+        renderOwnerProof(null);
+        return;
+      }
       latestRunId = latestRun.id;
       window.localStorage.setItem("dcr_latest_test_run_id", latestRunId);
       document.getElementById("cleanup-run").disabled = false;
       renderReport(latestRun.report);
+      renderOwnerProof(latestRun.report);
+      if (latestRun.report?.ownerProof?.projectId) {
+        await loadProjectDetail(latestRun.report.ownerProof.projectId);
+      }
     } catch (_error) {
       document.getElementById("cleanup-run").disabled = !latestRunId;
+      renderOwnerProof(null);
     }
   }
 
-  async function runTest(mode) {
+  async function runOwnerProof() {
+    await runTest("sandbox", "v1-usability");
+  }
+
+  async function runTest(mode, scenario = "standard") {
+    const runningLabel =
+      scenario === "v1-usability" ? "Running owner proof" : `Running ${mode}`;
     renderReport({
       status: "running",
-      steps: [{ label: `Running ${mode}`, status: "running" }],
+      steps: [{ label: runningLabel, status: "running" }],
     });
+    if (scenario === "v1-usability") {
+      renderOwnerProof(
+        {
+          ownerProof: {
+            customerEmail: "",
+            projectId: "",
+            previewStates: [],
+          },
+        },
+        true
+      );
+    }
     try {
       const data = await api("/api/admin/setup-wizard?action=test-runs", {
         method: "POST",
-        body: JSON.stringify({ mode }),
+        body: JSON.stringify({ mode, scenario }),
       });
       latestRunId = data.id;
       window.localStorage.setItem("dcr_latest_test_run_id", latestRunId);
       document.getElementById("cleanup-run").disabled = !latestRunId;
       renderReport(data.report);
+      renderOwnerProof(data.report);
+      await loadOverview();
+      if (data.report?.ownerProof?.projectId) {
+        await loadProjectDetail(data.report.ownerProof.projectId);
+      }
     } catch (error) {
       renderReport({
         status: "failed",
@@ -337,6 +367,9 @@
           { label: `Run ${mode}`, status: "failed", error: error.message },
         ],
       });
+      if (scenario === "v1-usability") {
+        renderOwnerProof(null);
+      }
     }
   }
 
@@ -348,6 +381,7 @@
         body: JSON.stringify({ testRunId: latestRunId }),
       });
       renderReport(data.report);
+      renderOwnerProof(data.report);
     } catch (error) {
       renderReport({
         status: "failed",
@@ -360,6 +394,16 @@
         ],
       });
     }
+  }
+
+  async function loadProjectDetail(projectId) {
+    selectedProjectId = projectId;
+    renderProjectDetailLoading(projectId);
+    const data = await api(
+      `/api/admin/projects?action=detail&projectId=${encodeURIComponent(projectId)}`
+    );
+    renderProjectDetail(data.project);
+    return data.project;
   }
 
   async function api(path, options = {}) {
@@ -866,6 +910,67 @@
           .join("")}
       </ol>
     `;
+  }
+
+  function renderOwnerProof(report, isRunning = false) {
+    const container = document.getElementById("owner-proof-view");
+    if (!container) return;
+
+    if (isRunning) {
+      container.innerHTML =
+        '<p class="overview-empty">Building owner proof preview...</p>';
+      return;
+    }
+
+    const ownerProof = report?.ownerProof;
+    if (!ownerProof?.previewStates?.length) {
+      container.innerHTML =
+        '<p class="overview-empty">Run Owner Proof to render the admin showcase project and customer-side portal previews.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="owner-proof-summary">
+        <div>
+          <p>Customer</p>
+          <strong>${escapeHtml(ownerProof.customerEmail || "Not set")}</strong>
+        </div>
+        <div>
+          <p>Showcase Project</p>
+          <strong>${escapeHtml(ownerProof.projectId || "Not set")}</strong>
+        </div>
+        <div>
+          <p>Preview States</p>
+          <strong>${escapeHtml(ownerProof.previewStates.length)}</strong>
+        </div>
+      </div>
+      <div class="owner-proof-grid">
+        ${ownerProof.previewStates
+          .map(
+            (state) => `
+              <article class="owner-proof-state">
+                <header>
+                  <h3>${escapeHtml(state.label || "Preview")}</h3>
+                  ${state.note ? `<p>${escapeHtml(state.note)}</p>` : ""}
+                </header>
+                <div class="owner-proof-card">
+                  ${renderOwnerProofCard(state.project)}
+                </div>
+              </article>
+            `
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
+  function renderOwnerProofCard(project) {
+    if (!portalView?.buildPortalProjectView || !portalView?.renderProjectCard) {
+      return `<pre>${escapeHtml(JSON.stringify(project || {}, null, 2))}</pre>`;
+    }
+    return portalView.renderProjectCard(
+      portalView.buildPortalProjectView(project || {})
+    );
   }
 
   function titleCase(value) {

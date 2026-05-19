@@ -109,6 +109,61 @@ npm test
 npm run check:js
 ```
 
+## V1 Dummy-Data Harness
+
+Preferred local path: open `admin.html` and click `Run Owner Proof` in the `Setup & Sandbox` section.
+
+That one click now:
+
+- runs the deterministic `v1-usability` sandbox scenario;
+- triggers checkout, quote, finals-lock, balance-payment, and final-approval automation;
+- refreshes admin state and focuses the showcase project detail;
+- renders customer-side portal preview cards directly inside admin so owner validation does not require swapping auth sessions.
+
+Low-level API path is still available if needed. Use the admin setup endpoint with the `v1-usability` scenario to create deterministic sandbox artifacts that exercise checkout, quote, finals-lock, balance payment, and final approval behavior.
+
+1. Start local runtime:
+
+```bash
+npx vercel dev
+```
+
+2. Run v1 scenario test run:
+
+```bash
+curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs" \
+	-H "content-type: application/json" \
+	-d '{
+		"mode": "sandbox",
+		"scenario": "v1-usability",
+		"testRunId": "sandbox-20260519T120000-owner01"
+	}'
+```
+
+3. Fetch run report:
+
+```bash
+curl -sS "http://localhost:3000/api/admin/setup-wizard?action=test-runs&testRunId=sandbox-20260519T120000-owner01"
+```
+
+4. Cleanup the same run:
+
+```bash
+curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=cleanup" \
+	-H "content-type: application/json" \
+	-d '{"testRunId":"sandbox-20260519T120000-owner01"}'
+```
+
+Expected report steps for v1 scenario:
+
+- `sandbox_free_review`
+- `sandbox_paid_project`
+- `sandbox_quote_fixture`
+- `sandbox_quote_payment`
+- `sandbox_finals_ready_locked`
+- `sandbox_balance_payment`
+- `sandbox_final_approval`
+
 ## Local Vercel Runtime
 
 ```bash

@@ -97,3 +97,15 @@ Goal: verify the complete production story before relying on it for real clients
 - [ ] Verify Google Drive folder creation and sharing permissions.
 - [ ] Verify Vercel environment variables are set for production.
 - [ ] Document the launch checklist in `README.md`.
+
+## V1 Usability/Testability Contract
+
+Goal: owner can run deterministic local/sandbox validation with dummy data and cleanup.
+
+- [x] Add deterministic v1 sandbox harness scenario for checkout, quote, finals lock, and balance payment paths.
+- [x] Extend v1 sandbox harness through final approval.
+- [x] Add setup endpoint support for selecting harness scenario and deterministic testRunId.
+- [x] Expand cleanup path to remove quote/project artifacts where allowed and safely close on fallback.
+- [x] Add one-click `Run Owner Proof` admin action that focuses the showcase admin project and renders customer portal previews inline.
+- [x] Add automated tests for scenario and cleanup behavior.
+- [x] Document exact owner-run commands in `README.md`.

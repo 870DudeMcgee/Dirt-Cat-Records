@@ -1,70 +1,119 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dirt Cat Records Admin</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <main class="admin-shell">
-    <section class="admin-header">
-      <div>
-        <p class="eyebrow">Owner dashboard</p>
-        <h1>Studio Operations</h1>
-      </div>
-      <button class="btn btn-secondary" id="admin-refresh" type="button">Refresh</button>
-    </section>
-
-    <section class="admin-login" id="admin-login">
-      <form id="admin-magic-link-form">
-        <input type="email" name="email" placeholder="Owner email" required>
-        <button class="btn btn-secondary" type="submit">Send Magic Link</button>
-      </form>
-      <p id="admin-status" role="status" aria-live="polite"></p>
-    </section>
-
-    <section class="admin-overview" aria-labelledby="admin-overview-title">
-      <div class="admin-section-heading">
-        <h2 id="admin-overview-title">Overview</h2>
-        <p id="overview-updated"></p>
-      </div>
-      <div class="overview-metrics" id="overview-metrics" aria-live="polite"></div>
-      <div class="overview-panels">
-        <article class="overview-panel">
-          <h3>Priority Queue</h3>
-          <div id="overview-queue" class="overview-list" aria-live="polite"></div>
-        </article>
-        <article class="overview-panel">
-          <h3>Recent Activity</h3>
-          <div id="overview-events" class="overview-list" aria-live="polite"></div>
-        </article>
-      </div>
-      <article class="project-detail-panel" id="project-detail" aria-live="polite">
-        <h3>Project Detail</h3>
-        <p class="overview-empty">Select a project from the priority queue.</p>
-      </article>
-    </section>
-
-    <section class="admin-setup-panel" aria-labelledby="admin-setup-title">
-      <div class="admin-section-heading">
-        <h2 id="admin-setup-title">Setup & Sandbox</h2>
-      </div>
-      <section class="setup-grid" id="setup-sections" aria-live="polite"></section>
-
-      <section class="setup-actions">
-        <button class="btn" id="run-simulation" type="button">Run Simulation</button>
-        <button class="btn btn-secondary" id="run-sandbox" type="button">Run Sandbox</button>
-        <button class="btn btn-secondary" id="cleanup-run" type="button" disabled>Clean Up Test Data</button>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dirt Cat Records Admin</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="admin-shell">
+      <section class="admin-header">
+        <div>
+          <p class="eyebrow">Owner dashboard</p>
+          <h1>Studio Operations</h1>
+        </div>
+        <button class="btn btn-secondary" id="admin-refresh" type="button">
+          Refresh
+        </button>
       </section>
 
-      <section class="setup-report">
-        <h2>Latest Report</h2>
-        <div id="test-report" class="report-empty">No test run yet.</div>
+      <section class="admin-login" id="admin-login">
+        <form id="admin-magic-link-form">
+          <input type="email" name="email" placeholder="Owner email" required />
+          <button class="btn btn-secondary" type="submit">
+            Send Magic Link
+          </button>
+        </form>
+        <p id="admin-status" role="status" aria-live="polite"></p>
       </section>
-    </section>
-  </main>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js"></script>
-</body>
+
+      <section class="admin-overview" aria-labelledby="admin-overview-title">
+        <div class="admin-section-heading">
+          <h2 id="admin-overview-title">Overview</h2>
+          <p id="overview-updated"></p>
+        </div>
+        <div
+          class="overview-metrics"
+          id="overview-metrics"
+          aria-live="polite"
+        ></div>
+        <div class="overview-panels">
+          <article class="overview-panel">
+            <h3>Priority Queue</h3>
+            <div
+              id="overview-queue"
+              class="overview-list"
+              aria-live="polite"
+            ></div>
+          </article>
+          <article class="overview-panel">
+            <h3>Recent Activity</h3>
+            <div
+              id="overview-events"
+              class="overview-list"
+              aria-live="polite"
+            ></div>
+          </article>
+        </div>
+        <article
+          class="project-detail-panel"
+          id="project-detail"
+          aria-live="polite"
+        >
+          <h3>Project Detail</h3>
+          <p class="overview-empty">
+            Select a project from the priority queue.
+          </p>
+        </article>
+      </section>
+
+      <section class="admin-setup-panel" aria-labelledby="admin-setup-title">
+        <div class="admin-section-heading">
+          <h2 id="admin-setup-title">Setup & Sandbox</h2>
+        </div>
+        <section
+          class="setup-grid"
+          id="setup-sections"
+          aria-live="polite"
+        ></section>
+
+        <section class="setup-actions">
+          <button class="btn" id="run-owner-proof" type="button">
+            Run Owner Proof
+          </button>
+          <button class="btn" id="run-simulation" type="button">
+            Run Simulation
+          </button>
+          <button class="btn btn-secondary" id="run-sandbox" type="button">
+            Run Sandbox
+          </button>
+          <button
+            class="btn btn-secondary"
+            id="cleanup-run"
+            type="button"
+            disabled
+          >
+            Clean Up Test Data
+          </button>
+        </section>
+
+        <section class="setup-report">
+          <h2>Owner Proof</h2>
+          <div id="owner-proof-view" class="report-empty">
+            Run Owner Proof to render the admin showcase project and
+            customer-side portal previews.
+          </div>
+        </section>
+
+        <section class="setup-report">
+          <h2>Latest Report</h2>
+          <div id="test-report" class="report-empty">No test run yet.</div>
+        </section>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="portal-view.js"></script>
+    <script src="admin.js"></script>
+  </body>
 </html>

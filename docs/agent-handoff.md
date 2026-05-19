@@ -39,6 +39,15 @@ Guardrail:
 
 - If any requested skill path cannot be found, stop and ask the user for the exact root/path before writing code.
 
+Current focus status update:
+
+- Deterministic v1 sandbox harness is now wired through `api/admin/setup-wizard?action=test-runs` with `scenario: v1-usability`.
+- Admin now exposes a one-click `Run Owner Proof` action in `admin.html` / `admin.js`.
+- Harness covers checkout, quote fixture/payment, finals-ready lock setup, balance payment completion, and final approval.
+- Owner proof report now includes showcase project context plus inline customer portal preview states rendered directly in admin.
+- Cleanup now attempts hard-delete for tracked quote/project artifacts and falls back to closing projects when needed.
+- Owner-run commands are documented in `README.md` under `V1 Dummy-Data Harness`.
+
 ## Next Agent Start Here
 
 1. Work only in `/Users/jewelbait/Desktop/DirtCatRecords`.
@@ -309,6 +318,21 @@ Full checks that passed after Stage 4 completion:
 npm test
 npm run check:js
 git diff --check
+```
+
+Focused checks that passed for V1 harness slice:
+
+```bash
+npm test -- test/test-mode-runner.test.js test/test-cleanup.test.js test/admin-setup-api.test.js
+npm run check:js
+```
+
+Focused checks that passed for one-click owner proof slice:
+
+```bash
+npm test -- test/test-mode-runner.test.js test/admin-setup-api.test.js
+node --check admin.js
+node --check lib/automation/test-mode-runner.js
 ```
 
 ## Important Implementation Notes
