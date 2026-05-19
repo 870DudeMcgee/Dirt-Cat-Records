@@ -7,7 +7,7 @@ This file is the working handoff for continuing Dirt Cat Records development aft
 - Working repo: `/Users/jewelbait/Desktop/DirtCatRecords`
 - Remote: `https://github.com/870DudeMcgee/Dirt-Cat-Records.git`
 - Branch: `main`
-- Latest pushed commit: `082a0db feat: complete Stage 4 quote workflow end-to-end`
+- Latest pushed commit: `5260ad3 feat: complete stage 5 balance workflow and architecture alignment`
 - Local git status at handoff update time: dirty with active Stage 5 completion work plus architecture-alignment docs and module seams.
 - Commit email used for pushed work: `Josh Mclean <870DudeMcgee@users.noreply.github.com>`
 
@@ -16,6 +16,28 @@ Older local copies were archived under:
 - `/Users/josh/Desktop/dirt_cat_records_website_final/ARCHIVED_OLD_REPOS_REVIEW_BEFORE_DELETE`
 
 Do not use the archived folders for new work.
+
+## Next Session Focus: V1 Usability And Dummy-Data E2E Validation
+
+Start from this plan:
+
+- `docs/superpowers/plans/2026-05-19-v1-usability-testability-contract.md`
+
+Mandatory skill paths for the next agent session:
+
+1. `/Users/jewelbait/.claude/skills/productivity/handoff/SKILL.md`
+2. `/Users/jewelbait/.claude/skills/engineering/improve-codebase-architecture/SKILL.md`
+3. `/Users/jewelbait/.claude/skills/engineering/grill-with-docs/SKILL.md`
+4. `/Users/jewelbait/.claude/skills/engineering/tdd/SKILL.md`
+
+Optional process skills (if present in agent runtime):
+
+1. `/Users/jewelbait/.agents/skills/using-superpowers/SKILL.md`
+2. `/Users/jewelbait/.agents/skills/subagent-driven-development/SKILL.md`
+
+Guardrail:
+
+- If any requested skill path cannot be found, stop and ask the user for the exact root/path before writing code.
 
 ## Next Agent Start Here
 
