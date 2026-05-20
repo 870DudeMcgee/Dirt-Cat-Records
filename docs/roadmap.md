@@ -6,12 +6,13 @@ For current handoff context, see [`docs/agent-handoff.md`](agent-handoff.md).
 For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [`docs/adr/`](adr).
 
 Current next focus: Stage 7 launch hardening through real-provider validation and launch-checklist completion.
+Ordered architecture follow-on: [`docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`](superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md).
 
 Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run now passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, and preview now has the correct sandbox PayPal environment split. The latest preview deployment is public enough for webhook testing, its deployed checkout flow reaches sandbox PayPal, and the latest diagnostic preview now reaches `success.html` after sandbox payment approval. The remaining work is the narrower launch-hardening slice: confirm the real webhook/automation round-trip after the now-successful preview checkout, verify production-domain magic-link behavior, verify Drive sharing and Resend deliverability, then restore preview protection and close the launch checklist.
 
-Current workflow tooling state: the repo now includes workspace-level VS Code settings, extension recommendations, reusable tasks, and a GitHub Actions preflight workflow so the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, GitLens, Thunder Client, and Prettier extensions all have repo-native surfaces to work with.
+Current workflow tooling state: the repo now includes workspace-level VS Code settings, extension recommendations, reusable tasks, a combined `npm run dev:stack` local startup path, an environment parity audit, and a GitHub Actions preflight workflow so the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, GitLens, Thunder Client, and Prettier extensions all have repo-native surfaces to work with. In practice, Vercel is working in-editor again, while Supabase should still be treated as a CLI/Studio-first workflow until the sidebar stops failing silently.
 
-Permanent workflow constraint: before every commit/push meant to be runtime-ready, run the credential sanity gate from `README.md` and `docs/execution-trail.md`, including the raw Google Drive folder id check.
+Permanent workflow constraint: before every commit/push meant to be runtime-ready, run the credential sanity gate from `README.md` and `docs/execution-trail.md`, including `npm run check:env`, the raw Google Drive folder id check, and the documented preview/production env audit when deployed provider behavior changes.
 
 ## Execution Rule
 
@@ -122,7 +123,10 @@ Current status:
 - Preview env names now cover the documented sandbox PayPal and server runtime requirements.
 - The latest preview deployment is temporarily public for PayPal sandbox webhook testing.
 - Preview browser checkout now reaches sandbox PayPal from the deployed preview URL and reaches `success.html` on the latest diagnostic deployment.
-- The remaining work is live-provider verification, not foundational feature buildout.
+- The capture route now tolerates sandbox responses where the initial PayPal order read omits `custom_id` but the capture response still includes valid checkout metadata.
+- The current preview deployment for retesting that fix is `https://dirt-cat-records-3dcr0o8r9-dirt-cat-records-projects.vercel.app`.
+- The repo is clean on `27aabae`, aligned with `origin/main`, and the strongest current stale-preview signal still points to external PayPal webhook registration drift rather than conflicting repo code.
+- The remaining work is live-provider verification first, then the ordered PayPal environment deepening plan.
 
 - [x] Run the admin sandbox test against real providers.
 - [ ] Verify PayPal sandbox checkout and webhook end to end.
@@ -131,6 +135,15 @@ Current status:
 - [ ] Verify Google Drive folder creation and sharing permissions.
 - [x] Verify Vercel environment variables are set for production.
 - [ ] Document the launch checklist in `README.md`.
+
+Ordered follow-on after the Stage 7 webhook proof:
+
+- [ ] Confirm the active sandbox webhook target in PayPal Developer matches the public preview deployment, then clean misleading active-preview references from editable docs.
+- [ ] Centralize PayPal environment configuration into one module.
+- [ ] Split webhook identity construction from request-time signature verification.
+- [ ] Unify PayPal readiness checks across setup wizard and sandbox runner.
+- [ ] Add explicit runtime environment lifecycle invariants for development, preview, and production.
+- [ ] Extend payment-purpose routing with environment context.
 
 ## V1 Usability/Testability Contract
 

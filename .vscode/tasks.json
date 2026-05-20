@@ -26,6 +26,20 @@
       "problemMatcher": []
     },
     {
+      "label": "npm: check:env",
+      "type": "npm",
+      "script": "check:env",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: dev:stack",
+      "type": "npm",
+      "script": "dev:stack",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
       "label": "npm: dev:vercel",
       "type": "npm",
       "script": "dev:vercel",

@@ -17,6 +17,7 @@ Older local copies were archived outside this repo and should not be used for ne
 The staged task list lives in [`docs/roadmap.md`](docs/roadmap.md).
 
 The current priority is Stage 7: launch hardening across the live providers and production configuration.
+The ordered follow-on plan for the PayPal environment and webhook seams lives in [`docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`](docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md).
 
 ## End Product Goal
 
@@ -32,10 +33,14 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 ## Current Status
 
 - Stages 0 through 6 are implemented and covered by the current automated test suite.
+- The repo is currently clean on `27aabae`, aligned with `origin/main`, and there are no uncommitted or local-only application changes on `main`.
 - The V1 owner-proof sandbox harness is implemented and documented.
 - Deploy guardrails are active: portal payment starts were consolidated into `api/portal/actions.js`, the repo stays under the 12-function Hobby limit, and `.husky/pre-push` runs `npm run deploy:preflight` before push.
 - The repo now includes workspace-level VS Code settings, reusable tasks, and extension recommendations for the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, and Prettier workflow.
 - The workspace recommendations now also include GitLens for repo-history inspection and Thunder Client for repeatable local/preview API checks.
+- The repo now includes an environment parity audit for `.env.local` and pulled Vercel env files so provider setup drift can be checked without printing secrets.
+- The PayPal capture route now restores checkout metadata from either the pre-capture order read or the capture response, which covers sandbox responses where the initial order read omits `custom_id`.
+- A fresh preview deployment containing that capture fix is now live at `https://dirt-cat-records-3dcr0o8r9-dirt-cat-records-projects.vercel.app`.
 - GitHub Actions now runs the same `npm run deploy:preflight` guardrail on `push` to `main` and on pull requests.
 - The local credential sanity gate now passes with the live Google Drive probe and a local custom Resend sender on `dirtcatrecords.com`.
 - The Stage 7 `v1-usability` sandbox run now passes locally end to end against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events.
@@ -43,16 +48,22 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 - The latest preview deployment is publicly reachable for PayPal sandbox webhook testing because Vercel Authentication was temporarily disabled at the project level.
 - Preview browser validation now reaches sandbox PayPal from the deployed checkout flow and reaches `success.html` on the latest diagnostic deployment.
 - Paid customers now have a dedicated `support.html` support flow backed by `api/public/project-support.js`, so the success page no longer routes them into the homepage or free-review funnel when they need help.
-- The remaining work is the last Stage 7 live-provider slice: confirm the real sandbox webhook/automation round-trip after the now-successful preview checkout, verify production magic-link behavior, verify Google Drive sharing and Resend deliverability, then restore preview protection and finish the launch checklist.
+- Historical `vercel.app` URLs still present in append-only logs and older plan docs are historical records, not active runtime configuration.
+- The remaining work is now explicitly ordered in two slices: first confirm the real sandbox webhook/automation round-trip after the now-successful preview checkout, then execute the PayPal environment deepening plan before closing the final launch checklist items.
 
 ## VS Code Workflow
 
 This repo now includes editor and CI surfaces that match the installed extension stack.
 
 - `.vscode/settings.json` enables Prettier-on-save for the file types used in this repo and keeps GitHub PR / Actions focused on the `origin` remote.
-- `.vscode/tasks.json` exposes `npm test`, `npm run check:js`, `npm run deploy:preflight`, and `npm run dev:vercel` through the VS Code task runner.
+- `.vscode/tasks.json` exposes `npm test`, `npm run check:env`, `npm run check:js`, `npm run deploy:preflight`, `npm run dev:stack`, and `npm run dev:vercel` through the VS Code task runner.
 - `.vscode/extensions.json` recommends the workflow extensions used by this repo: Vercel, PayPal, Supabase, GitHub Pull Requests, GitHub Actions, GitLens, Thunder Client, and Prettier.
 - `.github/workflows/ci.yml` runs the same deploy preflight in GitHub Actions that local pushes already run through Husky.
+
+CLI strategy for this repo:
+
+- `supabase` and `vercel` do not need global installs here. The repo-standard path is `npx supabase ...` and `npx vercel ...` so local scripts and docs stay consistent across machines.
+- Global installs are fine as a personal convenience, but they are not the documented requirement for this repo.
 
 Recommended use inside VS Code:
 
@@ -63,13 +74,49 @@ Recommended use inside VS Code:
 5. Use GitLens to inspect file history and blame when a payment, docs, or deployment change needs provenance before editing.
 6. Use Thunder Client for repeatable calls to local or preview routes like `/api/admin/setup-wizard`, `/api/cron/follow-ups`, and `/api/webhooks/paypal` when you want a GUI alternative to the documented `curl` commands.
 
+Extension attachment checklist:
+
+1. Vercel: confirm the sidebar loads the linked `dirt-cat-records` project from `.vercel/project.json`, then verify env pull and deployment log access.
+2. Supabase: connect both the hosted project and the local stack from `supabase/config.toml`, then inspect auth, tables, and storage after a local or preview test.
+3. GitHub Pull Requests and GitHub Actions: confirm both sidebars detect the `origin` remote configured in `.vscode/settings.json` and can load repo data.
+4. Docker: confirm the extension shows the running `supabase_*_DirtCatRecords` containers. Docker is used here for the Supabase stack, not as the app runtime.
+
 Not every installed extension maps cleanly to this repo yet:
 
 - Live Server is not the source of truth for runtime testing here because this project depends on Vercel Functions; use `npm run dev:vercel` instead.
 - Tailwind CSS is currently not relevant because the repo does not use Tailwind.
 - Docker and Dev Containers are not wired in because the repo has no Dockerfile or container workspace config.
+- Docker is still useful as a visibility surface for the local Supabase services, but not as the source of truth for app startup or deployment behavior.
+- The Supabase VS Code sidebar is currently not trustworthy on this machine even after the local CLI was installed on `PATH`; use local Supabase Studio plus the CLI as the working source of truth unless the extension starts rendering real database views.
 - ESLint can still be useful personally, but this repo does not yet define an ESLint config, so the enforced code-quality gates remain Prettier, `npm run check:js`, `npm test`, and `npm run deploy:preflight`.
 - Error Lens, Todo Tree, Console Ninja, and file-icon extensions are fine personal productivity tools, but they do not require repo-level integration.
+
+## Daily Workflow
+
+Use this as the default working loop for the repo.
+
+1. Start the local provider/runtime surfaces you actually use:
+   - `npm run dev:stack` for the normal full-stack local workflow
+   - or run `supabase start` and `npm run dev:vercel` separately when you only want one side of the stack
+2. Verify the basic local surfaces before editing runtime behavior:
+   - `supabase status`
+   - `npm run check:env`
+3. Use the tool that is currently authoritative for each provider:
+   - Vercel: Vercel sidebar or `npx vercel ...`
+   - Supabase: local Studio at `http://127.0.0.1:54323` plus `supabase ...`
+   - Docker: container visibility for the local Supabase stack
+   - GitHub: PR/Actions extensions or `gh ...`
+4. Before a runtime-ready push or deploy, run the repo guardrails:
+   - `npm test`
+   - `npm run check:js`
+   - `npm run deploy:preflight`
+5. When provider behavior looks wrong, check config parity before blaming code:
+   - local: `npm run check:env`
+   - preview/production: pull envs and run the documented parity audit
+
+Supabase sidebar note:
+
+- If the VS Code Supabase panel is blank, do not block on it. The working fallback is local Studio, the running Docker services, and the Supabase CLI.
 
 ## Execution Trail (Required)
 
@@ -201,6 +248,44 @@ Use this checklist any time you set up `.env.local`, update Vercel environment v
    `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and optionally `RESEND_REPLY_TO_EMAIL`.
 8. Set `TEST_CUSTOMER_EMAIL` and `TEST_EMAIL_RECIPIENT` to your own inbox while running sandbox/provider tests so test traffic stays contained.
 9. Re-check `.env.local` and Vercel env vars against `.env.example` whenever a provider test fails unexpectedly.
+
+## Environment Parity Audit
+
+Use the automated key-presence audit before assuming an extension or provider is broken.
+
+Local:
+
+```bash
+npm run check:env
+```
+
+Preview:
+
+```bash
+rm -f /tmp/dcr-preview.env
+npx vercel env pull /tmp/dcr-preview.env --environment=preview --yes
+node scripts/check-env-parity.js /tmp/dcr-preview.env --profile preview
+```
+
+Production:
+
+```bash
+rm -f /tmp/dcr-production.env
+npx vercel env pull /tmp/dcr-production.env --environment=production --yes
+node scripts/check-env-parity.js /tmp/dcr-production.env --profile production
+```
+
+What this audit checks:
+
+- required key presence against `.env.example`
+- profile-specific PayPal environment expectations (`sandbox` for preview, `live` for production)
+- local `SITE_URL` sanity for localhost workflows
+
+What it intentionally does not do:
+
+- print secret values
+- compare secret contents across environments
+- replace the setup-wizard or provider-specific runtime tests
 
 ## Google Drive Folder ID
 
@@ -354,6 +439,14 @@ Expected report steps for v1 scenario:
 ```bash
 npx vercel dev
 ```
+
+If you want the full local stack in one command, use:
+
+```bash
+npm run dev:stack
+```
+
+That command starts local Supabase first and then hands off to the existing Vercel dev runtime.
 
 Do not wrap `vercel dev` inside the `dev` npm script. Vercel treats a `dev` script as the project development command, which causes a recursive startup loop if that script also runs `vercel dev`.
 

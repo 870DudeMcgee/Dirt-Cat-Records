@@ -35,11 +35,21 @@ function createPaypalCaptureHandler(dependencies = {}) {
         paypalClient,
         body.orderId.trim()
       );
-      const orderSummary = getOrderSummaryFromPayPalOrder(paypalOrderDetails);
       const paypalOrder = await capturePaypalOrder(
         paypalClient,
         body.orderId.trim()
       );
+      let orderSummary;
+      try {
+        orderSummary = getOrderSummaryFromPayPalOrder(
+          paypalOrderDetails,
+          paypalOrder
+        );
+      } catch (error) {
+        error.paypalOrderDetails = paypalOrderDetails;
+        error.paypalCaptureResponse = paypalOrder;
+        throw error;
+      }
       const completedCapture = findMatchingCompletedCapture(
         paypalOrder,
         orderSummary.amountDueNowCents
@@ -52,11 +62,9 @@ function createPaypalCaptureHandler(dependencies = {}) {
       }
 
       if (!completedCapture) {
-        return res
-          .status(409)
-          .json({
-            error: "PayPal captured amount did not match checkout total",
-          });
+        return res.status(409).json({
+          error: "PayPal captured amount did not match checkout total",
+        });
       }
 
       return res.status(200).json({
@@ -116,8 +124,14 @@ function findMatchingCompletedCapture(paypalOrder, expectedCents) {
   );
 }
 
-function getOrderSummaryFromPayPalOrder(paypalOrder) {
-  const customId = paypalOrder.purchase_units?.[0]?.custom_id;
+function getOrderSummaryFromPayPalOrder(paypalOrder, fallbackPayPalOrder) {
+  const customId =
+    paypalOrder?.purchase_units?.find(
+      (unit) => typeof unit?.custom_id === "string"
+    )?.custom_id ||
+    fallbackPayPalOrder?.purchase_units?.find(
+      (unit) => typeof unit?.custom_id === "string"
+    )?.custom_id;
   if (!customId || typeof customId !== "string") {
     throw createHttpError(409, "PayPal order is missing checkout metadata.");
   }

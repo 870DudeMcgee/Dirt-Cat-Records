@@ -887,3 +887,278 @@ Roadmap link: `docs/roadmap.md` (Stage 1: Replace The Manual Paid Intake Flow)
 
 - Run one real preview support submission if Josh wants to verify the email body and reply workflow end to end.
 - Confirm the PayPal sandbox webhook/automation round-trip for the already-successful preview checkout before pushing the combined PayPal/support changes.
+
+---
+
+## Step 19 - Add Ordered PayPal Environment Deepening Plan And Resync Status Docs
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Live Launch Hardening)
+
+### Will Be Done
+
+- Create one executable plan for the remaining PayPal environment/webhook deepening work, choose the execution order that keeps diagnosis separate from refactor work, and resync the main status docs to the current clean repo state.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `README.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-19-stage-7-launch-verification.md`
+- Skills reviewed before action: `using-superpowers`, `writing-plans`, `executing-plans`
+- Codebase state: clean `main...origin/main` at `27aabae`, no uncommitted changes, no local-only commits on `main`
+- Target files/tests: new `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`
+- Discriminating checks: confirm whether the repo itself is dirty or divergent before changing docs; confirm whether the stale preview problem is runtime code or documentation/history
+
+### Done
+
+- Created `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md` as the ordered implementation plan for the remaining PayPal environment/webhook seams.
+- Chose the execution order to keep the current external sandbox webhook truth gap separate from code refactors: real webhook proof first, then environment config, webhook identity, readiness, runtime lifecycle, and payment-purpose routing context.
+- Updated `README.md` so the current source-of-truth view reflects the clean `27aabae` repo state and points to the new ordered plan.
+- Updated `docs/roadmap.md` so Stage 7 explicitly tracks the current external webhook verification step and the ordered architecture follow-on work.
+- Updated `docs/agent-handoff.md` to remove stale claims about unpushed local changes, record the clean aligned repo state, and point the next session at the new plan and exact next action.
+- Recorded that the stale preview URLs found so far are documentation/history only, not active runtime configuration.
+
+### Context Check (After)
+
+- Validation run:
+  - `get_errors` on `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, and `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
+  - `git diff --check`
+- Codebase delta summary:
+  - Added `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Use PayPal Developer and the preview Vercel configuration to confirm the active sandbox webhook URL/id/events against the public preview deployment.
+- Run one real preview sandbox checkout and capture a clear webhook pass/fail record before starting any PayPal refactor task from the new plan.
+
+---
+
+## Step 20 - Fix Preview Capture Failure When PayPal Order Read Omits Metadata
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Verify PayPal sandbox checkout and webhook end to end)
+
+### Will Be Done
+
+- Reproduce the browser-side `PayPal order is missing checkout metadata.` failure at the capture-route seam, fix the narrow restore path, and lock the behavior down with a focused regression test.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `README.md`, `docs/execution-log.md`, `CONTEXT.md`, `docs/adr/0001-paypal-metadata-versioning.md`
+- Skill used: `diagnose`
+- Codebase state: dirty docs-only worktree on `main...origin/main` at `27aabae` from the PayPal deepening-plan sync; no application-code changes yet in this step
+- Target files/tests: `api/capture-paypal-order.js`, `test/paypal-api.test.js`
+- Discriminating check: simulate a PayPal order read without `purchase_units[0].custom_id` while the capture response still includes valid metadata
+
+### Done
+
+- Reproduced the current 409 failure path with a mocked capture-route run where the initial order read omitted `custom_id` but the capture response still included valid checkout metadata.
+- Added a focused regression test in `test/paypal-api.test.js` that encoded that exact browser-adjacent failure mode.
+- Confirmed the new regression test failed before the fix.
+- Updated `api/capture-paypal-order.js` so the route restores checkout metadata from either the initial PayPal order read or the capture response.
+- Attached the PayPal order/capture payloads to thrown metadata errors so capture-conflict diagnostics can report the actual presence/absence of `custom_id` more accurately.
+- Confirmed the focused regression test now passes.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/paypal-api.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `get_errors` on `api/capture-paypal-order.js` and `test/paypal-api.test.js` (pass)
+- Codebase delta summary:
+  - Updated `api/capture-paypal-order.js`
+  - Updated `test/paypal-api.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Retry the public preview sandbox checkout with this fix deployed or running locally and confirm the browser no longer stops at `PayPal order is missing checkout metadata.`
+- After that browser path is clear, continue the real webhook verification flow from the Stage 7 plan.
+
+---
+
+## Step 21 - Deploy Fresh Preview With Capture Metadata Fallback Fix
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Verify PayPal sandbox checkout and webhook end to end)
+
+### Will Be Done
+
+- Run the repo preflight, deploy the current worktree to a fresh Vercel preview, and verify the new checkout URL is reachable so the browser retest uses the capture-fix build instead of the older preview deployment.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `README.md`, `docs/execution-log.md`
+- Codebase state: dirty `main...origin/main` at `27aabae` with the PayPal capture fallback fix, focused regression test, and synced tracking docs not yet deployed
+- Target files/tests: Vercel preview deployment, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Discriminating check: confirm the new preview checkout URL returns `200` before handing it off for browser retest
+
+### Done
+
+- Ran `npm run deploy:preflight` and confirmed the current worktree still passes function-limit, full test suite, JS syntax checks, and diff hygiene.
+- Deployed the current worktree to a fresh Vercel preview deployment.
+- Recorded the new preview URLs:
+  - `https://dirt-cat-records-3dcr0o8r9-dirt-cat-records-projects.vercel.app`
+  - `https://dirt-cat-records-3dcr0o8r9-dirt-cat-records-projects.vercel.app/checkout.html`
+- Verified the fresh preview checkout URL returns `HTTP/2 200`.
+
+### Context Check (After)
+
+- Validation run:
+  - `npm run deploy:preflight` (pass)
+  - `npx vercel --yes` (pass, fresh preview deployment created)
+  - `curl -I -s https://dirt-cat-records-3dcr0o8r9-dirt-cat-records-projects.vercel.app/checkout.html | head -n 5` (pass, `HTTP/2 200`)
+- Codebase delta summary:
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Retry the sandbox checkout in the browser on the fresh preview deployment and confirm the previous metadata error is gone.
+- After the browser path succeeds, verify the webhook result against PayPal Developer and preview logs.
+
+---
+
+## Step 22 - Add Workflow Env Parity Audit
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 0 setup reliability + Stage 7 workflow hardening)
+
+### Will Be Done
+
+- Add an automated environment parity audit and document the repo-standard extension attachment workflow so provider setup drift can be checked repeatably without exposing secrets.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: clean `main...origin/main` at `27aabae`
+- Target files/tests: new `scripts/check-env-parity.js`, `package.json`, `.vscode/tasks.json`, `README.md`, `docs/agent-handoff.md`, `docs/roadmap.md`
+- Discriminating check: validate the new script against a generated non-secret passing sample and an intentionally incomplete failing sample before using it on real env files
+
+### Done
+
+- Added `scripts/check-env-parity.js` to compare required env-key presence against `.env.example` without printing secret values.
+- Added profile-aware checks for local, preview, and production env files, including preview/production `PAYPAL_ENV` expectations.
+- Added `npm run check:env` and a matching VS Code task so the audit is available from both CLI and editor workflow surfaces.
+- Added the new script to `npm run check:js` so it stays inside the repo's existing syntax gate.
+- Updated `README.md` with the repo-standard `npx supabase ...` and `npx vercel ...` CLI strategy, an explicit extension attachment checklist, and the local/preview/production env audit commands.
+- Updated `docs/agent-handoff.md` and `docs/roadmap.md` so the env parity audit becomes part of the standing workflow constraint.
+
+### Context Check (After)
+
+- Validation run:
+  - `node scripts/check-env-parity.js <generated-valid-sample> --profile local` (pass)
+  - `node scripts/check-env-parity.js <generated-incomplete-sample> --profile local` (fail as expected)
+  - `npm run check:js` (pass)
+- Codebase delta summary:
+  - Added `scripts/check-env-parity.js`
+  - Updated `package.json`
+  - Updated `.vscode/tasks.json`
+  - Updated `README.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Run `npm run check:env` against the active `.env.local` and record any missing-key findings.
+- Pull preview and production Vercel env files and run the same audit against both before changing any provider settings.
+
+---
+
+## Step 23 - Lock In Daily Workflow And Supabase Fallback
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 0 setup reliability + Stage 7 workflow hardening)
+
+### Will Be Done
+
+- Add a concise daily workflow checklist to the operator docs and explicitly document that the Supabase VS Code sidebar is currently non-authoritative while Vercel is working again.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: workflow tooling is in place, Vercel extension use is now viable again, Supabase CLI is on `PATH`, but the Supabase sidebar still fails silently despite the local stack being healthy
+- Target files/tests: `README.md`, `docs/agent-handoff.md`, `docs/roadmap.md`
+- Discriminating check: verify the doc edits are diagnostics-clean and pass `git diff --check`
+
+### Done
+
+- Added a `Daily Workflow` checklist to `README.md` covering local runtime startup, env checks, provider-authoritative surfaces, and pre-push guardrails.
+- Documented that the Supabase sidebar should be treated as optional on this machine and that local Studio plus the CLI remain the working inspection path.
+- Updated `docs/agent-handoff.md` so the next session treats Vercel as useful in-editor again while keeping Supabase CLI/Studio-first.
+- Updated `docs/roadmap.md` so the workflow tooling state reflects the current practical split: Vercel usable in-editor, Supabase still CLI/Studio-first.
+
+### Context Check (After)
+
+- Validation run:
+  - `get_errors` on `README.md`, `docs/agent-handoff.md`, and `docs/roadmap.md` (pass)
+  - `git diff --check` (pass)
+- Codebase delta summary:
+  - Updated `README.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Use the new daily workflow as the default operating loop for Stage 7 work.
+- Only revisit the Supabase extension if extension-host logs show a clear actionable failure instead of a silent blank panel.
+
+---
+
+## Step 24 - Add One-Command Local Stack Startup
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 0 setup reliability + Stage 7 workflow hardening)
+
+### Will Be Done
+
+- Add a single repo command and matching VS Code task that start local Supabase first and then hand off to the existing Vercel dev runtime, then document that as the default full local workflow.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: local Supabase and Vercel workflows were both usable, but required two separate startup commands each session
+- Target files/tests: `package.json`, `.vscode/tasks.json`, `README.md`, `docs/agent-handoff.md`, `docs/roadmap.md`
+- Discriminating check: run the new combined command and confirm it reaches the existing `vercel dev` ready state after Supabase startup
+
+### Done
+
+- Added `npm run dev:stack` in `package.json` as `npx supabase start && npm run dev:vercel`.
+- Added a matching background VS Code task in `.vscode/tasks.json`.
+- Ran the combined command and confirmed it tolerates an already-running Supabase stack, then starts `vercel dev` and reaches `http://localhost:3000`.
+- Updated `README.md` so the combined command is the documented normal full local workflow while still leaving the separate commands available when needed.
+- Updated `docs/agent-handoff.md` and `docs/roadmap.md` so the new one-command startup path is visible in handoff and workflow status.
+
+### Context Check (After)
+
+- Validation run:
+  - `npm run dev:stack` (pass: Supabase ready, then `vercel dev` ready at `http://localhost:3000`)
+  - `get_errors` on `README.md`, `docs/agent-handoff.md`, `docs/roadmap.md` (pass)
+  - `git diff --check` (pass)
+- Codebase delta summary:
+  - Updated `package.json`
+  - Updated `.vscode/tasks.json`
+  - Updated `README.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Use `npm run dev:stack` as the default local startup path for future Stage 7 work.
+- If startup ever feels slow or noisy, consider a future follow-up to add a dedicated stop/status helper pair, but no extra orchestration is required now.

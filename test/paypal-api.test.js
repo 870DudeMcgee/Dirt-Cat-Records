@@ -242,6 +242,92 @@ test("PayPal capture accepts a completed capture even when order status lags", a
   assert.equal(response.body.orderSummary.amountDueNowCents, 14900);
 });
 
+test("PayPal capture falls back to capture-response metadata when order read omits custom_id", async () => {
+  const orderSummary = calculateOrder({
+    baseServiceId: "mix",
+    songCount: 1,
+    selectedAddOns: [],
+    paymentMode: "full",
+  });
+
+  const handler = createPaypalCaptureHandler({
+    getEnv: () => ({
+      PAYPAL_CLIENT_ID: "client-id",
+      PAYPAL_CLIENT_SECRET: "client-secret",
+      PAYPAL_ENV: "sandbox",
+    }),
+    fetch: async (url) => {
+      if (String(url).endsWith("/v1/oauth2/token")) {
+        return {
+          ok: true,
+          async json() {
+            return { access_token: "token-1" };
+          },
+        };
+      }
+
+      if (String(url).includes("/v2/checkout/orders/ORDER-456/capture")) {
+        return {
+          ok: true,
+          async json() {
+            return {
+              id: "ORDER-456",
+              status: "COMPLETED",
+              purchase_units: [
+                {
+                  custom_id: buildOrderMetadata(orderSummary),
+                  payments: {
+                    captures: [
+                      {
+                        id: "CAPTURE-456",
+                        status: "COMPLETED",
+                        amount: {
+                          currency_code: "USD",
+                          value: "149.00",
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            };
+          },
+        };
+      }
+
+      return {
+        ok: true,
+        async json() {
+          return {
+            id: "ORDER-456",
+            status: "APPROVED",
+            purchase_units: [
+              {
+                payments: {
+                  captures: [],
+                },
+              },
+            ],
+          };
+        },
+      };
+    },
+  });
+  const response = createMockResponse();
+
+  await handler(
+    {
+      method: "POST",
+      body: { orderId: "ORDER-456" },
+    },
+    response
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.status, "COMPLETED");
+  assert.equal(response.body.orderSummary.amountDueNowCents, 14900);
+});
+
 test("PayPal order payload uses server-calculated amount and compact metadata", async () => {
   const orderSummary = calculateOrder({
     baseServiceId: "mix",
