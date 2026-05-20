@@ -2290,3 +2290,66 @@ Roadmap link: `docs/roadmap.md` (ordered deep-module workflow deepening)
 ### Needs To Be Done Next
 
 - Continue `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md` at Task 6: reassess whether email sequencing still needs its own deep Module.
+
+---
+
+## Step 48 - Deepen Email Sequence Choreography Module
+
+Date/Time: 2026-05-20
+Owner: Codex + Josh
+Roadmap link: `docs/roadmap.md` (ordered deep-module workflow deepening)
+
+### Will Be Done
+
+- Add one owning email-sequence Module after the Task 6 deletion test showed sequencing policy still spread across workflow, admin delivery, portal action, and follow-up callers.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`, `CONTEXT.md`
+- Codebase state: clean `main...origin/main` at `134a99e`; task branch `wip/email-sequence-choreographer` created before edits
+- Target files/tests: new `lib/email/email-sequence-choreographer.js`, `lib/automation/studio-workflow.js`, `lib/automation/follow-up-dispatcher.js`, `api/portal/actions.js`, `lib/db/studio-records.js`, `lib/email/resend.js`, `package.json`, new `test/email-sequence-choreographer.test.js`, `test/studio-workflow.test.js`, `test/follow-up-dispatcher.test.js`, `test/resend-email.test.js`
+- Discriminating checks:
+  - keep template rendering and Resend transport in `lib/email/resend.js`
+  - move workflow timing, send ordering, email-event metadata, and failure classification into one email-sequence Module
+  - keep existing workflow semantics and email types stable
+
+### Done
+
+- Added `lib/email/email-sequence-choreographer.js` with the owning Interface for:
+  - Project intake email ordering for free reviews and paid checkout Projects
+  - Quote, Final Delivery, Portal Action, and follow-up reminder email message construction
+  - ordered send execution, email-event metadata, send/failure classification, and optional throw-on-failure behavior
+- Added `test/email-sequence-choreographer.test.js` with TDD coverage for sequence order, metadata logging, failure logging/throwing, and follow-up reminder message choreography.
+- Updated `lib/automation/studio-workflow.js` so free-review and paid-project workflows build Project intake sequences through the new Module, and the default email Adapter logs through `sendEmailSequence`.
+- Updated `lib/db/studio-records.js` so admin quote sending and Final Delivery/balance-due notifications use the sequence Module instead of inline send/log/failure blocks.
+- Updated `api/portal/actions.js` so portal customer/admin emails use sequence-built messages and shared send/log handling.
+- Updated `lib/automation/follow-up-dispatcher.js` so follow-up reminder message construction and email-event logging route through the email sequence Module while job status and Project events stay in the dispatcher.
+- Kept `lib/email/resend.js` unchanged as the Resend transport/template Adapter.
+- Added the new Module to `npm run check:js`.
+- Updated `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and the deep-modules plan for Task 6 completion.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/email-sequence-choreographer.test.js` first failed with `MODULE_NOT_FOUND` before implementation (expected TDD red)
+  - `node --test test/email-sequence-choreographer.test.js test/studio-workflow.test.js test/follow-up-dispatcher.test.js test/resend-email.test.js test/portal-actions.test.js test/studio-records.test.js test/admin-project-detail-api.test.js` (pass, 78 tests)
+  - `npm run check:js` (pass)
+  - `git diff --check` (pass)
+  - `npm test` (pass, 274 tests)
+- Codebase delta summary:
+  - Added `lib/email/email-sequence-choreographer.js`
+  - Added `test/email-sequence-choreographer.test.js`
+  - Updated `lib/automation/studio-workflow.js`
+  - Updated `lib/automation/follow-up-dispatcher.js`
+  - Updated `lib/db/studio-records.js`
+  - Updated `api/portal/actions.js`
+  - Updated `package.json`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Continue launch hardening from `docs/roadmap.md`: hosted Supabase Auth URL configuration and production magic-link verification, Resend deliverability verification, final launch-checklist docs, and preview protection restore after webhook testing is no longer needed.

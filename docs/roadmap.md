@@ -173,7 +173,7 @@ Ordered workflow deepening after the PayPal environment plan:
 - [x] Execute the Quote lifecycle Module slice.
 - [x] Execute the Portal Action policy Module slice.
 - [x] Execute the follow-up orchestration Module slice.
-- [ ] Reassess whether email sequencing still needs its own deep Module after the earlier slices land.
+- [x] Reassess email sequencing after the earlier slices and add the email sequence choreography Module.
 
 ## V1 Usability/Testability Contract
 

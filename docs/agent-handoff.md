@@ -71,6 +71,7 @@ Recently landed workflow and PayPal changes:
 - `lib/automation/quote-lifecycle.js` now owns Quote creation, send, view, checkout eligibility, amount-due, and accepted-state transition decisions used by admin quote persistence, portal quote checkout, and PayPal quote payment confirmation.
 - `lib/portal/action-policy.js` now owns Portal Action eligibility, visibility, denial reasons, and balance-payment amount decisions used by browser action rules, balance payment validation, and final approval authority checks.
 - `lib/automation/follow-up-orchestrator.js` now owns follow-up candidate selection, queue intent normalization, enqueue outcome classification, and cron pipeline sequencing while Supabase persistence and email dispatch remain Adapters.
+- `lib/email/email-sequence-choreographer.js` now owns workflow email ordering, email-event metadata, follow-up reminder message choreography, and send/failure classification while `lib/email/resend.js` remains the Resend transport/template Adapter.
 - `lib/automation/test-mode-runner.js` now records PayPal readiness as an early sandbox report step, so setup wizard readiness and sandbox runs expose the same configuration conclusion.
 - `scripts/check-env-parity.js`, `package.json`, and `.vscode/tasks.json` now provide the env parity audit and the updated workflow task surface.
 - `lib/env/runtime-fingerprint.js`, `api/checkout-config.js`, `lib/automation/setup-checks.js`, and `scripts/check-env-parity.js` now expose the same non-secret runtime fingerprint on deployed preview surfaces and local env audits.
@@ -183,7 +184,7 @@ Pre-commit review status:
 4. Deploy the same portal auth fix to production and verify the magic-link flow on the canonical domain.
 5. Verify Resend sender, reply-to, and deliverability behavior beyond provider acceptance.
 6. Restore Vercel Authentication after preview webhook testing is complete.
-7. Continue `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md` at Task 6: reassess whether email sequencing still needs its own deep Module, after any remaining live-provider launch checks are no longer the controlling uncertainty.
+7. Continue launch hardening from `docs/roadmap.md`: production Supabase Auth URL configuration/magic-link verification, Resend deliverability verification, preview protection restore when webhook testing is complete, and final launch-checklist documentation.
 
 Workflow note for the next session:
 

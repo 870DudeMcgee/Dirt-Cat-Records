@@ -236,11 +236,11 @@ git diff --check
 - Conditional modify: `lib/automation/studio-workflow.js`, `lib/automation/follow-up-dispatcher.js`, `api/portal/actions.js`, `lib/email/resend.js`
 - Conditional tests: `test/studio-workflow.test.js`, `test/follow-up-dispatcher.test.js`, `test/resend-email.test.js`
 
-- [ ] **Step 1: Re-run the deletion test after Tasks 1 through 5**
+- [x] **Step 1: Re-run the deletion test after Tasks 1 through 5**
 
 If email sequencing complexity still lives across multiple callers after the deeper workflow Modules land, then create one owning email-sequence Module.
 
-- [ ] **Step 2: Keep template rendering separate from sequencing policy**
+- [x] **Step 2: Keep template rendering separate from sequencing policy**
 
 `lib/email/resend.js` should stay an Adapter for transport and template rendering, not the owner of workflow timing.
 

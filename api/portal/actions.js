@@ -8,6 +8,11 @@ const {
 } = require("../../lib/http/json");
 const recordsDefault = require("../../lib/db/studio-records");
 const { sendStudioEmail } = require("../../lib/email/resend");
+const {
+  buildAdminNotificationEmail,
+  buildPortalCustomerEmail,
+  sendEmailSequence,
+} = require("../../lib/email/email-sequence-choreographer");
 const projectEvents = require("../../lib/automation/project-event-schema");
 const {
   buildQuoteViewedPatch,
@@ -531,28 +536,19 @@ async function getOwnedProject({ records, user, projectId }) {
 }
 
 async function sendAndLog({ records, sendEmail, customer, emailType, data }) {
-  try {
-    const result = await sendEmail({ to: customer.email, emailType, data });
-    if (records.createEmailEvent) {
-      await records.createEmailEvent({
+  await sendEmailSequence({
+    records,
+    sendEmail,
+    messages: [
+      buildPortalCustomerEmail({
+        to: customer.email,
         customerId: customer.id,
         emailType,
-        recipient: customer.email,
-        status: "sent",
-        resendMessageId: result.id || null,
-      });
-    }
-  } catch (error) {
-    if (records.createEmailEvent) {
-      await records.createEmailEvent({
-        customerId: customer.id,
-        emailType,
-        recipient: customer.email,
-        status: "failed",
-        errorMessage: error.message,
-      });
-    }
-  }
+        data,
+      }),
+    ],
+    sequenceName: "portal_customer_action",
+  });
 }
 
 async function sendAndLogAdminNotification({
@@ -566,37 +562,21 @@ async function sendAndLogAdminNotification({
 }) {
   const recipient = env.ADMIN_EMAIL;
   if (!recipient) return;
-  try {
-    const result = await sendEmail(
-      {
+  await sendEmailSequence({
+    records,
+    sendEmail,
+    messages: [
+      buildAdminNotificationEmail({
         to: recipient,
-        emailType: "admin_notification",
-        data: { subject, text },
-      },
-      { env }
-    );
-    if (records.createEmailEvent) {
-      await records.createEmailEvent({
         projectId: project.id,
         customerId: customer.id,
-        emailType: "admin_notification",
-        recipient,
-        status: "sent",
-        resendMessageId: result.id || null,
-      });
-    }
-  } catch (error) {
-    if (records.createEmailEvent) {
-      await records.createEmailEvent({
-        projectId: project.id,
-        customerId: customer.id,
-        emailType: "admin_notification",
-        recipient,
-        status: "failed",
-        errorMessage: error.message,
-      });
-    }
-  }
+        subject,
+        text,
+      }),
+    ],
+    sequenceName: "portal_admin_notification",
+    env,
+  });
 }
 
 function normalizeHttpUrl(value) {
