@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: test",
+      "type": "npm",
+      "script": "test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: check:js",
+      "type": "npm",
+      "script": "check:js",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: deploy:preflight",
+      "type": "npm",
+      "script": "deploy:preflight",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: dev:vercel",
+      "type": "npm",
+      "script": "dev:vercel",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

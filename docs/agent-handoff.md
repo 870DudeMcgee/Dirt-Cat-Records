@@ -8,7 +8,7 @@ This file is the current handoff for Dirt Cat Records. Keep it compact and curre
 - Remote: `https://github.com/870DudeMcgee/Dirt-Cat-Records.git`
 - Branch: `main`
 - Last pushed commit: `fb74cb0 harden stage 7 launch checks`
-- Current worktree: clean `main`, aligned with `origin/main` before the docs-only handoff sync in this step.
+- Current worktree: includes unpushed workflow/tooling additions in `.github/workflows/ci.yml`, `.vscode/`, `README.md`, `docs/roadmap.md`, `docs/execution-log.md`, and this file.
 - Commit email used for pushed work: `Josh Mclean <870DudeMcgee@users.noreply.github.com>`
 
 Do not reset, discard, or restage blindly. Start from the live worktree and re-check Vercel project settings before changing preview protection again.
@@ -38,6 +38,9 @@ What is already in the repo now:
 - focused tests for the Drive readiness probe in `test/google-drive.test.js` and `test/setup-checks.test.js`
 - focused tests for Resend sender validation in `test/resend-email.test.js`
 - deploy guardrail enforcement in `.husky/pre-push` and `package.json`
+- GitHub Actions preflight workflow in `.github/workflows/ci.yml`
+- workspace VS Code settings, tasks, and extension recommendations in `.vscode/`
+- GitLens and Thunder Client are now included in the repo recommendations, while Live Server / Tailwind / Docker / ESLint are documented as non-authoritative or not yet wired for this codebase
 - portal payment-start consolidation in `api/portal/actions.js` and `portal.js`
 - documentation updates in `README.md`, `.env.example`, `docs/deployment-preflight.md`, and `docs/execution-trail.md`
 
@@ -110,6 +113,12 @@ Pre-commit review status:
 4. Verify Resend sender, reply-to, and deliverability behavior beyond provider acceptance.
 5. Restore Vercel Authentication after preview webhook testing is complete.
 6. Document the final launch checklist in `README.md` and mark the completed Stage 7 items in `docs/roadmap.md`.
+7. If the workflow/tooling changes from this step are kept, push them so GitHub Pull Requests and GitHub Actions reflect the new repo surfaces.
+
+Workflow note for the next session:
+
+- Prefer `npm run dev:vercel` over Live Server for local runtime validation because checkout, webhook, admin, and portal flows depend on Vercel Functions.
+- Prefer Thunder Client only as a GUI wrapper around the documented API smoke paths, not as a replacement for the repo docs.
 
 ## Source Of Truth Rules
 

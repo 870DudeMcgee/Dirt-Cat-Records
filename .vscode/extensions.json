@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "eamodio.gitlens",
+    "esbenp.prettier-vscode",
+    "frenco.vscode-vercel",
+    "github.vscode-github-actions",
+    "github.vscode-pull-request-github",
+    "paypal.vscode-paypal",
+    "rangav.vscode-thunder-client",
+    "supabase.vscode-supabase-extension"
+  ]
+}

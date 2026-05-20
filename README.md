@@ -34,12 +34,41 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 - Stages 0 through 6 are implemented and covered by the current automated test suite.
 - The V1 owner-proof sandbox harness is implemented and documented.
 - Deploy guardrails are active: portal payment starts were consolidated into `api/portal/actions.js`, the repo stays under the 12-function Hobby limit, and `.husky/pre-push` runs `npm run deploy:preflight` before push.
+- The repo now includes workspace-level VS Code settings, reusable tasks, and extension recommendations for the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, and Prettier workflow.
+- The workspace recommendations now also include GitLens for repo-history inspection and Thunder Client for repeatable local/preview API checks.
+- GitHub Actions now runs the same `npm run deploy:preflight` guardrail on `push` to `main` and on pull requests.
 - The local credential sanity gate now passes with the live Google Drive probe and a local custom Resend sender on `dirtcatrecords.com`.
 - The Stage 7 `v1-usability` sandbox run now passes locally end to end against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events.
 - Vercel production and preview PayPal env separation is now in place, including distinct preview and production webhook ids.
 - The latest preview deployment is publicly reachable for PayPal sandbox webhook testing because Vercel Authentication was temporarily disabled at the project level.
 - Preview browser validation now reaches sandbox PayPal from the deployed checkout flow.
 - The remaining work is the last Stage 7 live-provider slice: complete one full sandbox payment plus webhook round-trip on preview, verify production magic-link behavior, verify Google Drive sharing and Resend deliverability, then restore preview protection and finish the launch checklist.
+
+## VS Code Workflow
+
+This repo now includes editor and CI surfaces that match the installed extension stack.
+
+- `.vscode/settings.json` enables Prettier-on-save for the file types used in this repo and keeps GitHub PR / Actions focused on the `origin` remote.
+- `.vscode/tasks.json` exposes `npm test`, `npm run check:js`, `npm run deploy:preflight`, and `npm run dev:vercel` through the VS Code task runner.
+- `.vscode/extensions.json` recommends the workflow extensions used by this repo: Vercel, PayPal, Supabase, GitHub Pull Requests, GitHub Actions, GitLens, Thunder Client, and Prettier.
+- `.github/workflows/ci.yml` runs the same deploy preflight in GitHub Actions that local pushes already run through Husky.
+
+Recommended use inside VS Code:
+
+1. Use the Vercel sidebar to pull envs, inspect preview deployments, and read deployment checks/logs.
+2. Use the PayPal extension quick links to jump directly to sandbox accounts, webhook deliveries, API calls, and PayPal error logs while testing checkout.
+3. Use the Supabase sidebar after a payment test to confirm database-side effects instead of relying only on browser success pages.
+4. Use GitHub Pull Requests for review and branch-to-PR flow, and GitHub Actions to inspect CI runs and logs without leaving the editor.
+5. Use GitLens to inspect file history and blame when a payment, docs, or deployment change needs provenance before editing.
+6. Use Thunder Client for repeatable calls to local or preview routes like `/api/admin/setup-wizard`, `/api/cron/follow-ups`, and `/api/webhooks/paypal` when you want a GUI alternative to the documented `curl` commands.
+
+Not every installed extension maps cleanly to this repo yet:
+
+- Live Server is not the source of truth for runtime testing here because this project depends on Vercel Functions; use `npm run dev:vercel` instead.
+- Tailwind CSS is currently not relevant because the repo does not use Tailwind.
+- Docker and Dev Containers are not wired in because the repo has no Dockerfile or container workspace config.
+- ESLint can still be useful personally, but this repo does not yet define an ESLint config, so the enforced code-quality gates remain Prettier, `npm run check:js`, `npm test`, and `npm run deploy:preflight`.
+- Error Lens, Todo Tree, Console Ninja, and file-icon extensions are fine personal productivity tools, but they do not require repo-level integration.
 
 ## Execution Trail (Required)
 

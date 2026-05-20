@@ -9,6 +9,8 @@ Current next focus: Stage 7 launch hardening through real-provider validation an
 
 Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run now passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, and preview now has the correct sandbox PayPal environment split. The latest preview deployment is public enough for webhook testing and its deployed checkout flow now reaches sandbox PayPal. The remaining work is the narrower launch-hardening slice: complete one end-to-end sandbox payment plus webhook round-trip on preview, verify production-domain magic-link behavior, verify Drive sharing and Resend deliverability, then restore preview protection and close the launch checklist.
 
+Current workflow tooling state: the repo now includes workspace-level VS Code settings, extension recommendations, reusable tasks, and a GitHub Actions preflight workflow so the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, GitLens, Thunder Client, and Prettier extensions all have repo-native surfaces to work with.
+
 Permanent workflow constraint: before every commit/push meant to be runtime-ready, run the credential sanity gate from `README.md` and `docs/execution-trail.md`, including the raw Google Drive folder id check.
 
 ## Execution Rule
@@ -31,6 +33,8 @@ Goal: make the repo clean, understandable, and hard to misuse.
 - [x] Expand `.env.example` so it matches the app's real runtime requirements.
 - [x] Expand `.gitignore` for local, OS, and dependency noise.
 - [x] Decide how to handle the large audio assets currently committed under `assets/`: keep the current WAV files for now, then replace the site previews with MP3 versions later.
+- [x] Add workspace-level VS Code settings, tasks, and extension recommendations for the repo workflow.
+- [x] Refine workspace extension recommendations so newly installed GitLens and Thunder Client map cleanly to the documented repo workflow.
 - [ ] Confirm a fresh clone can be configured from docs.
 - [x] Run `npm test`.
 - [x] Run `npm run check:js`.
@@ -147,4 +151,5 @@ Goal: keep Vercel Hobby deployments under the 12-function limit and fail fast be
 - [x] Consolidate portal quote and balance checkout starts into `api/portal/actions.js`.
 - [x] Add `npm run deploy:preflight` for function-count, test, syntax, and diff checks.
 - [x] Enforce `npm run deploy:preflight` in `.husky/pre-push`.
+- [x] Add a GitHub Actions workflow that runs the same deploy preflight on pull requests and pushes to `main`.
 - [x] Document the deploy workflow in `docs/deployment-preflight.md` and `README.md`.

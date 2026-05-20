@@ -741,3 +741,92 @@ Roadmap link: `docs/roadmap.md` (Stage 7: Verify PayPal sandbox checkout and web
 
 - Run one full sandbox payment on the public preview deployment and confirm the webhook event is accepted and processed.
 - Re-enable Vercel Authentication after webhook validation is complete.
+
+---
+
+## Step 16 - Add Repo-Native VS Code And GitHub Workflow Surfaces
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 0: Stabilize The Source Of Truth, Deployment Guardrail)
+
+### Will Be Done
+
+- Add workspace-level VS Code settings, tasks, and extension recommendations that match the installed tool stack, and add a GitHub Actions workflow that runs the same deploy preflight guardrail used locally.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `README.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: feature/runtime work is centered on Stage 7 sandbox verification, but the repo still had no `.vscode/` workspace config and no `.github/workflows/` CI surface for the installed GitHub extensions
+- Target files/tests: `.vscode/`, `.github/workflows/`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`
+
+### Done
+
+- Added `.vscode/settings.json` to enable repo-scoped Prettier formatting and keep GitHub PR / Actions aligned to the `origin` remote.
+- Added `.vscode/tasks.json` so the common repo commands run directly from the VS Code task runner.
+- Added `.vscode/extensions.json` with the recommended Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, and Prettier extensions.
+- Added `.github/workflows/ci.yml` so GitHub Actions runs `npm run deploy:preflight` on pull requests and pushes to `main`.
+- Documented the new editor/CI workflow surfaces in `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md`.
+
+### Context Check (After)
+
+- Validation run:
+  - `get_errors` on `.vscode/settings.json`, `.vscode/extensions.json`, `.vscode/tasks.json`, `.github/workflows/ci.yml`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and `docs/execution-log.md` (pass, no errors)
+  - `git diff --check` (pass)
+- Codebase delta summary:
+  - Added `.github/workflows/ci.yml`
+  - Added `.vscode/settings.json`
+  - Added `.vscode/tasks.json`
+  - Added `.vscode/extensions.json`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Run focused validation on the new JSON/YAML workspace files and confirm the repo still passes diff hygiene.
+- Push the workflow/tooling change set if it should be shared across future sessions and clones.
+
+---
+
+## Step 17 - Refine Recommendations For Newly Added VS Code Extensions
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 0: Stabilize The Source Of Truth)
+
+### Will Be Done
+
+- Re-check the newly installed VS Code extensions, keep the repo-native wins, and document which ones are useful here versus merely installed locally.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `README.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: `.vscode/` recommendations already covered the first extension batch, but Josh added more extensions and the repo still needed a clearer distinction between tools that help this codebase directly and tools that are just editor-local preferences
+- Target files/tests: `.vscode/extensions.json`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`
+- Discriminating checks: confirm whether the repo has matching ESLint, Docker, or Tailwind surfaces before recommending those as repo defaults; confirm whether the repo already relies on repeated HTTP endpoint checks that would justify Thunder Client
+
+### Done
+
+- Kept GitLens and Thunder Client as repo-native recommendations because they directly support history inspection and repeatable API smoke/testing paths already documented in `README.md`.
+- Documented that Live Server is not authoritative for this project because runtime validation depends on Vercel Functions.
+- Documented that Tailwind, Docker/Dev Containers, and ESLint do not yet have matching repo surfaces, so they were not promoted as repo-native workflow defaults.
+- Documented that Error Lens, Todo Tree, Console Ninja, and icon packs remain optional personal productivity tools rather than shared repo requirements.
+
+### Context Check (After)
+
+- Validation run:
+  - `get_errors` on `.vscode/extensions.json`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and `docs/execution-log.md` (pass, no errors)
+  - `git diff --check && git status -sb` (pass for diff hygiene; worktree shows the expected `.vscode/`, `.github/`, and docs changes)
+- Codebase delta summary:
+  - Updated `.vscode/extensions.json`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Run focused validation on the docs and recommendation file updates.
+- Push the workflow/tooling changes if the shared editor workflow should become the new default for future clones.
