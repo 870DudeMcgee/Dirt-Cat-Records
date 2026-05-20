@@ -7,7 +7,7 @@ For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [
 
 Current next focus: Stage 7 launch hardening through real-provider validation and launch-checklist completion.
 
-Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run now passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, and preview now has the correct sandbox PayPal environment split. The latest preview deployment is public enough for webhook testing and its deployed checkout flow now reaches sandbox PayPal. The remaining work is the narrower launch-hardening slice: complete one end-to-end sandbox payment plus webhook round-trip on preview, verify production-domain magic-link behavior, verify Drive sharing and Resend deliverability, then restore preview protection and close the launch checklist.
+Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run now passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, and preview now has the correct sandbox PayPal environment split. The latest preview deployment is public enough for webhook testing, its deployed checkout flow reaches sandbox PayPal, and the latest diagnostic preview now reaches `success.html` after sandbox payment approval. The remaining work is the narrower launch-hardening slice: confirm the real webhook/automation round-trip after the now-successful preview checkout, verify production-domain magic-link behavior, verify Drive sharing and Resend deliverability, then restore preview protection and close the launch checklist.
 
 Current workflow tooling state: the repo now includes workspace-level VS Code settings, extension recommendations, reusable tasks, and a GitHub Actions preflight workflow so the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, GitLens, Thunder Client, and Prettier extensions all have repo-native surfaces to work with.
 
@@ -47,6 +47,7 @@ Goal: after payment, customers should follow the automated portal/email workflow
 - [x] Update `success.js` to show the paid order summary without implying manual intake is the primary workflow.
 - [x] Keep webhook-created projects, Drive folders, and upload-instruction emails as the source of truth.
 - [x] Add or update tests for the paid success flow where practical.
+- [x] Add a dedicated paid-customer support page and support request route so post-payment help no longer routes into the free-review flow.
 
 ## Stage 2: Make The Customer Portal Feel Real
 
@@ -120,7 +121,7 @@ Current status:
 - Production env names now cover the documented runtime requirements.
 - Preview env names now cover the documented sandbox PayPal and server runtime requirements.
 - The latest preview deployment is temporarily public for PayPal sandbox webhook testing.
-- Preview browser checkout now reaches sandbox PayPal from the deployed preview URL.
+- Preview browser checkout now reaches sandbox PayPal from the deployed preview URL and reaches `success.html` on the latest diagnostic deployment.
 - The remaining work is live-provider verification, not foundational feature buildout.
 
 - [x] Run the admin sandbox test against real providers.

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dirt Cat Records | Project Support</title>
+    <meta
+      name="description"
+      content="Post-payment support for Dirt Cat Records clients. Get help with portal access, uploads, payment follow-up, and project questions."
+    />
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
+    <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav id="main-nav">
+      <ul>
+        <li><a href="index.html#hero-container">Home</a></li>
+        <li><a href="checkout.html">Checkout</a></li>
+        <li><a href="portal.html">Portal</a></li>
+      </ul>
+    </nav>
+
+    <main class="checkout-page">
+      <section class="checkout-hero">
+        <img
+          class="checkout-logo"
+          src="assets/Dirt-Cat-Logo.PNG"
+          alt="Dirt Cat Records logo"
+        />
+        <p class="hero-kicker">PROJECT SUPPORT</p>
+        <h1>Need Help With Your Project?</h1>
+        <p>
+          This support form is for paid clients who need help with portal
+          access, upload instructions, order follow-up, or project questions.
+          Your recent checkout details will be attached automatically when
+          available.
+        </p>
+      </section>
+
+      <section class="checkout-layout">
+        <section class="checkout-builder" aria-label="Project support form">
+          <div class="checkout-panel">
+            <h2>Send A Support Request</h2>
+            <p class="field-help support-intro">
+              Use this instead of the free review form when you already paid and
+              need help with the active project workflow.
+            </p>
+
+            <form id="project-support-form" class="support-form">
+              <input
+                type="hidden"
+                name="website"
+                class="form-honeypot"
+                autocomplete="off"
+                tabindex="-1"
+                aria-hidden="true"
+              />
+              <input
+                type="hidden"
+                id="support-service-label"
+                name="serviceLabel"
+              />
+              <input
+                type="hidden"
+                id="support-amount-paid-label"
+                name="amountPaidLabel"
+              />
+              <input
+                type="hidden"
+                id="support-payment-mode"
+                name="paymentMode"
+              />
+
+              <label class="support-field">
+                <span class="field-label">Your name</span>
+                <input
+                  id="support-name"
+                  name="name"
+                  type="text"
+                  autocomplete="name"
+                  placeholder="Name"
+                  required
+                />
+              </label>
+
+              <label class="support-field">
+                <span class="field-label">Your email</span>
+                <input
+                  id="support-email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="Email"
+                  required
+                />
+              </label>
+
+              <label class="support-field">
+                <span class="field-label">Project or song name</span>
+                <input
+                  id="support-project-name"
+                  name="projectName"
+                  type="text"
+                  placeholder="Project or song name"
+                />
+              </label>
+
+              <label class="support-field">
+                <span class="field-label">What do you need help with?</span>
+                <select id="support-issue-type" name="issueType" required>
+                  <option value="">Choose one</option>
+                  <option value="portal_access">
+                    Portal access or magic link
+                  </option>
+                  <option value="upload_help">Uploads or file delivery</option>
+                  <option value="project_status">
+                    Project question or status update
+                  </option>
+                  <option value="payment_receipt">
+                    Payment receipt or checkout question
+                  </option>
+                  <option value="other">Something else</option>
+                </select>
+              </label>
+
+              <label class="support-field" id="support-order-field" hidden>
+                <span class="field-label">PayPal order</span>
+                <input
+                  id="support-order-id"
+                  name="paypalOrderId"
+                  type="text"
+                  readonly
+                />
+                <small class="field-help"
+                  >Added from your recent checkout so Josh can trace the payment
+                  quickly.</small
+                >
+              </label>
+
+              <label class="support-field">
+                <span class="field-label">What happened?</span>
+                <textarea
+                  id="support-message"
+                  name="message"
+                  rows="6"
+                  placeholder="Tell Josh what looks wrong, what you expected, and what you need next."
+                  required
+                ></textarea>
+              </label>
+
+              <div class="hero-actions support-actions">
+                <button type="submit" class="btn btn-primary">
+                  Send Support Request
+                </button>
+                <a class="btn btn-secondary" href="portal.html"
+                  >Back To Portal</a
+                >
+              </div>
+              <p
+                class="form-status"
+                id="project-support-status"
+                role="status"
+                aria-live="polite"
+              ></p>
+            </form>
+          </div>
+        </section>
+
+        <aside class="checkout-summary">
+          <p class="checkout-summary-kicker">Recent Payment</p>
+          <h2>Support Context</h2>
+          <div id="support-context-summary" class="summary-lines"></div>
+          <p class="field-help secure-note support-summary-note">
+            Josh replies by email. Keep your PayPal receipt until you receive a
+            response.
+          </p>
+        </aside>
+      </section>
+    </main>
+
+    <script src="support.js"></script>
+  </body>
+</html>

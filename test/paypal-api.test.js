@@ -6,6 +6,7 @@ const checkoutConfigRoute = require("../api/checkout-config");
 const { calculateOrder } = require("../lib/checkout/pricing");
 
 const { createPaypalOrderHandler } = createOrderRoute;
+const { createPaypalCaptureHandler } = captureRoute;
 const {
   buildOrderMetadata,
   createPaypalOrder,
@@ -158,6 +159,87 @@ test("PayPal capture rejects invalid metadata and mismatched currency amounts", 
     ),
     false
   );
+});
+
+test("PayPal capture accepts a completed capture even when order status lags", async () => {
+  const orderSummary = calculateOrder({
+    baseServiceId: "mix",
+    songCount: 1,
+    selectedAddOns: [],
+    paymentMode: "full",
+  });
+
+  const handler = createPaypalCaptureHandler({
+    getEnv: () => ({
+      PAYPAL_CLIENT_ID: "client-id",
+      PAYPAL_CLIENT_SECRET: "client-secret",
+      PAYPAL_ENV: "sandbox",
+    }),
+    fetch: async (url) => {
+      if (String(url).endsWith("/v1/oauth2/token")) {
+        return {
+          ok: true,
+          async json() {
+            return { access_token: "token-1" };
+          },
+        };
+      }
+
+      return {
+        ok: true,
+        async json() {
+          if (String(url).includes("/v2/checkout/orders/ORDER-123/capture")) {
+            return {
+              id: "ORDER-123",
+              status: "APPROVED",
+              purchase_units: [
+                {
+                  payments: {
+                    captures: [
+                      {
+                        id: "CAPTURE-123",
+                        status: "COMPLETED",
+                        amount: {
+                          currency_code: "USD",
+                          value: "149.00",
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            };
+          }
+
+          return {
+            id: "ORDER-123",
+            status: "APPROVED",
+            purchase_units: [
+              {
+                custom_id: buildOrderMetadata(orderSummary),
+                payments: {
+                  captures: [],
+                },
+              },
+            ],
+          };
+        },
+      };
+    },
+  });
+  const response = createMockResponse();
+
+  await handler(
+    {
+      method: "POST",
+      body: { orderId: "ORDER-123" },
+    },
+    response
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.status, "APPROVED");
+  assert.equal(response.body.orderSummary.amountDueNowCents, 14900);
 });
 
 test("PayPal order payload uses server-calculated amount and compact metadata", async () => {

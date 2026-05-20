@@ -41,8 +41,9 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 - The Stage 7 `v1-usability` sandbox run now passes locally end to end against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events.
 - Vercel production and preview PayPal env separation is now in place, including distinct preview and production webhook ids.
 - The latest preview deployment is publicly reachable for PayPal sandbox webhook testing because Vercel Authentication was temporarily disabled at the project level.
-- Preview browser validation now reaches sandbox PayPal from the deployed checkout flow.
-- The remaining work is the last Stage 7 live-provider slice: complete one full sandbox payment plus webhook round-trip on preview, verify production magic-link behavior, verify Google Drive sharing and Resend deliverability, then restore preview protection and finish the launch checklist.
+- Preview browser validation now reaches sandbox PayPal from the deployed checkout flow and reaches `success.html` on the latest diagnostic deployment.
+- Paid customers now have a dedicated `support.html` support flow backed by `api/public/project-support.js`, so the success page no longer routes them into the homepage or free-review funnel when they need help.
+- The remaining work is the last Stage 7 live-provider slice: confirm the real sandbox webhook/automation round-trip after the now-successful preview checkout, verify production magic-link behavior, verify Google Drive sharing and Resend deliverability, then restore preview protection and finish the launch checklist.
 
 ## VS Code Workflow
 
@@ -99,10 +100,12 @@ Architecture source-of-truth docs:
 
 - `index.html`, `style.css`, and `spells.js` render the public marketing site and free mix review form.
 - `checkout.html` and `checkout.js` build PayPal checkout orders through Vercel Functions.
-- `success.html` and `success.js` show the post-payment order summary and portal/email-first next steps.
+- `success.html` and `success.js` show the post-payment order summary and portal/support next steps.
+- `support.html` and `support.js` provide a paid-customer project support form that pre-fills recent checkout context when available.
 - `portal.html` and `portal.js` provide Supabase magic-link customer access, including quote cards, quote checkout, and balance payment start actions.
 - `admin.html` and `admin.js` provide the owner operations dashboard, priority queue, project detail with status updates, private admin notes, final delivery controls, and extra revision actions, plus setup checks, sandbox test runs, and cleanup tools.
 - `api/admin/quotes.js` provides protected admin quote draft and send actions.
+- `api/public/project-support.js` handles paid-customer support requests from the dedicated project support page.
 - `api/portal/actions.js` handles authenticated portal project loads, file-link submissions, revision requests, final approvals, quote checkout starts, and balance checkout starts.
 - `api/` contains Vercel Functions.
 - `lib/` contains PayPal, Supabase, Google Drive, Resend, auth, pricing, automation, and shared portal-rule helpers.

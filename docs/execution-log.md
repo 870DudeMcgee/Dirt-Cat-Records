@@ -830,3 +830,60 @@ Roadmap link: `docs/roadmap.md` (Stage 0: Stabilize The Source Of Truth)
 
 - Run focused validation on the docs and recommendation file updates.
 - Push the workflow/tooling changes if the shared editor workflow should become the new default for future clones.
+
+---
+
+## Step 18 - Add Dedicated Paid-Customer Project Support Flow
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 1: Replace The Manual Paid Intake Flow)
+
+### Will Be Done
+
+- Replace the success-page fallback contact behavior with a dedicated paid-customer support flow that feels post-purchase and operational, not like a pre-sales lead form.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `README.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: dirty `main...origin/main` at `668c7dc` with unpushed PayPal capture fixes already in progress; success-page contact behavior still sent customers into the wrong surface
+- Target files/tests: `success.html`, `style.css`, `package.json`, new `support.html`, new `support.js`, new `api/public/project-support.js`, `test/success-page.test.js`, new support tests
+
+### Done
+
+- Replaced the paid-success secondary CTA with a dedicated `support.html` destination and updated the surrounding success-page copy so it speaks to post-payment help instead of generic site contact.
+- Added `support.html` as a dedicated paid-customer support page using the existing checkout layout language.
+- Added `support.js` to prefill support fields from `sessionStorage.dirtCatPaidOrder`, render recent payment context, and submit support requests to a dedicated public route.
+- Added `api/public/project-support.js` with validation, honeypot protection, rate limiting, and structured support-email delivery to `ADMIN_EMAIL` via the existing Resend path.
+- Added focused tests for the success-page contract, the dedicated support page, and the support API route.
+- Updated `package.json` and `style.css` for the new page/script/route.
+- Deployed preview `https://dirt-cat-records-gtx14oyqe-dirt-cat-records-projects.vercel.app` and confirmed the hosted success page links to the dedicated support page and the support page serves the expected form.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/success-page.test.js test/project-support-page.test.js test/project-support-api.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `node scripts/check-vercel-function-limit.js` (pass, `12/12`)
+  - `git diff --check` (pass)
+  - `npx vercel --yes` (pass, preview `https://dirt-cat-records-gtx14oyqe-dirt-cat-records-projects.vercel.app`)
+  - `curl -sS https://dirt-cat-records-gtx14oyqe-dirt-cat-records-projects.vercel.app/support.html | grep -n 'Need Help With Your Project\|project-support-form\|support.js'` (pass)
+- Codebase delta summary:
+  - Updated `success.html`
+  - Updated `style.css`
+  - Updated `package.json`
+  - Added `support.html`
+  - Added `support.js`
+  - Added `api/public/project-support.js`
+  - Updated `test/success-page.test.js`
+  - Added `test/project-support-page.test.js`
+  - Added `test/project-support-api.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Run one real preview support submission if Josh wants to verify the email body and reply workflow end to end.
+- Confirm the PayPal sandbox webhook/automation round-trip for the already-successful preview checkout before pushing the combined PayPal/support changes.
