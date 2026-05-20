@@ -20,7 +20,11 @@ test("setup endpoint rejects non-admin users", async () => {
 test("setup endpoint returns readiness report for admin", async () => {
   const handler = createSetupWizardHandler({
     requireAdminImpl: async () => ({ email: "josh@example.com" }),
-    runSetupChecksImpl: async () => ({ overallStatus: "passed", sections: {} }),
+    runSetupChecksImpl: async () => ({
+      overallStatus: "passed",
+      runtimeFingerprint: { paypalEnv: "sandbox" },
+      sections: {},
+    }),
     env: { ADMIN_EMAIL: "josh@example.com" },
   });
   const res = response();
@@ -32,6 +36,7 @@ test("setup endpoint returns readiness report for admin", async () => {
 
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.setup.overallStatus, "passed");
+  assert.equal(res.body.setup.runtimeFingerprint.paypalEnv, "sandbox");
 });
 
 test("test-runs endpoint passes mode scenario and testRunId to automation runner", async () => {

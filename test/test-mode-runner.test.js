@@ -74,6 +74,9 @@ test("runAutomationTest sandbox creates marked artifacts through real adapters",
       ADMIN_EMAIL: "josh@example.com",
       TEST_CUSTOMER_EMAIL: "test@example.com",
       SITE_URL: "https://dirtcatrecords.com",
+      PAYPAL_CLIENT_ID: "paypal-id",
+      PAYPAL_CLIENT_SECRET: "paypal-secret",
+      PAYPAL_WEBHOOK_ID: "webhook-id",
     },
     records: sandboxRecords(calls),
     drive: {
@@ -100,6 +103,11 @@ test("runAutomationTest sandbox creates marked artifacts through real adapters",
   assert.equal(result.report.mode, "sandbox");
   assert.equal(result.report.status, "passed");
   assert.ok(
+    result.report.steps.some(
+      (step) => step.key === "paypal_readiness" && step.status === "passed"
+    )
+  );
+  assert.ok(
     result.report.createdRecords.some((record) => record.table === "projects")
   );
   assert.ok(
@@ -122,6 +130,9 @@ test("runAutomationTest sandbox fails when provider adapters fail silently", asy
     env: {
       ADMIN_EMAIL: "josh@example.com",
       TEST_CUSTOMER_EMAIL: "test@example.com",
+      PAYPAL_CLIENT_ID: "paypal-id",
+      PAYPAL_CLIENT_SECRET: "paypal-secret",
+      PAYPAL_WEBHOOK_ID: "webhook-id",
     },
     records: sandboxRecords([]),
     drive: {
@@ -149,6 +160,9 @@ test("runAutomationTest sandbox v1-usability exercises quote and balance payment
       ADMIN_EMAIL: "josh@example.com",
       TEST_CUSTOMER_EMAIL: "test@example.com",
       SITE_URL: "https://dirtcatrecords.com",
+      PAYPAL_CLIENT_ID: "paypal-id",
+      PAYPAL_CLIENT_SECRET: "paypal-secret",
+      PAYPAL_WEBHOOK_ID: "webhook-id",
     },
     records: sandboxV1Records(calls),
     drive: {

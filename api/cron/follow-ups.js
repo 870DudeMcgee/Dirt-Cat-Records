@@ -3,6 +3,9 @@ const { requireCronAuth } = require("../../lib/auth/cron-auth");
 const { methodNotAllowed, sendJson } = require("../../lib/http/json");
 const recordsDefault = require("../../lib/db/studio-records");
 const {
+  runFollowUpPipeline,
+} = require("../../lib/automation/follow-up-orchestrator");
+const {
   dispatchPendingFollowUps,
 } = require("../../lib/automation/follow-up-dispatcher");
 
@@ -13,6 +16,8 @@ function createFollowUpsCronHandler(dependencies = {}) {
   const requireCronAuthImpl =
     dependencies.requireCronAuthImpl || requireCronAuth;
   const records = dependencies.records || recordsDefault;
+  const runFollowUpPipelineImpl =
+    dependencies.runFollowUpPipelineImpl || runFollowUpPipeline;
   const dispatchPendingFollowUpsImpl =
     dependencies.dispatchPendingFollowUpsImpl || dispatchPendingFollowUps;
 
@@ -21,7 +26,8 @@ function createFollowUpsCronHandler(dependencies = {}) {
       requireCronAuthImpl(req, env);
       if (req.method !== "GET") return methodNotAllowed(res);
 
-      const candidates = await records.getFollowUpCandidates({
+      const result = await runFollowUpPipelineImpl({
+        records,
         env,
         now: getQueryValue(req, "now") || undefined,
         missingFilesDays: parseOptionalNumber(
@@ -36,36 +42,12 @@ function createFollowUpsCronHandler(dependencies = {}) {
         finalApprovalDays: parseOptionalNumber(
           getQueryValue(req, "finalApprovalDays")
         ),
+        dryRun: parseBoolean(getQueryValue(req, "dryRun"), true),
+        dispatch: parseBoolean(getQueryValue(req, "dispatch"), false),
+        dispatchPendingFollowUps: dispatchPendingFollowUpsImpl,
       });
 
-      const dryRun = parseBoolean(getQueryValue(req, "dryRun"), true);
-      if (dryRun) {
-        return sendJson(res, 200, {
-          generatedAt: new Date().toISOString(),
-          dryRun: true,
-          count: candidates.length,
-          candidates,
-        });
-      }
-
-      const queueResults = await records.queueFollowUpJobs(candidates, { env });
-      const shouldDispatch = parseBoolean(
-        getQueryValue(req, "dispatch"),
-        false
-      );
-      let dispatchResults = null;
-      if (shouldDispatch) {
-        dispatchResults = await dispatchPendingFollowUpsImpl({ records, env });
-      }
-
-      return sendJson(res, 200, {
-        generatedAt: new Date().toISOString(),
-        dryRun: false,
-        count: candidates.length,
-        candidates,
-        queueResults,
-        dispatchResults,
-      });
+      return sendJson(res, 200, result);
     } catch (error) {
       return sendJson(res, error.statusCode || 500, {
         error: error.statusCode

@@ -6,14 +6,23 @@ For current handoff context, see [`docs/agent-handoff.md`](agent-handoff.md).
 For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [`docs/adr/`](adr).
 For the durable architecture gap register and anti-drift rules, see [`docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`](superpowers/specs/2026-05-20-architecture-readiness-review.md).
 
-Current next focus: Stage 7 launch hardening through the real PayPal sandbox webhook truth gap, then launch-checklist completion.
+Current next focus: resume Stage 7 launch hardening by running the real portal magic-link and checkout/webhook retests on the shared preview whose provenance is recorded in `docs/deployment-ledger.md`, then verify the same portal path on production.
+Workflow hardening plan: [`docs/superpowers/plans/2026-05-20-workflow-and-version-control-hardening-plan.md`](superpowers/plans/2026-05-20-workflow-and-version-control-hardening-plan.md).
 Ordered architecture follow-on: [`docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`](superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md).
+Ordered deep-module follow-on after the PayPal seam work: [`docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`](superpowers/plans/2026-05-20-deep-modules-architecture-plan.md).
 
-Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, and preview has the correct sandbox PayPal environment split. The active preview target for webhook testing must be confirmed from Vercel before use, because preview URLs are intentionally no longer duplicated across editable docs. The remaining work is the narrower launch-hardening slice: confirm the real webhook and automation round-trip after the now-successful preview checkout, verify production-domain magic-link behavior, verify Drive sharing and Resend deliverability, then restore preview protection and close the launch checklist.
+Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, and preview has the correct sandbox PayPal environment split. Shared preview provenance is now ledgered instead of copied into multiple editable docs, and the active preview target for webhook testing must be confirmed from Vercel plus `docs/deployment-ledger.md` before use. The remaining work is the narrower launch-hardening slice: re-run the real portal magic-link flow on the shared preview, confirm the next real webhook and automation round-trip against that same alias, verify production-domain magic-link behavior, verify Drive sharing and Resend deliverability, then restore preview protection and close the launch checklist.
 
-Current workflow tooling state: the repo now includes workspace-level VS Code settings, extension recommendations, reusable tasks, a package-level `npm run dev:stack` convenience script, an environment parity audit, local env profile switch helpers that keep `.env.local` as the active runtime filename, a GitHub Actions preflight workflow, and a dedicated architecture readiness review so the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, GitLens, Thunder Client, and Prettier workflow has one durable document map.
+Current workflow tooling state: the repo now includes workspace-level VS Code settings, extension recommendations, reusable tasks, a package-level `npm run dev:stack` convenience script, an environment parity audit, local env profile switch helpers that keep `.env.local` as the active runtime filename, a shared safe runtime fingerprint in the setup wizard, the public checkout config, and the env audit, a GitHub Actions preflight workflow, and a dedicated architecture readiness review so the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, GitLens, Thunder Client, and Prettier workflow has one durable document map.
 
 Permanent workflow constraint: before every commit/push meant to be runtime-ready, run the credential sanity gate from `README.md` and `docs/execution-trail.md`, including `npm run check:env`, the raw Google Drive folder id check, and the documented preview/production env audit when deployed provider behavior changes.
+
+Immediate workflow constraints:
+
+- shared preview alias must point only at a deployment from a pushed commit;
+- dirty local Vercel deploys are diagnostic only and must not be used as the team-facing preview target;
+- production deploys must come only from committed and pushed code;
+- before any external retest, confirm the shared preview deployment URL, alias target, and pushed SHA.
 
 Permanent documentation constraint: do not freeze preview URLs, exact worktree cleanliness, or point-in-time commit hashes into multiple editable docs. Confirm them from Vercel and git, keep the next action in `docs/agent-handoff.md`, and keep historical evidence in `docs/execution-log.md`.
 
@@ -126,26 +135,45 @@ Current status:
 - Production env names now cover the documented runtime requirements.
 - Preview env names now cover the documented sandbox PayPal and server runtime requirements.
 - The preview deployment used for sandbox webhook testing is intentionally not hardcoded here; confirm the active public target from Vercel before testing.
+- The stable preview alias used by PayPal webhook delivery must point at that same active deployment before a checkout run is treated as diagnostic truth.
 - Preview browser checkout now reaches sandbox PayPal and reaches `success.html` on the active diagnostic deployment.
+- Preview webhook handling now accepts the real sandbox event pair (`CHECKOUT.ORDER.APPROVED` and `PAYMENT.CAPTURE.COMPLETED`) instead of ignoring the approved event and rejecting the capture event for missing buyer email.
 - The capture route now tolerates sandbox responses where the initial PayPal order read omits `custom_id` but the capture response still includes valid checkout metadata.
+- The setup wizard readiness report and the public checkout-config route now expose the same non-secret runtime fingerprint so the deployed preview environment can be compared directly against `npm run check:env:preview` before blaming PayPal, Supabase, or Resend.
+- Customer portal auth now provisions confirmed Supabase users server-side for known customer emails before requesting browser magic links, which prevents the portal from falling into browser-driven signup confirmation.
+- The portal magic-link UI now locks duplicate sends and applies a one-minute resend cooldown in the browser so Supabase OTP throttling is handled as a recoverable wait state instead of a raw retry failure.
+- Hosted Supabase Auth URL Configuration is still externally misconfigured for confirmation-link fallback: generated signup links currently use `redirect_to=www.dirtcatrecords.com` without a scheme, which causes `requested_path_is_invalid` until the dashboard `Site URL` is corrected.
+- The portal auth preparation step now lives inside `api/portal/actions.js?action=auth` so the repo stays deployable on the Vercel Hobby function cap.
+- The latest failed preview deployment email corresponded to a transient Vercel output-deploy failure: `vercel inspect --logs` showed the build completed, and the next preview deployment reached `Ready`.
+- The shared preview alias used for browser retests was then repointed to that newer `Ready` deployment so the portal path now serves the resend-guarded `portal.js` instead of the older raw-error client.
 - The remaining work is live-provider verification first, then the ordered PayPal environment deepening plan and the deepening opportunities documented in the architecture readiness review.
 
 - [x] Run the admin sandbox test against real providers.
-- [ ] Verify PayPal sandbox checkout and webhook end to end.
-- [ ] Verify Supabase magic link redirects on the production domain.
+- [x] Verify PayPal sandbox checkout and webhook end to end.
+- [ ] Correct hosted Supabase Auth URL Configuration so `Site URL` is `https://www.dirtcatrecords.com`, then verify production magic link redirects on the canonical domain.
 - [ ] Verify Resend sender domain, reply-to, and deliverability.
-- [ ] Verify Google Drive folder creation and sharing permissions.
+- [x] Verify Google Drive folder creation and sharing permissions.
 - [x] Verify Vercel environment variables are set for production.
 - [ ] Document the launch checklist in `README.md`.
 
 Ordered follow-on after the Stage 7 webhook proof:
 
-- [ ] Confirm the active sandbox webhook target in PayPal Developer matches the public preview deployment, then clean misleading active-preview references from editable docs.
-- [ ] Centralize PayPal environment configuration into one module.
-- [ ] Split webhook identity construction from request-time signature verification.
-- [ ] Unify PayPal readiness checks across setup wizard and sandbox runner.
-- [ ] Add explicit runtime environment lifecycle invariants for development, preview, and production.
-- [ ] Extend payment-purpose routing with environment context.
+- [x] Confirm the active sandbox webhook target in PayPal Developer matches the public preview deployment, then clean misleading active-preview references from editable docs.
+- [ ] Keep the stable preview alias that PayPal uses repointed to the same deployment used for browser checkout before each webhook test or resend.
+- [x] Centralize PayPal environment configuration into one module.
+- [x] Split webhook identity construction from request-time signature verification.
+- [x] Unify PayPal readiness checks across setup wizard and sandbox runner.
+- [x] Add explicit runtime environment lifecycle invariants for development, preview, and production.
+- [x] Extend payment-purpose routing with environment context.
+
+Ordered workflow deepening after the PayPal environment plan:
+
+- [x] Execute the Project payment transition Module slice from `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`.
+- [x] Execute the Project event schema Module slice.
+- [x] Execute the Quote lifecycle Module slice.
+- [x] Execute the Portal Action policy Module slice.
+- [x] Execute the follow-up orchestration Module slice.
+- [ ] Reassess whether email sequencing still needs its own deep Module after the earlier slices land.
 
 ## V1 Usability/Testability Contract
 

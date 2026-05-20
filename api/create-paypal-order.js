@@ -6,9 +6,12 @@ const {
 } = require("../lib/paypal/order-metadata");
 const {
   createPayPalClient,
-  getPayPalBaseUrl,
   readPayPalJsonResponse,
 } = require("../lib/paypal/client-factory");
+const {
+  getPayPalBaseUrl: getPayPalBaseUrlFromConfig,
+  getPayPalEnvironmentFromBaseUrl,
+} = require("../lib/paypal/environment-config");
 
 ensureRuntimeEnv();
 
@@ -156,7 +159,7 @@ async function getPaypalAccessToken({
     env: {
       PAYPAL_CLIENT_ID: clientId,
       PAYPAL_CLIENT_SECRET: clientSecret,
-      PAYPAL_ENV: baseUrl === getPayPalBaseUrl("live") ? "live" : "sandbox",
+      PAYPAL_ENV: getPayPalEnvironmentFromBaseUrl(baseUrl),
     },
     fetchImpl,
     mapErrorToHttp: true,
@@ -165,7 +168,7 @@ async function getPaypalAccessToken({
 }
 
 function getPaypalBaseUrl(paypalEnv) {
-  return getPayPalBaseUrl(paypalEnv);
+  return getPayPalBaseUrlFromConfig(paypalEnv);
 }
 
 async function readPaypalJsonResponse(response, publicMessage) {

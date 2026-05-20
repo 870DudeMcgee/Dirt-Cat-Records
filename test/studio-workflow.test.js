@@ -62,6 +62,95 @@ test("createPaidProjectWorkflow leaves project usable when Drive fails", async (
   );
 });
 
+test("createPaidProjectWorkflow keeps Drive links when customer sharing is skipped", async () => {
+  const calls = [];
+  const workflow = createPaidProjectWorkflow({
+    records: fakeRecords(calls),
+    drive: {
+      createDriveProjectFolders: async () => ({
+        projectFolderId: "folder-project",
+        projectFolderUrl: "https://drive.test/project",
+        uploadFolderId: "folder-upload",
+        uploadFolderUrl: "https://drive.test/upload",
+        finalsFolderId: "folder-finals",
+        finalsFolderUrl: "https://drive.test/finals",
+        uploadFolderShareSkippedReason:
+          "Sorry, you cannot share with sb-test@personal.example.com because they do not have a Google Account.",
+      }),
+    },
+    email: fakeEmail(calls),
+    env: { ADMIN_EMAIL: "josh@example.com" },
+  });
+
+  const result = await workflow({
+    paypalTxnId: "CAPTURE-1",
+    buyerEmail: "sb-test@personal.example.com",
+    totalAmount: "199.00",
+    orderSummary: {
+      baseServiceId: "mixMaster",
+      songCount: 1,
+      paymentMode: "full",
+    },
+  });
+
+  assert.equal(
+    result.project.drive_upload_folder_url,
+    "https://drive.test/upload"
+  );
+  assert.ok(
+    calls.some(
+      (call) =>
+        call.type === "event" &&
+        call.message.match(/customer sharing was skipped/i)
+    )
+  );
+  assert.ok(
+    calls.some(
+      (call) =>
+        call.type === "email.customer" &&
+        call.emailType === "upload_instructions" &&
+        call.data.uploadFolderUrl === "https://drive.test/upload"
+    )
+  );
+});
+
+test("createPaidProjectWorkflow uses preview deployment origin for customer portal links", async () => {
+  const calls = [];
+  const workflow = createPaidProjectWorkflow({
+    records: fakeRecords(calls),
+    drive: fakeDrive(calls),
+    email: fakeEmail(calls),
+    env: {
+      ADMIN_EMAIL: "josh@example.com",
+      SITE_URL: "https://www.dirtcatrecords.com",
+      VERCEL_ENV: "preview",
+      VERCEL_URL: "dirt-cat-records-preview-123.vercel.app",
+    },
+  });
+
+  await workflow({
+    paypalTxnId: "CAPTURE-1",
+    buyerEmail: "buyer@example.com",
+    totalAmount: "199.00",
+    orderSummary: {
+      baseServiceId: "mixMaster",
+      songCount: 1,
+      paymentMode: "full",
+    },
+  });
+
+  const customerEmails = calls.filter((call) => call.type === "email.customer");
+  assert.equal(customerEmails.length >= 2, true);
+  assert.equal(
+    customerEmails.every((call) =>
+      String(call.data.portalUrl || "").startsWith(
+        "https://dirt-cat-records-preview-123.vercel.app/portal.html"
+      )
+    ),
+    true
+  );
+});
+
 test("createPaidProjectWorkflow returns existing project on webhook retry without side effects", async () => {
   const calls = [];
   const records = fakeRecords(calls);
@@ -322,7 +411,9 @@ function fakeDrive(calls) {
 
 function fakeEmail(calls) {
   return {
-    sendCustomerEmail: async () => calls.push({ type: "email.customer" }),
-    sendAdminEmail: async () => calls.push({ type: "email.admin" }),
+    sendCustomerEmail: async (_to, emailType, data) =>
+      calls.push({ type: "email.customer", emailType, data }),
+    sendAdminEmail: async (subject, text) =>
+      calls.push({ type: "email.admin", subject, text }),
   };
 }

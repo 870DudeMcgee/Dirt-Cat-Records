@@ -387,12 +387,28 @@ test("checkout config exposes client id but never client secret", () => {
   const originalBypass = process.env.ALLOW_LOCAL_ADMIN_BYPASS;
   const originalSupabaseUrl = process.env.SUPABASE_URL;
   const originalSupabasePublicKey = process.env.SUPABASE_PUBLIC_KEY;
+  const originalSiteUrl = process.env.SITE_URL;
+  const originalPaypalEnv = process.env.PAYPAL_ENV;
+  const originalWebhookId = process.env.PAYPAL_WEBHOOK_ID;
+  const originalFromEmail = process.env.RESEND_FROM_EMAIL;
+  const originalReplyTo = process.env.RESEND_REPLY_TO_EMAIL;
+  const originalAdminEmail = process.env.ADMIN_EMAIL;
+  const originalDriveFolderId = process.env.GOOGLE_DRIVE_PROJECTS_FOLDER_ID;
   try {
     process.env.PAYPAL_CLIENT_ID = "public-client-id";
     process.env.PAYPAL_CLIENT_SECRET = "server-secret";
     process.env.ALLOW_LOCAL_ADMIN_BYPASS = "1";
+    process.env.SITE_URL = "http://localhost:3000";
+    process.env.PAYPAL_ENV = "sandbox";
+    process.env.PAYPAL_WEBHOOK_ID = "5AP132285X728093B";
     process.env.SUPABASE_URL = "https://project.supabase.co";
     process.env.SUPABASE_PUBLIC_KEY = "public-key";
+    process.env.RESEND_FROM_EMAIL =
+      "Dirt Cat Records <studio@dirtcatrecords.com>";
+    process.env.RESEND_REPLY_TO_EMAIL = "studio@dirtcatrecords.com";
+    process.env.ADMIN_EMAIL = "870joshmclean@gmail.com";
+    process.env.GOOGLE_DRIVE_PROJECTS_FOLDER_ID =
+      "1dOrK3U5gNqMjMdPDvH-Vgd1oMTtxGXar";
 
     const response = createMockResponse();
     checkoutConfigRoute(
@@ -405,8 +421,58 @@ test("checkout config exposes client id but never client secret", () => {
       paypalClientId: "public-client-id",
       currency: "USD",
       localTestCheckoutEnabled: true,
+      publicAppOrigin: "http://localhost:3000",
       supabaseUrl: "https://project.supabase.co",
       supabasePublicKey: "public-key",
+      runtimeFingerprint: {
+        siteUrl: {
+          present: true,
+          origin: "http://localhost:3000",
+          host: "localhost:3000",
+          protocol: "http",
+        },
+        paypalEnv: "sandbox",
+        paypalClientId: {
+          present: true,
+          prefix: "publ",
+          suffix: "t-id",
+          length: 16,
+        },
+        paypalWebhookId: {
+          present: true,
+          prefix: "5AP1",
+          suffix: "093B",
+          length: 17,
+        },
+        supabaseUrl: {
+          present: true,
+          origin: "https://project.supabase.co",
+          host: "project.supabase.co",
+          protocol: "https",
+        },
+        supabaseProjectRef: "project",
+        resendFrom: {
+          present: true,
+          masked: "s***@dirtcatrecords.com",
+          domain: "dirtcatrecords.com",
+        },
+        resendReplyTo: {
+          present: true,
+          masked: "s***@dirtcatrecords.com",
+          domain: "dirtcatrecords.com",
+        },
+        adminEmail: {
+          present: true,
+          masked: "8***@gmail.com",
+          domain: "gmail.com",
+        },
+        googleDriveProjectsFolderId: {
+          present: true,
+          prefix: "1dOr",
+          suffix: "GXar",
+          length: 33,
+        },
+      },
     });
     assert.equal(
       JSON.stringify(response.body).includes("server-secret"),
@@ -442,6 +508,48 @@ test("checkout config exposes client id but never client secret", () => {
     } else {
       process.env.SUPABASE_PUBLIC_KEY = originalSupabasePublicKey;
     }
+
+    if (originalSiteUrl === undefined) {
+      delete process.env.SITE_URL;
+    } else {
+      process.env.SITE_URL = originalSiteUrl;
+    }
+
+    if (originalPaypalEnv === undefined) {
+      delete process.env.PAYPAL_ENV;
+    } else {
+      process.env.PAYPAL_ENV = originalPaypalEnv;
+    }
+
+    if (originalWebhookId === undefined) {
+      delete process.env.PAYPAL_WEBHOOK_ID;
+    } else {
+      process.env.PAYPAL_WEBHOOK_ID = originalWebhookId;
+    }
+
+    if (originalFromEmail === undefined) {
+      delete process.env.RESEND_FROM_EMAIL;
+    } else {
+      process.env.RESEND_FROM_EMAIL = originalFromEmail;
+    }
+
+    if (originalReplyTo === undefined) {
+      delete process.env.RESEND_REPLY_TO_EMAIL;
+    } else {
+      process.env.RESEND_REPLY_TO_EMAIL = originalReplyTo;
+    }
+
+    if (originalAdminEmail === undefined) {
+      delete process.env.ADMIN_EMAIL;
+    } else {
+      process.env.ADMIN_EMAIL = originalAdminEmail;
+    }
+
+    if (originalDriveFolderId === undefined) {
+      delete process.env.GOOGLE_DRIVE_PROJECTS_FOLDER_ID;
+    } else {
+      process.env.GOOGLE_DRIVE_PROJECTS_FOLDER_ID = originalDriveFolderId;
+    }
   }
 });
 
@@ -449,8 +557,10 @@ test("checkout config includes public auth config for browser clients", () => {
   const originalClientId = process.env.PAYPAL_CLIENT_ID;
   const originalSupabaseUrl = process.env.SUPABASE_URL;
   const originalSupabasePublicKey = process.env.SUPABASE_PUBLIC_KEY;
+  const originalSiteUrl = process.env.SITE_URL;
   try {
     process.env.PAYPAL_CLIENT_ID = "public-client-id";
+    process.env.SITE_URL = "http://localhost:3000";
     process.env.SUPABASE_URL = "https://project.supabase.co";
     process.env.SUPABASE_PUBLIC_KEY = "public-key";
 
@@ -462,6 +572,7 @@ test("checkout config includes public auth config for browser clients", () => {
 
     assert.equal(response.statusCode, 200);
     assert.equal(response.body.paypalClientId, "public-client-id");
+    assert.equal(response.body.publicAppOrigin, "http://localhost:3000");
     assert.equal(response.body.supabaseUrl, "https://project.supabase.co");
     assert.equal(response.body.supabasePublicKey, "public-key");
   } finally {
@@ -481,6 +592,11 @@ test("checkout config includes public auth config for browser clients", () => {
       delete process.env.SUPABASE_PUBLIC_KEY;
     } else {
       process.env.SUPABASE_PUBLIC_KEY = originalSupabasePublicKey;
+    }
+    if (originalSiteUrl === undefined) {
+      delete process.env.SITE_URL;
+    } else {
+      process.env.SITE_URL = originalSiteUrl;
     }
   }
 });

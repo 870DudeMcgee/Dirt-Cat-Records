@@ -5,6 +5,7 @@ const {
   canPayBalance,
   getAllowedPortalActions,
 } = require("../lib/portal/action-rules");
+const { evaluatePortalAction } = require("../lib/portal/action-policy");
 
 test("canPayBalance allows only finals-ready or balance-due projects with balance", () => {
   assert.equal(
@@ -61,4 +62,22 @@ test("getAllowedPortalActions returns active action names", () => {
   });
 
   assert.deepEqual(actions, ["approve-final"]);
+});
+
+test("action rules remain a visibility adapter over action policy", () => {
+  const project = {
+    status: "finals_ready",
+    balance_due: "99.00",
+    final_delivery_url: "https://drive.test/final",
+    final_delivery_locked: false,
+  };
+
+  assert.equal(
+    canPayBalance(project),
+    evaluatePortalAction("pay-balance", project).visible
+  );
+  assert.equal(
+    canApproveFinal(project),
+    evaluatePortalAction("approve-final", project).visible
+  );
 });

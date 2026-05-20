@@ -15,6 +15,23 @@ The repo must stay at or below 12 deployable functions under `api/` for Hobby de
 3. Re-run the preflight command until it passes.
 4. Deploy only after the preflight is green.
 
+## Preview Classes
+
+- Diagnostic preview is for ad hoc debugging, including local CLI-driven deploys. It is not trustworthy for shared sign-off.
+- Shared preview is the team-facing preview tied to a pushed SHA and recorded in `docs/deployment-ledger.md`.
+
+Only shared preview is eligible for the stable preview alias.
+
+## Alias And Retest Contract
+
+Before any external retest:
+
+1. Confirm the current shared preview deployment URL.
+2. Confirm the stable preview alias target matches that deployment.
+3. Confirm the pushed git SHA for that deployment.
+
+Do not repoint the stable preview alias to an untracked diagnostic deployment.
+
 ## Credential And Provider Gate
 
 Do this before any commit/push intended to be runtime-ready or deployable:

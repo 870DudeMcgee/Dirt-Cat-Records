@@ -1,12 +1,52 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  createPayPalWebhookVerifier,
+} = require("../lib/paypal/webhook-verifier");
+const {
+  fetchPayPalOrder,
   getPayPalAccessToken,
   getHeader,
   parseCompletedPaymentEvent,
+  parsePayPalWebhookEvent,
   verifyPayPalWebhookSignature,
 } = require("../lib/paypal/webhook");
 const { buildOrderMetadata } = require("../lib/paypal/order-metadata");
+
+test("createPayPalWebhookVerifier fails fast when webhook id is missing", () => {
+  assert.throws(
+    () =>
+      createPayPalWebhookVerifier({
+        env: {
+          PAYPAL_CLIENT_ID: "client-id",
+          PAYPAL_CLIENT_SECRET: "client-secret",
+          PAYPAL_ENV: "sandbox",
+        },
+      }),
+    /PAYPAL_WEBHOOK_ID is required\./
+  );
+});
+
+test("createPayPalWebhookVerifier rejects mismatched environment inputs", () => {
+  assert.throws(
+    () =>
+      createPayPalWebhookVerifier({
+        env: {
+          PAYPAL_CLIENT_ID: "client-id",
+          PAYPAL_CLIENT_SECRET: "client-secret",
+          PAYPAL_ENV: "live",
+          PAYPAL_WEBHOOK_ID: "WEBHOOK-123",
+        },
+        paypalConfig: {
+          paypalEnv: "live",
+          baseUrl: "https://api-m.sandbox.paypal.com",
+          webhookId: "WEBHOOK-123",
+          webhookIdPresent: true,
+        },
+      }),
+    /mismatched environment inputs/
+  );
+});
 
 test("getHeader reads PayPal headers case-insensitively", () => {
   assert.equal(
@@ -67,6 +107,37 @@ test("parseCompletedPaymentEvent restores checkout metadata when present", () =>
   assert.equal(record.remainingBalance, "398.00");
   assert.equal(record.orderSummary.baseServiceId, "mixMaster");
   assert.equal(record.orderSummary.paymentMode, "deposit");
+});
+
+test("parseCompletedPaymentEvent accepts approved orders that already contain completed capture data", () => {
+  const record = parseCompletedPaymentEvent({
+    event_type: "CHECKOUT.ORDER.APPROVED",
+    resource: {
+      id: "ORDER-123",
+      status: "COMPLETED",
+      payer: {
+        email_address: "buyer@example.com",
+        name: { given_name: "Buyer", surname: "Person" },
+      },
+      purchase_units: [
+        {
+          custom_id: "v1;m;1;f;",
+          payments: {
+            captures: [
+              {
+                id: "CAPTURE-123",
+                amount: { value: "149.00", currency_code: "USD" },
+              },
+            ],
+          },
+        },
+      ],
+    },
+  });
+
+  assert.equal(record.paypalTxnId, "CAPTURE-123");
+  assert.equal(record.buyerEmail, "buyer@example.com");
+  assert.equal(record.totalAmount, "149.00");
 });
 
 test("parseCompletedPaymentEvent parses quote metadata into quote payment records", () => {
@@ -131,6 +202,78 @@ test("extracts balance payment metadata from custom id on completed capture", ()
   assert.equal(summary.projectId, "proj_balance_1");
   assert.equal(summary.amountDueNow, "225.00");
   assert.equal(summary.totalAmount, "225.00");
+});
+
+test("parsePayPalWebhookEvent parses metadata with runtime route context", async () => {
+  const event = {
+    event_type: "PAYMENT.CAPTURE.COMPLETED",
+    resource: {
+      id: "CAPTURE-LIVE-CONTEXT",
+      status: "COMPLETED",
+      custom_id: "v2;b;project-123;5000.12500;",
+      amount: { value: "50.00", currency_code: "USD" },
+      payer: { email_address: "buyer@example.com" },
+    },
+  };
+
+  const record = await parsePayPalWebhookEvent(event, {
+    env: {
+      VERCEL_ENV: "production",
+      PAYPAL_ENV: "live",
+    },
+  });
+
+  assert.equal(record.paymentPurpose, "balance");
+  assert.equal(record.projectId, "project-123");
+  assert.equal(record.totalAmount, "125.00");
+});
+
+test("parsePayPalWebhookEvent hydrates capture events from related order when buyer email is missing", async () => {
+  const fetchImpl = async (url) => {
+    if (String(url).endsWith("/v1/oauth2/token")) {
+      return jsonResponse({ access_token: "token" });
+    }
+    if (String(url).endsWith("/v2/checkout/orders/ORDER-123")) {
+      return jsonResponse({
+        id: "ORDER-123",
+        status: "COMPLETED",
+        payer: {
+          email_address: "buyer@example.com",
+          name: { given_name: "Buyer", surname: "Person" },
+        },
+      });
+    }
+    throw new Error(`Unexpected URL: ${url}`);
+  };
+
+  const record = await parsePayPalWebhookEvent(
+    {
+      event_type: "PAYMENT.CAPTURE.COMPLETED",
+      resource: {
+        id: "CAPTURE-123",
+        status: "COMPLETED",
+        amount: { value: "149.00", currency_code: "USD" },
+        custom_id: "v1;m;1;f;",
+        supplementary_data: {
+          related_ids: {
+            order_id: "ORDER-123",
+          },
+        },
+      },
+    },
+    {
+      fetchImpl,
+      env: {
+        PAYPAL_CLIENT_ID: "client-id",
+        PAYPAL_CLIENT_SECRET: "client-secret",
+        PAYPAL_ENV: "sandbox",
+      },
+    }
+  );
+
+  assert.equal(record.paypalTxnId, "CAPTURE-123");
+  assert.equal(record.buyerEmail, "buyer@example.com");
+  assert.equal(record.totalAmount, "149.00");
 });
 
 test("parseCompletedPaymentEvent ignores unsupported or incomplete events", () => {
@@ -213,6 +356,7 @@ test("getPayPalAccessToken attaches non-secret diagnostics on auth failure", asy
       assert.equal(error.diagnostics.clientIdSuffix, "xample");
       assert.equal(error.diagnostics.clientSecretPresent, true);
       assert.equal(error.diagnostics.clientSecretLength, 12);
+      assert.equal(error.diagnostics.webhookIdPresent, false);
       return true;
     }
   );

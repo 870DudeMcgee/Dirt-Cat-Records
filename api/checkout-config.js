@@ -1,4 +1,6 @@
 const { ensureRuntimeEnv } = require("../lib/env/runtime");
+const { getPublicAppOrigin } = require("../lib/env/public-origin");
+const { buildRuntimeFingerprint } = require("../lib/env/runtime-fingerprint");
 const { isLocalAdminBypassAllowed } = require("../lib/auth/supabase-auth");
 const { sendJson } = require("../lib/http/json");
 
@@ -28,8 +30,10 @@ function buildCheckoutConfig(env = process.env, req = null) {
     paypalClientId: env.PAYPAL_CLIENT_ID || "",
     currency: "USD",
     localTestCheckoutEnabled: req ? isLocalAdminBypassAllowed(req, env) : false,
+    publicAppOrigin: getPublicAppOrigin(env),
     supabaseUrl: env.SUPABASE_URL || "",
     supabasePublicKey: env.SUPABASE_PUBLIC_KEY || "",
+    runtimeFingerprint: buildRuntimeFingerprint(env),
   };
 }
 

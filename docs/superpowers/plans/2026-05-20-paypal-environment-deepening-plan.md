@@ -196,15 +196,15 @@ git diff --check
 - Modify: `lib/automation/business-config.js`, `lib/paypal/environment-config.js`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`
 - Modify tests: `test/business-config.test.js`, `test/setup-checks.test.js`
 
-- [ ] **Step 1: Define development/preview/production once**
+- [x] **Step 1: Define development/preview/production once**
 
 Create one runtime-environment module that identifies the active deployment lifecycle and exposes explicit helpers for preview/production invariants.
 
-- [ ] **Step 2: Wire shared config to the lifecycle module**
+- [x] **Step 2: Wire shared config to the lifecycle module**
 
 Use the runtime environment lifecycle where PayPal and business config need to reason about deployment mode.
 
-- [ ] **Step 3: Document the invariants**
+- [x] **Step 3: Document the invariants**
 
 Update operator docs so preview/live separation is described as a code-backed rule, not just prose.
 
@@ -226,15 +226,15 @@ git diff --check
 - Modify tests: `test/payment-router.test.js`, `test/paypal-webhook.test.js`
 - Conditional docs: `docs/adr/0001-paypal-metadata-versioning.md` only if metadata format changes are required
 
-- [ ] **Step 1: Add environment context to the routing seam**
+- [x] **Step 1: Add environment context to the routing seam**
 
 Extend the routing Interface so Checkout Payment, Quote Payment, and Balance Payment decisions can also reason about active runtime environment.
 
-- [ ] **Step 2: Keep current payment behavior stable**
+- [x] **Step 2: Keep current payment behavior stable**
 
 Do not change the accepted payment-purpose semantics unless a new metadata requirement is proven necessary.
 
-- [ ] **Step 3: Revisit metadata only if required**
+- [x] **Step 3: Revisit metadata only if required**
 
 If environment markers must become part of metadata, update ADR-0001 in the same slice before changing the format.
 

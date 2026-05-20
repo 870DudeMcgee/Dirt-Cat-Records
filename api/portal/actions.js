@@ -1,5 +1,6 @@
 const { ensureRuntimeEnv } = require("../../lib/env/runtime");
 const { requireUser } = require("../../lib/auth/supabase-auth");
+const { ensureConfirmedAuthUser } = require("../../lib/auth/supabase-admin");
 const {
   methodNotAllowed,
   readJsonBody,
@@ -7,21 +8,40 @@ const {
 } = require("../../lib/http/json");
 const recordsDefault = require("../../lib/db/studio-records");
 const { sendStudioEmail } = require("../../lib/email/resend");
+const projectEvents = require("../../lib/automation/project-event-schema");
+const {
+  buildQuoteViewedPatch,
+  getQuoteCheckoutIntent,
+} = require("../../lib/automation/quote-lifecycle");
 const {
   validateBalancePaymentRequest,
 } = require("../../lib/portal/balance-payment-validator");
+const { evaluatePortalAction } = require("../../lib/portal/action-policy");
 const { _private: paypalOrderHelpers } = require("../create-paypal-order");
 
 ensureRuntimeEnv();
 
 function createPortalActionsHandler(dependencies = {}) {
   const requireUserImpl = dependencies.requireUserImpl || requireUser;
+  const ensureAuthUser = dependencies.ensureAuthUser || ensureConfirmedAuthUser;
   const records = dependencies.records || recordsDefault;
   const sendEmail = dependencies.sendEmail || sendStudioEmail;
   const env = dependencies.env || process.env;
   const fetchImpl = dependencies.fetchImpl || globalThis.fetch;
 
   return async function portalActionsHandler(req, res) {
+    const action = getQueryValue(req, "action") || "projects";
+    if (action === "auth") {
+      return handleAuthPreparation({
+        req,
+        res,
+        records,
+        env,
+        fetchImpl,
+        ensureAuthUser,
+      });
+    }
+
     let user;
     try {
       user = await requireUserImpl(req);
@@ -31,7 +51,6 @@ function createPortalActionsHandler(dependencies = {}) {
       });
     }
 
-    const action = getQueryValue(req, "action") || "projects";
     if (action === "projects")
       return handleProjects({ req, res, records, user });
     if (action === "file-links")
@@ -46,6 +65,52 @@ function createPortalActionsHandler(dependencies = {}) {
       return handleBalancePayment({ req, res, records, env, user, fetchImpl });
     return sendJson(res, 404, { error: "Portal action not found." });
   };
+}
+
+async function handleAuthPreparation({
+  req,
+  res,
+  records,
+  env,
+  fetchImpl,
+  ensureAuthUser,
+}) {
+  if (req.method !== "POST") return methodNotAllowed(res);
+
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    return sendJson(res, error.statusCode || 400, {
+      error: error.message || "Invalid request",
+    });
+  }
+
+  const email = records.normalizeEmail
+    ? records.normalizeEmail(body.email)
+    : recordsDefault.normalizeEmail(body.email);
+  if (!email) {
+    return sendJson(res, 400, { error: "A valid email is required." });
+  }
+
+  try {
+    const customer = await records.getCustomerByEmail(email, {
+      env,
+      fetchImpl,
+    });
+    if (!customer) {
+      return sendJson(res, 404, {
+        error: "No portal access found for that email.",
+      });
+    }
+
+    await ensureAuthUser(email, { env, fetchImpl });
+    return sendJson(res, 200, { ok: true });
+  } catch (error) {
+    return sendJson(res, error.statusCode || 500, {
+      error: error.message || "Unable to prepare portal access.",
+    });
+  }
 }
 
 async function handleProjects({ req, res, records, user }) {
@@ -162,13 +227,13 @@ async function handleFileLinks({ req, res, records, sendEmail, user }) {
       status: "submitted",
     });
     await records.updateProject(project.id, { status: "files_submitted" });
-    await records.createProjectEvent({
-      projectId: project.id,
-      eventType: "files_submitted",
-      actorType: "customer",
-      message: "Customer submitted an external file link.",
-      metadata: { fileId: file.id, url },
-    });
+    await records.createProjectEvent(
+      projectEvents.filesSubmitted({
+        projectId: project.id,
+        fileId: file.id,
+        url,
+      })
+    );
     await sendAndLog({
       records,
       sendEmail,
@@ -227,13 +292,12 @@ async function handleRevisions({ req, res, records, sendEmail, env, user }) {
       status: "revision_requested",
       used_revisions: used + 1,
     });
-    await records.createProjectEvent({
-      projectId: project.id,
-      eventType: "revision_requested",
-      actorType: "customer",
-      message: "Customer requested a revision.",
-      metadata: { revisionId: revision.id },
-    });
+    await records.createProjectEvent(
+      projectEvents.revisionRequested({
+        projectId: project.id,
+        revisionId: revision.id,
+      })
+    );
     await sendAndLogAdminNotification({
       records,
       sendEmail,
@@ -270,25 +334,20 @@ async function handleApprovals({ req, res, records, sendEmail, env, user }) {
     if (!customer) return sendJson(res, 404, { error: "Customer not found." });
     const project = await records.getProjectForCustomer(projectId, customer.id);
     if (!project) return sendJson(res, 404, { error: "Project not found." });
-    const deliverableVisible =
-      project.status === "delivered" ||
-      (project.status === "finals_ready" &&
-        project.final_delivery_locked === false);
-    if (!deliverableVisible)
-      return sendJson(res, 409, {
-        error: "Final delivery is not ready for approval.",
+    const decision = evaluatePortalAction("approve-final", project);
+    if (!decision.allowed) {
+      return sendJson(res, decision.statusCode, {
+        error: decision.error,
+        reason: decision.reason,
       });
+    }
 
     const updatedProject = await records.updateProject(project.id, {
       status: "approved",
     });
-    await records.createProjectEvent({
-      projectId: project.id,
-      eventType: "final_approved",
-      actorType: "customer",
-      message: "Customer approved the final delivery.",
-      metadata: {},
-    });
+    await records.createProjectEvent(
+      projectEvents.finalApproved({ projectId: project.id })
+    );
     await sendAndLogAdminNotification({
       records,
       sendEmail,
@@ -339,24 +398,10 @@ async function handleAcceptQuote({ req, res, records, env, user, fetchImpl }) {
       : await records.getQuoteById(quoteId);
     if (!quote) return sendJson(res, 404, { error: "Quote not found." });
 
-    if (["accepted", "expired", "cancelled"].includes(quote.status)) {
-      return sendJson(res, 409, {
-        error: "Quote is not payable in its current status.",
-      });
-    }
+    const checkoutIntent = getQuoteCheckoutIntent(quote);
+    const viewedPatch = buildQuoteViewedPatch(quote);
+    if (viewedPatch) await records.updateQuote(quote.id, viewedPatch);
 
-    const now = new Date().toISOString();
-    if (quote.status === "sent" || quote.status === "draft") {
-      await records.updateQuote(quote.id, {
-        status: "viewed",
-        viewed_at: now,
-      });
-    }
-
-    const amountDueNowCents =
-      quote.payment_mode === "deposit"
-        ? Number(quote.deposit_cents || 0)
-        : Number(quote.final_total_cents || 0);
     const paypalClient = paypalOrderHelpers.getPaypalClient(env, fetchImpl);
     const paypalOrder = await paypalOrderHelpers.createPaypalOrder(
       paypalClient,
@@ -364,22 +409,19 @@ async function handleAcceptQuote({ req, res, records, env, user, fetchImpl }) {
         paymentPurpose: "quote",
         quoteId: quote.id,
         projectId: project.id,
-        amountCents: amountDueNowCents,
-        totalCents: Number(quote.final_total_cents || amountDueNowCents),
-        amountDueNowCents,
+        amountCents: checkoutIntent.amountDueNowCents,
+        totalCents: checkoutIntent.totalCents,
+        amountDueNowCents: checkoutIntent.amountDueNowCents,
       }
     );
 
-    await records.createProjectEvent({
-      projectId: project.id,
-      eventType: "quote_checkout_started",
-      actorType: "customer",
-      message: "Customer started quote checkout.",
-      metadata: {
+    await records.createProjectEvent(
+      projectEvents.quoteCheckoutStarted({
+        projectId: project.id,
         quoteId: quote.id,
         paypalOrderId: paypalOrder.id,
-      },
-    });
+      })
+    );
 
     const approvalUrl = Array.isArray(paypalOrder.links)
       ? paypalOrder.links.find((link) => link && link.rel === "approve")
@@ -453,17 +495,13 @@ async function handleBalancePayment({
       }
     );
 
-    await records.createProjectEvent({
-      projectId: project.id,
-      eventType: "balance_checkout_started",
-      actorType: "customer",
-      message: "Customer started balance checkout.",
-      metadata: {
-        paymentPurpose: "balance",
+    await records.createProjectEvent(
+      projectEvents.balanceCheckoutStarted({
+        projectId: project.id,
         paypalOrderId: paypalOrder.id,
         balanceCents: amountCents,
-      },
-    });
+      })
+    );
 
     const approvalUrl = Array.isArray(paypalOrder.links)
       ? paypalOrder.links.find((link) => link && link.rel === "approve")

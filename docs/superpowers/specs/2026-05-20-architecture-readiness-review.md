@@ -35,6 +35,8 @@ Use the smallest doc that actually owns the fact you need.
   Purpose: append-only history of bounded implementation steps and validations.
 - `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
   Purpose: ordered implementation plan after the Stage 7 webhook truth gap is closed.
+- `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+  Purpose: ordered workflow-deepening plan for the shallow Project, Quote, Portal Action, follow-up, and Project event Modules after the PayPal seam work.
 - `CONTEXT.md` and `docs/adr/`
   Purpose: domain language and accepted architectural decisions.
 - This document
@@ -213,7 +215,8 @@ Benefits:
 1. Close the real sandbox webhook truth gap from preview.
 2. Clean any remaining misleading active-preview references in editable docs.
 3. Execute the PayPal deepening plan in order: environment config, webhook identity, readiness, runtime lifecycle, then payment-purpose context.
-4. Avoid new API entrypoints unless the same slice also reduces function-count pressure.
+4. Execute the deep-modules architecture plan in order: Project payment transition, Project events, Quote lifecycle, Portal Action policy, follow-up orchestration, then reassess email sequencing.
+5. Avoid new API entrypoints unless the same slice also reduces function-count pressure.
 
 ## What Should Not Be Re-Litigated
 

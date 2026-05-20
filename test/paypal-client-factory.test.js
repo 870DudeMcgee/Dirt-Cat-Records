@@ -85,3 +85,24 @@ test("createPayPalClient gets access token and performs GET requests", async () 
   assert.equal(requests[1].options.method, "GET");
   assert.equal(requests[1].options.headers.Prefer, "return=representation");
 });
+
+test("createPayPalClient fails fast when credentials are missing", () => {
+  assert.throws(
+    () =>
+      createPayPalClient({
+        env: {
+          PAYPAL_CLIENT_ID: "",
+          PAYPAL_CLIENT_SECRET: "",
+          PAYPAL_ENV: "live",
+        },
+        fetchImpl: async () => {
+          throw new Error("fetch should not run");
+        },
+      }),
+    (error) => {
+      assert.equal(error.statusCode, 500);
+      assert.equal(error.publicMessage, "PayPal checkout is not configured");
+      return true;
+    }
+  );
+});

@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  buildPaymentRouteContext,
   normalizePaymentPurpose,
   routePaymentPurpose,
 } = require("../lib/paypal/payment-router");
@@ -34,4 +35,36 @@ test("routePaymentPurpose dispatches by normalized purpose", async () => {
   assert.equal(resultQuote, "Q");
   assert.equal(resultCheckout, "C");
   assert.deepEqual(calls, ["quote", "checkout"]);
+});
+
+test("routePaymentPurpose passes runtime context as a second handler argument", () => {
+  const result = routePaymentPurpose(
+    "balance",
+    {
+      balance: (purpose, context) => ({ purpose, context }),
+    },
+    {
+      env: {
+        VERCEL_ENV: "production",
+        PAYPAL_ENV: "live",
+      },
+    }
+  );
+
+  assert.equal(result.purpose, "balance");
+  assert.deepEqual(result.context, {
+    purpose: "balance",
+    runtimeEnvironment: "production",
+    expectedPayPalEnv: "live",
+    paypalEnv: "live",
+  });
+});
+
+test("buildPaymentRouteContext defaults local runtime to sandbox checkout", () => {
+  assert.deepEqual(buildPaymentRouteContext({ env: {} }), {
+    purpose: "checkout",
+    runtimeEnvironment: "development",
+    expectedPayPalEnv: "sandbox",
+    paypalEnv: "sandbox",
+  });
 });

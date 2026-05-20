@@ -47,3 +47,21 @@ test("balance payment validator accepts payable balance projects", async () => {
   assert.equal(result.project.id, "project-1");
   assert.equal(result.amountCents, 12500);
 });
+
+test("balance payment validator uses the same policy reason as visibility", async () => {
+  const result = await validateBalancePaymentRequest({
+    projectId: "project-1",
+    customerId: "customer-1",
+    records: {
+      getProjectForCustomer: async () => ({
+        id: "project-1",
+        status: "mixing",
+        balance_due: "125.00",
+      }),
+    },
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.statusCode, 409);
+  assert.equal(result.reason, "balance_not_due");
+});

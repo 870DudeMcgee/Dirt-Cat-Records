@@ -102,6 +102,51 @@ test("portal accept quote endpoint starts quote checkout and returns approval UR
   );
 });
 
+test("portal accept quote endpoint rejects accepted quotes before checkout", async () => {
+  const handler = createPortalActionsHandler({
+    requireUserImpl: async () => ({ email: "buyer@example.com" }),
+    records: {
+      getCustomerByEmail: async () => ({
+        id: "customer-1",
+        email: "buyer@example.com",
+      }),
+      getProjectForCustomer: async () => ({
+        id: "project-1",
+        customer_id: "customer-1",
+      }),
+      getQuoteForProjectCustomer: async () => ({
+        id: "quote-1",
+        status: "accepted",
+        payment_mode: "full",
+        final_total_cents: 45000,
+      }),
+      updateQuote: async () => {
+        throw new Error("updateQuote should not run");
+      },
+      createProjectEvent: async () => {
+        throw new Error("createProjectEvent should not run");
+      },
+    },
+  });
+  const res = response();
+
+  await handler(
+    {
+      method: "POST",
+      headers: {},
+      url: "/api/portal/actions?action=accept-quote",
+      body: {
+        projectId: "project-1",
+        quoteId: "quote-1",
+      },
+    },
+    res
+  );
+
+  assert.equal(res.statusCode, 409);
+  assert.equal(res.body.error, "Quote is not payable in its current status.");
+});
+
 function response() {
   return {
     statusCode: 0,

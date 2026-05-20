@@ -5,7 +5,6 @@
     window.localStorage.getItem("dcr_latest_test_run_id") || null;
   let selectedProjectId = null;
   const portalView = window.PortalView;
-  const PRODUCTION_ORIGIN = "https://dirtcatrecords.com";
   const PROJECT_STATUS_OPTIONS = [
     "lead_new",
     "awaiting_files",
@@ -100,10 +99,7 @@
   }
 
   function getMagicLinkRedirectUrl() {
-    const { hostname, origin, pathname } = window.location;
-    if (/\.vercel\.app$/i.test(hostname)) {
-      return `${PRODUCTION_ORIGIN}${pathname}`;
-    }
+    const { origin, pathname } = window.location;
     return `${origin}${pathname}`;
   }
 

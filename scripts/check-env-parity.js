@@ -1,5 +1,9 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const {
+  buildRuntimeFingerprint,
+  formatRuntimeFingerprint,
+} = require("../lib/env/runtime-fingerprint");
 
 const templatePath = path.join(process.cwd(), ".env.example");
 const args = process.argv.slice(2);
@@ -36,8 +40,10 @@ if (!fs.existsSync(envFilePath)) {
 
 const templateKeys = readEnvFile(templatePath);
 const targetEnv = readEnvFile(envFilePath);
+const targetEnvObject = Object.fromEntries(targetEnv);
 const optionalKeys = new Set([
   "ALLOW_LOCAL_ADMIN_BYPASS",
+  "GOOGLE_DRIVE_TEST_SHARE_EMAIL",
   "GOOGLE_OAUTH_SCOPE",
   "SUPABASE_SECRET_KEY",
   "TEST_BUSINESS_NAME",
@@ -88,6 +94,7 @@ if (failures.length > 0) {
   );
   failures.forEach((message) => console.error(`- ${message}`));
   warnings.forEach((message) => console.error(`- Warning: ${message}`));
+  printRuntimeFingerprint(targetEnvObject);
   process.exit(1);
 }
 
@@ -101,6 +108,7 @@ if (warnings.length > 0) {
 
 console.log(`- Required keys checked: ${requiredKeys.length}`);
 console.log(`- Optional keys ignored: ${optionalKeys.size}`);
+printRuntimeFingerprint(targetEnvObject);
 
 function readOptionValue(argv, flag) {
   const index = argv.indexOf(flag);
@@ -149,4 +157,11 @@ function hasNonEmptyValue(value) {
 
 function isLocalSiteUrl(value) {
   return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(value);
+}
+
+function printRuntimeFingerprint(env) {
+  console.log("- Runtime fingerprint:");
+  formatRuntimeFingerprint(buildRuntimeFingerprint(env)).forEach((line) =>
+    console.log(`  ${line}`)
+  );
 }

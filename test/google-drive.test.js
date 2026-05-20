@@ -4,6 +4,8 @@ const {
   buildProjectFolderName,
   createDriveProjectFolders,
   getDriveConfig,
+  isNonGoogleAccountShareError,
+  resolveDriveShareEmail,
   verifyDriveAccess,
 } = require("../lib/google/drive");
 
@@ -149,6 +151,139 @@ test("createDriveProjectFolders reuses existing folders by parent and name", asy
     ).length,
     0
   );
+});
+
+test("createDriveProjectFolders keeps folder links when sharing is skipped for non-Google accounts", async () => {
+  const calls = [];
+  let createdFolderCount = 0;
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({
+      url: String(url),
+      method: options.method,
+      body: parseRequestBody(options.body),
+    });
+    if (String(url).includes("oauth2.googleapis.com")) {
+      return jsonResponse({ access_token: "access-token" });
+    }
+    if (String(url).includes("/permissions")) {
+      return jsonResponse(
+        {
+          error: {
+            message:
+              "Sorry, you cannot share with sb-test@personal.example.com because they do not have a Google Account.",
+          },
+        },
+        403
+      );
+    }
+    if (options.method === "GET") return jsonResponse({ files: [] });
+    createdFolderCount += 1;
+    return jsonResponse({
+      id: `folder-${createdFolderCount}`,
+      webViewLink: `https://drive.test/folder-${createdFolderCount}`,
+    });
+  };
+
+  const result = await createDriveProjectFolders(
+    {
+      projectCode: "DCR-000123",
+      artistName: "Dude McGee",
+      projectTitle: "Song One",
+      customerEmail: "sb-test@personal.example.com",
+    },
+    {
+      fetchImpl,
+      env: driveEnv(),
+    }
+  );
+
+  assert.equal(result.projectFolderId, "folder-1");
+  assert.equal(result.uploadFolderUrl, "https://drive.test/folder-2");
+  assert.match(
+    result.uploadFolderShareSkippedReason,
+    /do not have a Google Account/i
+  );
+  assert.equal(createdFolderCount, 6);
+});
+
+test("createDriveProjectFolders uses override share email outside live mode", async () => {
+  const calls = [];
+  let createdFolderCount = 0;
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({
+      url: String(url),
+      method: options.method,
+      body: parseRequestBody(options.body),
+    });
+    if (String(url).includes("oauth2.googleapis.com")) {
+      return jsonResponse({ access_token: "access-token" });
+    }
+    if (String(url).includes("/permissions")) {
+      return jsonResponse({ id: "permission-1" });
+    }
+    if (options.method === "GET") return jsonResponse({ files: [] });
+    createdFolderCount += 1;
+    return jsonResponse({
+      id: `folder-${createdFolderCount}`,
+      webViewLink: `https://drive.test/folder-${createdFolderCount}`,
+    });
+  };
+
+  const result = await createDriveProjectFolders(
+    {
+      projectCode: "DCR-000123",
+      artistName: "Dude McGee",
+      projectTitle: "Song One",
+      customerEmail: "sb-test@personal.example.com",
+    },
+    {
+      fetchImpl,
+      env: {
+        ...driveEnv(),
+        PAYPAL_ENV: "sandbox",
+        GOOGLE_DRIVE_TEST_SHARE_EMAIL: "real-user@gmail.com",
+      },
+    }
+  );
+
+  const permissionCall = calls.find((call) =>
+    call.url.includes("/permissions")
+  );
+  assert.equal(permissionCall.body.emailAddress, "real-user@gmail.com");
+  assert.equal(result.uploadFolderSharedWithEmail, "real-user@gmail.com");
+});
+
+test("resolveDriveShareEmail uses override only outside live mode", () => {
+  assert.equal(
+    resolveDriveShareEmail(
+      "sb-test@personal.example.com",
+      { PAYPAL_ENV: "sandbox" },
+      {
+        shareTestEmail: "real-user@gmail.com",
+      }
+    ),
+    "real-user@gmail.com"
+  );
+  assert.equal(
+    resolveDriveShareEmail(
+      "buyer@example.com",
+      { PAYPAL_ENV: "live" },
+      {
+        shareTestEmail: "real-user@gmail.com",
+      }
+    ),
+    "buyer@example.com"
+  );
+});
+
+test("isNonGoogleAccountShareError matches Google account requirement failures", () => {
+  assert.equal(
+    isNonGoogleAccountShareError(
+      "Sorry, you cannot share with sb-test@personal.example.com because they do not have a Google Account."
+    ),
+    true
+  );
+  assert.equal(isNonGoogleAccountShareError("Forbidden"), false);
 });
 
 test("verifyDriveAccess checks the configured parent folder", async () => {

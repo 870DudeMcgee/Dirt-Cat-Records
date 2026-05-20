@@ -36,6 +36,8 @@ test("runSetupChecks reports missing env without exposing secrets", async () => 
     report.sections.database.requiredEnv.SUPABASE_SERVICE_ROLE_KEY.value,
     undefined
   );
+  assert.equal(report.runtimeFingerprint.adminEmail.masked, "j***@example.com");
+  assert.equal(report.runtimeFingerprint.paypalClientId.present, false);
 });
 
 test("runSetupChecks includes provider check results", async () => {
@@ -60,6 +62,9 @@ test("runSetupChecks includes provider check results", async () => {
 
   assert.equal(report.overallStatus, "passed");
   assert.equal(report.sections.storage.provider.status, "passed");
+  assert.equal(report.runtimeFingerprint.paypalEnv, null);
+  assert.equal(report.runtimeFingerprint.supabaseProjectRef, "project");
+  assert.equal(report.runtimeFingerprint.resendFrom.masked, "s***@example.com");
 });
 
 test("defaultProviders storage check fails when drive access probe fails", async () => {
@@ -153,6 +158,81 @@ test("defaultProviders email check fails when Resend sender verification fails",
     report.sections.email.provider.error,
     "Resend sender domain gmail.com is not configured in Resend."
   );
+});
+
+test("defaultProviders payments check reports normalized PayPal readiness detail", async () => {
+  const providers = defaultProviders({
+    env: {
+      VERCEL_ENV: "production",
+      PAYPAL_ENV: "live",
+      PAYPAL_CLIENT_ID: "paypal-id",
+      PAYPAL_CLIENT_SECRET: "paypal-secret",
+      PAYPAL_WEBHOOK_ID: "webhook-id",
+    },
+    drive: {
+      verifyDriveAccess: async () => undefined,
+    },
+    resend: {
+      verifyResendSender: async () => ({
+        status: "passed",
+        detail: "email ready",
+      }),
+    },
+  });
+
+  const result = await providers.payments.check();
+
+  assert.equal(result.status, "passed");
+  assert.match(result.detail, /PayPal live config is ready/);
+  assert.match(result.detail, /https:\/\/api-m\.paypal\.com/);
+});
+
+test("defaultProviders payments check fails when PayPal readiness is missing", async () => {
+  const providers = defaultProviders({
+    env: { PAYPAL_ENV: "sandbox" },
+    drive: {
+      verifyDriveAccess: async () => undefined,
+    },
+    resend: {
+      verifyResendSender: async () => ({
+        status: "passed",
+        detail: "email ready",
+      }),
+    },
+  });
+
+  const result = await providers.payments.check();
+
+  assert.equal(result.status, "failed");
+  assert.match(result.error, /PAYPAL_CLIENT_ID/);
+  assert.equal(result.paypalEnv, "sandbox");
+});
+
+test("defaultProviders payments check fails when PayPal env conflicts with runtime lifecycle", async () => {
+  const providers = defaultProviders({
+    env: {
+      VERCEL_ENV: "production",
+      PAYPAL_ENV: "sandbox",
+      PAYPAL_CLIENT_ID: "paypal-id",
+      PAYPAL_CLIENT_SECRET: "paypal-secret",
+      PAYPAL_WEBHOOK_ID: "webhook-id",
+    },
+    drive: {
+      verifyDriveAccess: async () => undefined,
+    },
+    resend: {
+      verifyResendSender: async () => ({
+        status: "passed",
+        detail: "email ready",
+      }),
+    },
+  });
+
+  const result = await providers.payments.check();
+
+  assert.equal(result.status, "failed");
+  assert.match(result.error, /PAYPAL_ENV must be live for production runtime/);
+  assert.equal(result.paypalEnv, "sandbox");
 });
 
 function allPassingProviders() {

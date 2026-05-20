@@ -258,9 +258,46 @@ Roadmap link: `docs/roadmap.md` (Stage 6 completion gate before Stage 7)
 
 - Validation run:
   - direct pending-job query against configured Supabase (`pendingCount: 0`) (pass)
+
+  ## Step 21 - Runtime Fingerprint For Preview Drift Checks
+
+  Date/Time: 2026-05-20
+  Owner: GitHub Copilot + Josh
+  Roadmap link: `docs/roadmap.md` (Stage 7: verify real sandbox webhook and automation round-trip)
+
+  ### Will Be Done
+  - Add a shared non-secret runtime fingerprint to the setup wizard and local env audit so deployed preview configuration can be compared against the active local preview profile without printing secrets.
+
+  ### Context Check (Before)
+  - Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `README.md`, `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`
+  - Codebase state: dirty `main` worktree after preview checkout, webhook, and deliverability investigation; latest pushed commit must still be confirmed from git when needed
+  - Target files/tests: `lib/automation/setup-checks.js`, `scripts/check-env-parity.js`, new `lib/env/runtime-fingerprint.js`, `test/setup-checks.test.js`, `test/admin-setup-api.test.js`
+
+  ### Done
+  - Added `lib/env/runtime-fingerprint.js` to summarize the active runtime without exposing secrets.
+  - Updated `lib/automation/setup-checks.js` so `GET /api/admin/setup-wizard?action=setup` now returns a `runtimeFingerprint` alongside section readiness.
+  - Updated `scripts/check-env-parity.js` so the local env audit prints the same runtime fingerprint after parity checks.
+  - Added focused coverage in `test/setup-checks.test.js` and `test/admin-setup-api.test.js`.
+  - Updated `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` so the intended preview drift check is now: deployed setup fingerprint versus `npm run check:env:preview`.
+
+  ### Context Check (After)
+  - Validation run:
+    - `node --test test/setup-checks.test.js test/admin-setup-api.test.js` (pass)
+    - `npm run check:env:preview` (pass)
+  - Codebase delta summary:
+    - Added `lib/env/runtime-fingerprint.js`
+    - Updated `lib/automation/setup-checks.js`
+    - Updated `scripts/check-env-parity.js`
+    - Updated focused tests and Stage 7 workflow docs
+
+  ### Needs To Be Done Next
+  - Read the deployed preview setup report and compare its runtime fingerprint against the local preview profile before the next webhook or email debugging step.
+  - If the fingerprint differs, fix preview env drift before rerunning checkout.
+  - If the fingerprint matches, continue with the real webhook/automation round-trip verification using the active preview deployment.
   - `curl -sS "http://localhost:3000/api/cron/follow-ups?dryRun=true" -H "authorization: Bearer $CRON_SECRET"` (pass, `count: 0`)
   - `curl -sS "http://localhost:3000/api/cron/follow-ups?dryRun=false&dispatch=true" -H "authorization: Bearer $CRON_SECRET"` (pass, `scannedCount: 0`)
   - `node --test test/follow-up-dispatcher.test.js test/follow-up-cron-api.test.js test/studio-records.test.js` (pass)
+
 - Codebase delta summary:
   - Updated `lib/db/studio-records.js`
   - Updated `test/studio-records.test.js`
@@ -948,6 +985,169 @@ Roadmap link: `docs/roadmap.md` (Stage 7: Verify PayPal sandbox checkout and web
 
 ### Context Check (Before)
 
+---
+
+## Step 22 - Repoint Stable Preview Alias To The Active Webhook Test Deployment
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Verify PayPal sandbox checkout and webhook end to end)
+
+### Will Be Done
+
+- Identify why the latest real sandbox checkout reached `success.html` without any matching preview Supabase side effects, then correct the preview routing seam if checkout and webhook delivery are hitting different deployments.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: dirty `main` worktree with the already-landed preview-origin fix; no new source edits made in this step
+- Target files/tests: Vercel preview deployments, Vercel alias mappings, preview runtime logs, PayPal webhook target behavior, status docs
+- Discriminating checks: confirm whether the latest checkout and webhook requests hit the same deployment; confirm whether the stable alias serving the PayPal webhook target matches the active browser-checkout deployment
+
+### Done
+
+- Queried the fresh diagnostic deployment logs and confirmed the latest sandbox checkout hit the current preview deployment with `POST /api/create-paypal-order 200`, `POST /api/capture-paypal-order 200`, and `GET /success.html 200`.
+- Queried the stable preview alias logs and confirmed PayPal webhook delivery was landing there instead, with one `POST /api/webhooks/paypal 200` followed by repeated `400` retries.
+- Fetched `GET /api/checkout-config` from both hosts and confirmed the stable preview alias was serving an older build shape that did not expose the newer `publicAppOrigin` and `runtimeFingerprint` fields, while the fresh diagnostic deployment did.
+- Ran `npx vercel alias ls` and confirmed the stable preview alias was still pinned to an older preview deployment instead of the deployment used for browser checkout.
+- Repointed the stable preview alias to the active diagnostic deployment with `npx vercel alias set ...`.
+- Verified the repointed stable alias now serves the current public config shape again, including `publicAppOrigin` and `runtimeFingerprint`.
+- Updated `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` so the stable-alias requirement is now documented as part of the preview webhook-testing workflow.
+
+### Context Check (After)
+
+- Validation run:
+  - `npx vercel logs https://dirt-cat-records-nrepl9dir-dirt-cat-records-projects.vercel.app --since 1h`
+  - `npx vercel logs https://dirt-cat-records-870dudemcgee-dirt-cat-records-projects.vercel.app --since 1h`
+  - `curl -sS https://dirt-cat-records-870dudemcgee-dirt-cat-records-projects.vercel.app/api/checkout-config`
+  - `curl -sS https://dirt-cat-records-nrepl9dir-dirt-cat-records-projects.vercel.app/api/checkout-config`
+  - `npx vercel alias ls`
+  - `npx vercel alias set dirt-cat-records-nrepl9dir-dirt-cat-records-projects.vercel.app dirt-cat-records-870dudemcgee-dirt-cat-records-projects.vercel.app`
+- Codebase delta summary:
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Run one more real preview sandbox checkout or resend the latest PayPal webhook event now that the stable preview alias and browser-checkout deployment are the same build.
+- Confirm that `/api/webhooks/paypal` both returns success and produces the expected Supabase, Drive, and Resend side effects before closing the Stage 7 webhook gap.
+
+---
+
+## Step 23 - Fix Preview Webhook Parsing For Real Sandbox Event Shapes
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Verify PayPal sandbox checkout and webhook end to end)
+
+### Will Be Done
+
+- Confirm why preview webhook delivery still produced no side effects after the alias fix, then patch the webhook parser only after the exact live PayPal event mismatch is proven.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: dirty `main` worktree with the preview-origin and alias-routing fixes already applied
+- Target files/tests: `lib/paypal/webhook.js`, `api/webhooks/paypal.js`, `test/paypal-webhook.test.js`, PayPal sandbox webhook config and event payloads, Vercel preview deployment
+- Discriminating checks: identify the actual sandbox event types delivered for checkout, confirm whether the live payloads match the parser assumptions, and verify whether a resend against a fixed deployment creates preview-side records
+
+### Done
+
+- Queried the configured PayPal sandbox webhook directly via the PayPal API and confirmed the webhook id `5AP132285X728093B` points to `https://dirt-cat-records-870dudemcgee-dirt-cat-records-projects.vercel.app/api/webhooks/paypal`.
+- Queried recent sandbox webhook event payloads directly via the PayPal API and confirmed the real checkout flow emits only `CHECKOUT.ORDER.APPROVED` and `PAYMENT.CAPTURE.COMPLETED` events for the recent preview runs.
+- Confirmed that the live `PAYMENT.CAPTURE.COMPLETED` payload includes `custom_id` and `related_ids.order_id` but omits buyer email, while the live `CHECKOUT.ORDER.APPROVED` payload contains buyer email and completed capture details.
+- Reproduced the mismatch locally by running the exact recent live payloads through the parser:
+  - `PAYMENT.CAPTURE.COMPLETED` threw `Completed PayPal event is missing a buyer email.`
+  - `CHECKOUT.ORDER.APPROVED` returned `null` because the parser only handled `CHECKOUT.ORDER.COMPLETED`
+- Updated `lib/paypal/webhook.js` so the webhook parser now accepts `CHECKOUT.ORDER.APPROVED` and hydrates `PAYMENT.CAPTURE.COMPLETED` from the related PayPal order when buyer email is missing.
+- Updated `api/webhooks/paypal.js` to use the new async webhook parser.
+- Added focused tests that cover approved-order parsing and capture-event order hydration.
+- Validated the fix with `node --test test/paypal-webhook.test.js test/paypal-webhook-route.test.js`, `npm run check:js`, and `git diff --check`.
+- Deployed preview `https://dirt-cat-records-fbw22jdf7-dirt-cat-records-projects.vercel.app`, repointed the stable alias to that deployment, and resent the exact recent live PayPal events through the PayPal API.
+- Confirmed the resend created preview-side `orders`, `payments`, `projects`, `project_events`, and `email_events`, closing the Stage 7 webhook truth gap.
+- Confirmed the remaining sandbox-only workflow failure is Drive sharing to the PayPal sandbox buyer address, which is not a Google account.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/paypal-webhook.test.js test/paypal-webhook-route.test.js`
+  - `npm run check:js`
+  - `git diff --check`
+  - `npx vercel --yes`
+  - `npx vercel alias set dirt-cat-records-fbw22jdf7-dirt-cat-records-projects.vercel.app dirt-cat-records-870dudemcgee-dirt-cat-records-projects.vercel.app`
+  - PayPal API resend of `WH-1BJ40637T0570784J-67409297PU940703S` and `WH-66207504J0697364Y-60A80641VL295021G`
+  - direct preview Supabase queries confirming created `payments`, `orders`, `projects`, `email_events`, and `project_events`
+- Codebase delta summary:
+  - Updated `lib/paypal/webhook.js`
+  - Updated `api/webhooks/paypal.js`
+  - Updated `test/paypal-webhook.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Verify production-domain magic-link behavior now that the preview webhook gap is closed.
+- Restore Vercel Authentication after preview webhook testing is complete.
+
+---
+
+## Step 24 - Verify Preview Drive Sharing With Sandbox Override Account
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: Verify Google Drive folder creation and sharing permissions)
+
+### Will Be Done
+
+- Close the remaining preview verification gap by proving Google Drive folder creation and upload-folder sharing on preview, even though the PayPal sandbox buyer email is not a real Google account.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: dirty `main` worktree with the webhook parser fix already deployed to preview
+- Target files/tests: `lib/google/drive.js`, `test/google-drive.test.js`, `.env.example`, `README.md`, Vercel preview env, recent preview checkout records
+- Discriminating checks: confirm whether Drive folder creation can preserve usable folder links when sharing fails; confirm whether a preview-only share override can safely route sandbox sharing to a real Google account; confirm the latest preview checkout persists Drive URLs and Drive permissions for the override account
+
+### Done
+
+- Updated `lib/google/drive.js` so preview/sandbox environments can use `GOOGLE_DRIVE_TEST_SHARE_EMAIL` as a non-live sharing override while keeping live behavior unchanged.
+- Added focused tests for the Drive share override and verified they pass.
+- Documented the override in `.env.example` and `README.md`.
+- Added `GOOGLE_DRIVE_TEST_SHARE_EMAIL` to Vercel preview and set it to `870skitzofrenzy@gmail.com`.
+- Deployed preview `https://dirt-cat-records-ldtf5xd5h-dirt-cat-records-projects.vercel.app` and repointed the stable preview alias to that deployment.
+- Ran a fresh sandbox preview checkout on the stable alias and confirmed Vercel logs show `POST /api/create-paypal-order 200`, `POST /api/capture-paypal-order 200`, `GET /success.html 200`, and repeated `POST /api/webhooks/paypal 200`.
+- Queried preview Supabase and confirmed the latest project record now has `drive_project_folder_url`, `drive_upload_folder_url`, and `drive_finals_folder_url` populated.
+- Queried Google Drive permissions for the latest upload folder and confirmed `870skitzofrenzy@gmail.com` has `writer` access.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/google-drive.test.js test/studio-workflow.test.js`
+  - `npm run check:js`
+  - `git diff --check`
+  - `npx vercel --yes`
+  - `npx vercel alias set dirt-cat-records-ldtf5xd5h-dirt-cat-records-projects.vercel.app dirt-cat-records-870dudemcgee-dirt-cat-records-projects.vercel.app`
+  - preview Supabase record queries for recent `payments`, `orders`, `projects`, `email_events`, and `project_events`
+  - Google Drive permissions query on upload folder `1Vrua45dm5SURQW2SU9-HQXG95Q3cs5WS`
+- Codebase delta summary:
+  - Updated `lib/google/drive.js`
+  - Updated `test/google-drive.test.js`
+  - Updated `.env.example`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Verify production-domain magic-link behavior.
+- Verify Resend sender, reply-to, and deliverability behavior beyond provider acceptance.
+- Restore Vercel Authentication after preview webhook testing is complete.
+
 - Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `README.md`, `docs/execution-log.md`, `CONTEXT.md`, `docs/adr/0001-paypal-metadata-versioning.md`
 - Skill used: `diagnose`
 - Codebase state: dirty docs-only worktree on `main...origin/main` at `27aabae` from the PayPal deepening-plan sync; no application-code changes yet in this step
@@ -1211,3 +1411,882 @@ Roadmap link: `docs/roadmap.md` (Stage 0 source-of-truth workflow hardening)
 
 - Run `npm run check:js` and `git diff --check` after the final doc/package sync.
 - If the workflow feels right in practice, optionally expose the env profile commands as VS Code tasks later.
+
+## Step 32 - Public Preview Fingerprint Comparison Path
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: verify real sandbox webhook and automation round-trip)
+
+### Will Be Done
+
+- Expose the same safe runtime fingerprint through the public checkout-config route so preview env drift can be checked without admin auth, then compare a real preview deployment against `.env.local.preview`.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: dirty `main` worktree with runtime-fingerprint changes not yet committed
+- Target files/tests: `api/checkout-config.js`, `test/paypal-api.test.js`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Discriminating check: verify the public checkout-config response stays browser-safe and matches the local preview fingerprint on a fresh preview deployment
+
+### Done
+
+- Updated `api/checkout-config.js` to return `runtimeFingerprint` alongside the existing public browser config.
+- Updated `test/paypal-api.test.js` to verify the new public fingerprint stays non-secret.
+- Created a fresh preview deployment from the current workspace: `https://dirt-cat-records-li7x9esn0-dirt-cat-records-projects.vercel.app`.
+- Compared `GET /api/checkout-config` on that deployment against `.env.local.preview` and confirmed all provider-critical fields match.
+- Verified the only fingerprint difference is `SITE_URL`, which is expected: local preview uses `http://localhost:3000` while deployed preview uses `https://www.dirtcatrecords.com`.
+- Updated operator docs so the default preview drift check is now public `GET /api/checkout-config` first, admin setup second.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/paypal-api.test.js` (pass)
+  - live fetch comparison against deployed preview `/api/checkout-config` (pass)
+- Codebase delta summary:
+  - Updated `api/checkout-config.js`
+  - Updated `test/paypal-api.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Stop treating preview env drift as the explanation for missing side effects; the active preview provider settings now match `.env.local.preview` except for the expected `SITE_URL` difference.
+- Continue diagnosis on the real webhook/automation path itself, using the verified preview deployment and the public fingerprint path when env questions recur.
+
+---
+
+## Step 33 - Fix Customer Portal Magic-Link Signup Fallback
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: verify Supabase magic link redirects on the production domain)
+
+### Will Be Done
+
+- Diagnose why customer portal magic-link emails are landing on a Supabase-hosted `requested_path_is_invalid` error, then fix the repo-controlled part of the flow so existing customers sign in through magic links instead of browser-driven signup confirmation.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: dirty `main` worktree after the preview PayPal and Drive verification fixes
+- Target files/tests: `portal.js`, auth helpers under `lib/auth/`, portal API handlers under `api/portal/`, focused auth tests
+- Discriminating checks:
+  - inspect the portal magic-link request path and current Supabase auth assumptions
+  - confirm whether hosted Supabase signup links are using an invalid redirect target
+  - confirm whether the portal currently relies on `signInWithOtp()` auto-creating auth users in the browser
+
+### Done
+
+- Confirmed the browser portal flow was calling `supabaseClient.auth.signInWithOtp()` directly and allowing browser-side auth-user creation.
+- Confirmed hosted Supabase signup-link fallback is externally misconfigured: generated links currently use `redirect_to=www.dirtcatrecords.com`, which lacks `https://` and matches the observed `requested_path_is_invalid` failure.
+- Added `lib/auth/supabase-admin.js` with `ensureConfirmedAuthUser()` so the server can provision confirmed Supabase auth users through the admin API.
+- Added `api/portal/auth.js`, which only provisions auth users for known customer emails already present in the app database.
+- Updated `portal.js` so the browser first calls `/api/portal/auth`, then requests the magic link with `shouldCreateUser: false`.
+- Added focused tests for the new portal auth endpoint and the Supabase admin provisioning helper.
+- Updated `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and `docs/execution-log.md` so the external Supabase dashboard fix remains explicit.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/portal-auth-api.test.js test/supabase-admin-auth.test.js`
+  - `npm run check:js`
+  - direct hosted Supabase admin `generate_link` probe showing `redirect_to=www.dirtcatrecords.com`
+- Codebase delta summary:
+  - Added `lib/auth/supabase-admin.js`
+  - Added `api/portal/auth.js`
+  - Updated `portal.js`
+  - Added `test/portal-auth-api.test.js`
+  - Added `test/supabase-admin-auth.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Correct hosted Supabase Auth URL Configuration so `Site URL` is `https://www.dirtcatrecords.com`.
+- Re-test the real customer portal magic-link flow on production after that dashboard change.
+- Keep the new portal auth preparation step in place so customer access no longer depends on browser-side signup creation.
+
+Update: the hosted Supabase URL setting was corrected after this entry was written, and the auth preparation step was then merged into `api/portal/actions.js?action=auth` because a standalone `api/portal/auth.js` exceeded the Vercel Hobby 12-function cap. Fresh preview deployment `https://dirt-cat-records-d60xnicju-dirt-cat-records-projects.vercel.app` now includes the merged flow, with live checks confirming:
+
+- deployed `portal.js` calls `fetch("/api/portal/actions?action=auth")`
+- deployed `portal.js` sets `shouldCreateUser: false`
+- `POST /api/portal/actions?action=auth` returns app JSON (`No portal access found for that email.`) instead of `404`
+
+---
+
+## Step 34 - Guard Portal Magic-Link Retries And Classify Preview Deploy Failure
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7: verify Supabase magic link behavior on preview and production)
+
+### Will Be Done
+
+- Diagnose the latest failed preview deployment email and the portal `email rate limit exceeded` screenshot, then fix the repo-controlled portal retry path if the deployment failure proves transient.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: dirty `main...origin/main` with in-progress Stage 7 portal/auth work already present in the worktree
+- Target files/tests: `portal.js`, new `test/portal-login.test.js`, Vercel preview deployment status
+- Discriminating checks:
+  - run local deploy readiness and preview env parity checks to separate repo breakage from provider drift
+  - inspect the failed preview deployment directly from Vercel
+  - inspect the portal client submit path for duplicate-send or cooldown gaps before editing
+
+### Done
+
+- Ran `npm run deploy:preflight` and confirmed the repo still passes the local deploy gate.
+- Ran `npm run check:env:preview` and confirmed the local preview profile only surfaced the existing missing `GOOGLE_DRIVE_TEST_SHARE_EMAIL` finding, not a new code/runtime break.
+- Inspected the failed preview deployment with `vercel inspect --logs` and confirmed Vercel completed `vercel build`; the failure happened afterward during output deploy, and the immediately following preview deployment reached `Ready`.
+- Confirmed `portal.js` had no submit lock or resend cooldown around `supabaseClient.auth.signInWithOtp(...)`, which made the browser vulnerable to Supabase OTP throttling during quick retries.
+- Updated `portal.js` to normalize the email, prevent concurrent sends in the same tab, persist a one-minute resend cooldown in session storage, disable the submit button while waiting, and replace the raw provider throttle message with a clearer wait-state message.
+- Added focused coverage in `test/portal-login.test.js` for rate-limit detection and cooldown helper behavior.
+- Updated `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` with the verified transient-deploy finding and the new portal resend guard.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --check portal.js` (pass)
+  - `node --test test/portal-login.test.js test/portal-auth-api.test.js` (pass)
+  - `npx vercel ls dirt-cat-records` (shows failed preview followed by a newer `Ready` preview)
+  - `npx vercel inspect dirt-cat-records-f4g6q599y-dirt-cat-records-projects.vercel.app --logs` (shows build completion before deploy-stage error)
+- Codebase delta summary:
+  - Updated `portal.js`
+  - Added `test/portal-login.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Re-test one real customer portal magic-link flow on the latest `Ready` preview deployment and confirm the first send lands while duplicate retries are held in the browser.
+- Verify the same portal magic-link behavior on the canonical production domain after the next deploy.
+- Continue the remaining Stage 7 launch-hardening checks only after the portal auth path is externally verified again.
+
+Update: after this step, a fresh preview deployment with the resend guard was created and the shared preview alias was repointed to it. Follow-up verification confirmed the alias now serves the patched `portal.js` containing:
+
+- `fetch("/api/portal/actions?action=auth")`
+- `shouldCreateUser: false`
+- the friendly cooldown message (`A magic link was already sent recently...`)
+- the resend button cooldown label (`Resend in ...s`)
+
+---
+
+## Step 35 - Plan Workflow And Version-Control Hardening
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 0 source-of-truth hardening before more shared preview verification)
+
+### Will Be Done
+
+- Write one explicit repo-owned plan for branch discipline, deployment provenance, alias rules, and doc ownership so shared preview and production work stop drifting away from known commits.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/execution-trail.md`, `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`
+- Codebase state: dirty `main...origin/main` at `ae958f9` with in-progress Stage 7 runtime and doc changes already present in the worktree; current drift pain is operational, not a new code regression
+- Target files/tests: new `docs/superpowers/plans/2026-05-20-workflow-and-version-control-hardening-plan.md`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Discriminating checks:
+  - confirm the existing anti-drift rules already documented in the architecture readiness review
+  - confirm the repo still lacks one explicit contract for branch roles, shared-preview provenance, and doc ownership
+
+### Done
+
+- Added `docs/superpowers/plans/2026-05-20-workflow-and-version-control-hardening-plan.md` as the ordered workflow plan for the actual failure mode behind recent wasted time: drift between local worktree state, pushed commit state, shared preview alias targets, and editable docs.
+- The plan defines immediate operating rules, a target workflow contract, and ordered tasks for branch/worktree discipline, a deployment ledger, shared-preview versus diagnostic-preview separation, doc ownership cleanup, guarded release commands, and build provenance.
+- Updated `README.md` to point operators at the new workflow plan and to record that deployment provenance is now a first-class workflow concern.
+- Updated `docs/roadmap.md` so workflow hardening is explicitly the current next focus before more shared preview or production verification.
+- Updated `docs/agent-handoff.md` so the next worker starts by executing the workflow hardening plan rather than continuing provider debugging on a drifting deployment surface.
+
+### Context Check (After)
+
+- Validation run:
+  - `get_errors` on the new plan and updated source-of-truth docs
+  - `git diff --check` on the touched docs
+- Codebase delta summary:
+  - Added `docs/superpowers/plans/2026-05-20-workflow-and-version-control-hardening-plan.md`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Execute Tasks 0 through 3 of the workflow hardening plan before more shared preview or production verification work.
+- After the workflow contract is in place, resume the remaining Stage 7 portal and webhook verification steps on top of a shared preview that is tied to a known pushed commit.
+
+---
+
+## Step 36 - Implement Workflow Contract Tasks 0 Through 3
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 7 retest workflow hardening before more portal/webhook verification)
+
+### Will Be Done
+
+- Implement Tasks 0 through 3 from the workflow and version-control hardening plan, then reset the shared preview alias onto a clean deployment tied to a pushed SHA so Stage 7 retests can resume on trustworthy provenance.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/workflow.md`, `docs/deployment-preflight.md`, `docs/superpowers/plans/2026-05-20-workflow-and-version-control-hardening-plan.md`
+- Codebase state: dirty `main...origin/main` at `ae958f9` with unrelated in-progress runtime and doc changes already present in the worktree; shared preview alias provenance was still ambiguous relative to a known pushed commit
+- Target files/tests: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/workflow.md`, `docs/deployment-preflight.md`, `docs/deployment-ledger.md`, `scripts/record-deployment.js`, `package.json`, `docs/superpowers/plans/2026-05-20-workflow-and-version-control-hardening-plan.md`, Vercel preview alias and deployment checks
+
+### Done
+
+- Implemented Task 0 by freezing risky shared-preview and production workflow paths in `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md`.
+- Implemented Task 1 by adding `docs/workflow.md`, defining branch roles, documenting the standard start-work flow, and treating dirty `main` as recovery rather than normal operation.
+- Implemented Task 2 by adding `docs/deployment-ledger.md`, adding `scripts/record-deployment.js`, wiring `npm run record:deployment`, and documenting the ledger requirement in the owning docs.
+- Implemented Task 3 by separating diagnostic preview from shared preview, defining alias rules, and documenting the retest contract in `README.md`, `docs/deployment-preflight.md`, `docs/agent-handoff.md`, and `docs/workflow.md`.
+- Created a clean detached git worktree at pushed `ae958f9`, published preview deployment `https://dirt-cat-records-k038629yi-dirt-cat-records-projects.vercel.app`, repointed the stable shared preview alias to that deployment, and recorded the provenance in `docs/deployment-ledger.md`.
+- Fixed a formatting bug in `scripts/record-deployment.js` so future ledger appends always start on a new line.
+- Smoke-validated the shared preview alias: `portal.html` returns `200`, `success.html` renders in the browser, `GET /api/checkout-config` returns public config, malformed `POST /api/webhooks/paypal` returns `400`, and the portal page loads the expected email + magic-link UI on the shared alias.
+
+### Context Check (After)
+
+- Validation run:
+  - `git diff --check -- README.md docs/roadmap.md docs/agent-handoff.md` (pass)
+  - `git diff --check -- README.md docs/agent-handoff.md docs/workflow.md` (pass)
+  - `node --check scripts/record-deployment.js && git diff --check -- README.md docs/agent-handoff.md docs/deployment-ledger.md package.json scripts/record-deployment.js` (pass)
+  - `git diff --check -- README.md docs/deployment-preflight.md docs/agent-handoff.md docs/roadmap.md docs/workflow.md` (pass)
+  - `node --check scripts/record-deployment.js && git diff --check -- docs/deployment-ledger.md scripts/record-deployment.js` (pass)
+  - `npx vercel alias ls` (pass, stable shared preview alias points at `dirt-cat-records-k038629yi-dirt-cat-records-projects.vercel.app`)
+  - `curl -I -sS https://dirt-cat-records-870dudemcgee-dirt-cat-records-projects.vercel.app/portal.html` (pass, `200`)
+  - `curl -sS https://dirt-cat-records-870dudemcgee-dirt-cat-records-projects.vercel.app/api/checkout-config` (pass)
+  - `curl -sS -o /dev/null -w '%{http_code}\n' -X POST https://dirt-cat-records-870dudemcgee-dirt-cat-records-projects.vercel.app/api/webhooks/paypal` (pass, `400` malformed-request response)
+  - shared-preview browser snapshot on `portal.html` and `success.html` (pass, pages render on the ledgered alias)
+- Codebase delta summary:
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Added `docs/workflow.md`
+  - Updated `docs/deployment-preflight.md`
+  - Added `docs/deployment-ledger.md`
+  - Added `scripts/record-deployment.js`
+  - Updated `package.json`
+  - Updated `docs/superpowers/plans/2026-05-20-workflow-and-version-control-hardening-plan.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Run one real portal magic-link test on the shared preview deployment recorded in `docs/deployment-ledger.md` and confirm first-send plus browser-side retry handling.
+- Run the next real checkout/webhook retest against that same shared preview alias before changing production.
+- After the preview truth gap is re-confirmed, deploy the same portal auth path to production and continue the ordered PayPal environment deepening plan.
+
+---
+
+## Step 37 - Publish Deep Modules Architecture Plan And Resync Source-Of-Truth Docs
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered architecture follow-on after Stage 7 and the PayPal environment plan)
+
+### Will Be Done
+
+- Turn the current architecture findings into one executable deep-modules plan, then wire that plan into the repo docs that steer future implementation work.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`, `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`, `CONTEXT.md`, `docs/adr/0001-paypal-metadata-versioning.md`, `docs/adr/0002-payment-purpose-routing.md`, `docs/adr/0003-delivery-lock-and-balance-gating.md`, `docs/adr/0004-portal-action-validation.md`
+- Skills reviewed before action: `using-superpowers`, `writing-plans`, `improve-codebase-architecture`, `doc-coauthoring`
+- Codebase state: docs-only planning slice; live worktree cleanliness and latest pushed commit must still be confirmed from git before executing any task from the new plan
+- Target files/tests: new `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`, `docs/execution-log.md`
+- Discriminating checks:
+  - confirm there is already a durable architecture gap register but no ordered deep-module execution plan
+  - confirm the repo source-of-truth docs can reference one new plan without freezing new runtime facts into multiple places
+
+### Done
+
+- Added `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md` as the ordered follow-on plan for deepening the Project payment transition, Project event schema, Quote lifecycle, Portal Action policy, and follow-up orchestration Modules.
+- Kept the execution order biased toward deep Modules: live-provider truth first, PayPal seam work second, then one workflow Module slice at a time.
+- Updated `README.md` so the operator-facing documentation map now points to the new deep-modules plan.
+- Updated `docs/roadmap.md` so the staged checklist now carries the ordered post-PayPal deepening slices explicitly.
+- Updated `docs/agent-handoff.md` so the next worker can place the deep-modules plan correctly relative to Stage 7 and the PayPal plan.
+- Updated `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md` so the durable review now points at the new ordered plan and recommended execution order.
+- Appended this execution-log entry instead of rewriting earlier historical steps.
+
+### Context Check (After)
+
+- Validation run:
+  - `get_errors` on `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`, and `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+  - `git diff --check -- README.md docs/roadmap.md docs/agent-handoff.md docs/execution-log.md docs/superpowers/specs/2026-05-20-architecture-readiness-review.md docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+- Codebase delta summary:
+  - Added `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Finish the active Stage 7 portal and checkout/webhook truth checks on the ledgered shared preview.
+- Execute `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md` in order while it remains the controlling uncertainty.
+- After that plan is no longer the bottleneck, execute the new deep-modules plan one Module slice at a time.
+
+---
+
+## Step 38 - Centralize PayPal Environment Configuration
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered follow-on after Stage 7 webhook proof)
+
+### Will Be Done
+
+- Add one owning PayPal environment configuration Module, migrate the current PayPal callers onto it, and lock down the shared behavior with focused tests.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`, `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`
+- Skills reviewed before action: `using-superpowers`, `executing-plans`
+- Codebase state: dirty `main...origin/main` at `ae958f9`; existing uncommitted changes were left intact and not reverted
+- Target files/tests: new `lib/paypal/environment-config.js`, `lib/paypal/client-factory.js`, `lib/paypal/webhook.js`, `lib/automation/setup-checks.js`, `api/create-paypal-order.js`, `test/paypal-client-factory.test.js`, `test/paypal-webhook.test.js`, `test/setup-checks.test.js`
+- Discriminating checks:
+  - confirm whether PayPal environment normalization and base-url selection are duplicated across multiple callers
+  - confirm whether a shared Module can replace that duplication without widening the existing PayPal caller Interfaces
+
+### Done
+
+- Added `lib/paypal/environment-config.js` as the owning Module for PayPal environment normalization, base-url selection, and non-secret client/webhook presence diagnostics.
+- Updated `lib/paypal/client-factory.js` to consume the shared environment configuration Module instead of reading raw env fields independently.
+- Updated `lib/paypal/webhook.js` so webhook signature verification and diagnostics now consume the same shared PayPal environment config.
+- Updated `lib/automation/setup-checks.js` so the payments provider detail now comes from the shared PayPal environment config rather than a hard-coded generic message.
+- Updated `api/create-paypal-order.js` to use the shared environment-config helpers and removed the recursive local `getPaypalBaseUrl` shadowing defect from that file.
+- Added focused tests for the missing-credentials fast-fail path and the normalized payments-check detail, while keeping existing webhook diagnostics coverage passing.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/paypal-client-factory.test.js test/paypal-webhook.test.js test/setup-checks.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `git diff --check -- api/create-paypal-order.js lib/automation/setup-checks.js lib/paypal/client-factory.js lib/paypal/environment-config.js lib/paypal/webhook.js test/paypal-client-factory.test.js test/paypal-webhook.test.js test/setup-checks.test.js` (pass)
+- Codebase delta summary:
+  - Added `lib/paypal/environment-config.js`
+  - Updated `lib/paypal/client-factory.js`
+  - Updated `lib/paypal/webhook.js`
+  - Updated `lib/automation/setup-checks.js`
+  - Updated `api/create-paypal-order.js`
+  - Updated `test/paypal-client-factory.test.js`
+  - Updated `test/paypal-webhook.test.js`
+  - Updated `test/setup-checks.test.js`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Finish the active Stage 7 portal and checkout/webhook truth checks on the ledgered shared preview if they are still the controlling uncertainty.
+- Resume `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md` at Task 2: split webhook identity from request verification.
+- After the PayPal plan is complete, return to the ordered deep-modules architecture plan.
+
+---
+
+## Step 39 - Split PayPal Webhook Identity From Request Verification
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered follow-on after Stage 7 webhook proof)
+
+### Will Be Done
+
+- Add a constructed PayPal webhook verifier Module so webhook identity and environment consistency are validated before request-time signature verification.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
+- Codebase state: dirty `main...origin/main` at `ae958f9`; existing uncommitted changes were left intact and not reverted
+- Target files/tests: new `lib/paypal/webhook-verifier.js`, `lib/paypal/webhook.js`, `api/webhooks/paypal.js`, `package.json`, `test/paypal-webhook.test.js`, `test/paypal-webhook-route.test.js`
+- Discriminating checks:
+  - confirm whether webhook id and environment validity can move to construction time without changing the public route behavior
+  - confirm the default route path still verifies signatures through PayPal and handles configuration failure through the existing server-error path
+
+### Done
+
+- Added `lib/paypal/webhook-verifier.js` as the owning Module for constructed PayPal webhook identity and request-time signature verification.
+- Updated `lib/paypal/webhook.js` so the legacy `verifyPayPalWebhookSignature` Interface delegates through the constructed verifier, preserving existing callers while narrowing the implementation.
+- Updated `api/webhooks/paypal.js` so the default handler path constructs the verifier once and converts construction-time configuration failures into the existing request-time server-error path.
+- Added `lib/paypal/webhook-verifier.js` to `npm run check:js`.
+- Added focused tests for missing webhook id, mismatched verifier environment inputs, and the route's default verifier path.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/paypal-webhook.test.js test/paypal-webhook-route.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `git diff --check -- api/create-paypal-order.js api/webhooks/paypal.js lib/automation/setup-checks.js lib/paypal/client-factory.js lib/paypal/environment-config.js lib/paypal/webhook-verifier.js lib/paypal/webhook.js package.json test/paypal-client-factory.test.js test/paypal-webhook-route.test.js test/paypal-webhook.test.js test/setup-checks.test.js` (pass)
+- Codebase delta summary:
+  - Added `lib/paypal/webhook-verifier.js`
+  - Updated `lib/paypal/webhook.js`
+  - Updated `api/webhooks/paypal.js`
+  - Updated `package.json`
+  - Updated `test/paypal-webhook.test.js`
+  - Updated `test/paypal-webhook-route.test.js`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Finish the active Stage 7 portal and checkout/webhook truth checks on the ledgered shared preview if they are still the controlling uncertainty.
+- Resume `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md` at Task 3: unify PayPal readiness checks.
+- After the PayPal plan is complete, return to the ordered deep-modules architecture plan.
+
+---
+
+## Step 40 - Unify PayPal Readiness Checks
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered follow-on after Stage 7 webhook proof)
+
+### Will Be Done
+
+- Add one non-network PayPal readiness Module and consume it from setup checks and sandbox test mode so both surfaces report the same configuration conclusion.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
+- Codebase state: dirty `main...origin/main` at `ae958f9`; existing uncommitted changes were left intact and not reverted
+- Target files/tests: new `lib/paypal/readiness.js`, `lib/automation/setup-checks.js`, `lib/automation/test-mode-runner.js`, `package.json`, `test/setup-checks.test.js`, `test/test-mode-runner.test.js`, `test/admin-setup-api.test.js`
+- Discriminating checks:
+  - confirm setup checks and sandbox mode can share a deterministic readiness conclusion without making focused tests hit PayPal's network
+  - confirm sandbox test mode records PayPal readiness before creating workflow artifacts
+
+### Done
+
+- Added `lib/paypal/readiness.js` as the owning Module for PayPal readiness diagnostics built on the shared environment config and webhook verifier seams.
+- Updated `lib/automation/setup-checks.js` so the payments provider now uses `checkPayPalReadiness` and reports pass/fail detail consistently.
+- Updated `lib/automation/test-mode-runner.js` so sandbox runs add a `paypal_readiness` step before workflow artifacts are created.
+- Added `lib/paypal/readiness.js` to `npm run check:js`.
+- Updated focused setup and sandbox tests so PayPal readiness is explicit in test fixtures and assertions.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/setup-checks.test.js test/test-mode-runner.test.js test/admin-setup-api.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `git diff --check -- lib/paypal/readiness.js lib/automation/setup-checks.js lib/automation/test-mode-runner.js package.json test/setup-checks.test.js test/test-mode-runner.test.js test/admin-setup-api.test.js` (pass)
+- Codebase delta summary:
+  - Added `lib/paypal/readiness.js`
+  - Updated `lib/automation/setup-checks.js`
+  - Updated `lib/automation/test-mode-runner.js`
+  - Updated `package.json`
+  - Updated `test/setup-checks.test.js`
+  - Updated `test/test-mode-runner.test.js`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Finish the active Stage 7 portal and checkout/webhook truth checks on the ledgered shared preview if they are still the controlling uncertainty.
+- Resume `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md` at Task 4: add explicit runtime environment lifecycle invariants for development, preview, and production.
+- After the PayPal plan is complete, return to the ordered deep-modules architecture plan.
+
+---
+
+## Step 41 - Add Runtime Environment Lifecycle Invariants
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered follow-on after Stage 7 webhook proof)
+
+### Will Be Done
+
+- Add one runtime environment lifecycle Module and make PayPal readiness enforce the preview/production PayPal environment invariant.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
+- Codebase state: dirty `main...origin/main` at `ae958f9`; existing uncommitted changes were left intact and not reverted
+- Target files/tests: new `lib/env/runtime-environment.js`, `lib/paypal/environment-config.js`, `lib/paypal/readiness.js`, `lib/automation/business-config.js`, `package.json`, `test/business-config.test.js`, `test/setup-checks.test.js`
+- Discriminating checks:
+  - define the deployment lifecycle from `VERCEL_ENV` first and local `NODE_ENV` only as fallback
+  - require production to use PayPal `live` and preview/development to use PayPal `sandbox`
+
+### Done
+
+- Added `lib/env/runtime-environment.js` as the owning Module for development, preview, and production lifecycle inference.
+- Added PayPal lifecycle helpers that describe the expected PayPal environment for the active runtime.
+- Updated `lib/paypal/environment-config.js` to expose `runtimeEnvironment`, `expectedPayPalEnv`, and `paypalEnvMatchesRuntime` alongside existing PayPal config diagnostics.
+- Updated `lib/paypal/readiness.js` so readiness fails early when PayPal env conflicts with the runtime lifecycle.
+- Updated `lib/automation/business-config.js` so business config and its redacted output expose the runtime lifecycle.
+- Added `lib/env/runtime-environment.js` to `npm run check:js`.
+- Added focused tests for business config lifecycle exposure and PayPal readiness failure on production/sandbox mismatch.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/business-config.test.js test/setup-checks.test.js` (pass)
+  - `node --test test/paypal-client-factory.test.js test/paypal-webhook.test.js test/paypal-webhook-route.test.js test/setup-checks.test.js test/test-mode-runner.test.js test/admin-setup-api.test.js test/business-config.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `git diff --check -- lib/env/runtime-environment.js lib/paypal/environment-config.js lib/paypal/readiness.js lib/automation/business-config.js package.json test/business-config.test.js test/setup-checks.test.js` (pass)
+  - `get_errors` on touched runtime lifecycle files and tests (pass)
+- Codebase delta summary:
+  - Added `lib/env/runtime-environment.js`
+  - Updated `lib/paypal/environment-config.js`
+  - Updated `lib/paypal/readiness.js`
+  - Updated `lib/automation/business-config.js`
+  - Updated `package.json`
+  - Updated `test/business-config.test.js`
+  - Updated `test/setup-checks.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Finish the active Stage 7 portal and checkout/webhook truth checks on the ledgered shared preview if they are still the controlling uncertainty.
+- Resume `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md` at Task 5: extend payment-purpose routing with environment context.
+- After the PayPal plan is complete, return to the ordered deep-modules architecture plan.
+
+---
+
+## Step 42 - Thread Runtime Context Through Payment Routing
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered follow-on after Stage 7 webhook proof)
+
+### Will Be Done
+
+- Extend the payment-purpose routing Interface so handlers can reason about runtime lifecycle context while preserving existing Checkout Payment, Quote Payment, and Balance Payment behavior.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
+- Skills reviewed before action: `using-superpowers`, `executing-plans`
+- Codebase state: dirty `main...origin/main` at `ae958f9`; existing uncommitted changes were left intact and not reverted
+- Target files/tests: `lib/paypal/payment-router.js`, `lib/paypal/webhook.js`, `test/payment-router.test.js`, `test/paypal-webhook.test.js`
+- Discriminating checks:
+  - preserve the existing handler first argument and normalized-purpose behavior
+  - avoid changing the PayPal metadata format unless environment context proves it is required
+
+### Done
+
+- Updated `lib/paypal/payment-router.js` so `routePaymentPurpose` passes a second handler argument containing `purpose`, `runtimeEnvironment`, `expectedPayPalEnv`, and `paypalEnv`.
+- Added `buildPaymentRouteContext` as the context-building Interface for callers that need to inspect routing lifecycle state directly.
+- Updated `lib/paypal/webhook.js` so webhook parsing passes the active env into the payment-purpose routing seam without changing the resulting payment records.
+- Left `lib/paypal/order-metadata.js` unchanged because no metadata format change was required.
+- Added focused tests proving route handlers receive runtime context and webhook parsing remains stable with production/live env context.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/payment-router.test.js test/paypal-webhook.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `git diff --check -- lib/paypal/payment-router.js lib/paypal/webhook.js test/payment-router.test.js test/paypal-webhook.test.js` (pass)
+  - `get_errors` on touched routing and webhook files/tests (pass)
+- Codebase delta summary:
+  - Updated `lib/paypal/payment-router.js`
+  - Updated `lib/paypal/webhook.js`
+  - Updated `test/payment-router.test.js`
+  - Updated `test/paypal-webhook.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Finish any remaining live-provider launch checks if they are still the controlling uncertainty.
+- Execute `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md` in order, starting with the Project payment transition Module slice.
+
+---
+
+## Step 43 - Clean Worktree Classification And Project Payment Transition Module
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered deep-module workflow deepening)
+
+### Will Be Done
+
+- Classify dirty and untracked repo files before deleting anything, then execute the Project payment transition Module slice from the deep-modules architecture plan.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+- Skills reviewed before action: `using-superpowers`, `executing-plans`
+- Codebase state: dirty `main...origin/main`; existing uncommitted changes were left intact and not reverted
+- Cleanup checks:
+  - `git status --porcelain=v1`
+  - `git diff --name-status`
+  - `git ls-files --others --exclude-standard`
+  - reference checks for untracked files
+  - temporary/backup-file scan
+- Cleanup conclusion: no source files were deleted. Untracked files were referenced intentional modules/docs/tests, and ignored files were local secrets/runtime state such as `.env.local`, `.vercel/`, `node_modules/`, and Supabase local state.
+- Target files/tests: new `lib/automation/project-payment-transition.js`, `lib/automation/studio-workflow.js`, `lib/automation/balance-payment-handler.js`, `lib/automation/delivery-lock.js`, `package.json`, new `test/project-payment-transition.test.js`
+
+### Done
+
+- Added `lib/automation/project-payment-transition.js` as the owning Module for Project financial transition policy.
+- Moved checkout project creation financial fields, quote payment conversion fields, balance payment math, Project status, balance due, amount paid, and Delivery Lock outcomes behind the new Module.
+- Updated `lib/automation/studio-workflow.js` so checkout and quote payment paths consume transition outputs instead of recomputing status and lock policy inline.
+- Updated `lib/automation/balance-payment-handler.js` so balance payments consume transition outputs and remain focused on lookup, persistence, event recording, and linking.
+- Collapsed `lib/automation/delivery-lock.js` into a compatibility alias over the deeper Project payment transition Module.
+- Added direct Module tests for checkout deposit locking, quote conversion to balance due, and balance payment unlock after full payment.
+- Added the new Module to `npm run check:js`.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/project-payment-transition.test.js test/studio-workflow.test.js test/payment-router.test.js test/balance-payment-validator.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `git diff --check -- lib/automation/project-payment-transition.js lib/automation/studio-workflow.js lib/automation/balance-payment-handler.js lib/automation/delivery-lock.js package.json test/project-payment-transition.test.js` (pass)
+  - `get_errors` on touched payment transition files/tests (pass)
+- Codebase delta summary:
+  - Added `lib/automation/project-payment-transition.js`
+  - Added `test/project-payment-transition.test.js`
+  - Updated `lib/automation/studio-workflow.js`
+  - Updated `lib/automation/balance-payment-handler.js`
+  - Updated `lib/automation/delivery-lock.js`
+  - Updated `package.json`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Continue `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md` at Task 2: deepen the Project event schema Module.
+
+---
+
+## Step 44 - Deepen Project Event Schema Module
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered deep-module workflow deepening)
+
+### Will Be Done
+
+- Add one owning Project event schema Module and move event meaning out of workflow, portal, follow-up, and admin persistence callers.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+- Codebase state: dirty `main...origin/main`; existing uncommitted changes were left intact and not reverted
+- Target files/tests: new `lib/automation/project-event-schema.js`, `lib/automation/workflow-recorder.js`, `lib/db/studio-records.js`, `lib/automation/follow-up-dispatcher.js`, `api/portal/actions.js`, `lib/automation/studio-workflow.js`, `lib/automation/balance-payment-handler.js`, `package.json`, new `test/project-event-schema.test.js`
+- Discriminating checks:
+  - identify repeated Project event types, actors, messages, and metadata shapes before creating the Module
+  - keep `workflow-recorder.js` focused on sequencing/persistence rather than event meaning
+  - preserve existing event type strings and metadata contracts in focused tests
+
+### Done
+
+- Added `lib/automation/project-event-schema.js` with canonical Project event type constants, actor constants, event normalization, and named builders for workflow, portal, follow-up, and admin event families.
+- Added `test/project-event-schema.test.js` covering canonical shape normalization, database-style input normalization, payment/portal event builders, and follow-up queue metadata.
+- Updated `lib/db/studio-records.js` so `createProjectEvent` normalizes event shape at the Supabase boundary and admin/follow-up queue helpers use schema builders.
+- Updated `lib/automation/studio-workflow.js`, `lib/automation/balance-payment-handler.js`, `lib/automation/follow-up-dispatcher.js`, and `api/portal/actions.js` so callers consume event builders instead of assembling raw event payloads inline.
+- Left `lib/automation/workflow-recorder.js` focused on operation sequencing; event meaning now lives in the schema Module before recorder calls.
+- Added the new Module to `npm run check:js`.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/project-event-schema.test.js test/studio-records.test.js test/follow-up-dispatcher.test.js test/portal-actions.test.js test/studio-workflow.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `git diff --check -- lib/automation/project-event-schema.js lib/db/studio-records.js lib/automation/studio-workflow.js lib/automation/balance-payment-handler.js lib/automation/follow-up-dispatcher.js api/portal/actions.js package.json test/project-event-schema.test.js` (pass)
+  - `get_errors` on touched event schema files/tests (pass)
+- Codebase delta summary:
+  - Added `lib/automation/project-event-schema.js`
+  - Added `test/project-event-schema.test.js`
+  - Updated `lib/db/studio-records.js`
+  - Updated `lib/automation/studio-workflow.js`
+  - Updated `lib/automation/balance-payment-handler.js`
+  - Updated `lib/automation/follow-up-dispatcher.js`
+  - Updated `api/portal/actions.js`
+  - Updated `package.json`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Continue `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md` at Task 3: deepen the Quote lifecycle Module.
+
+---
+
+## Step 45 - Deepen Quote Lifecycle Module
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered deep-module workflow deepening)
+
+### Will Be Done
+
+- Add one owning Quote lifecycle Module and move quote state transition decisions out of admin persistence, portal checkout, and payment confirmation callers.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+- Codebase state: dirty `main...origin/main`; existing uncommitted changes were left intact and not reverted
+- Target files/tests: new `lib/automation/quote-lifecycle.js`, `lib/db/studio-records.js`, `api/portal/actions.js`, `lib/automation/project-payment-transition.js`, `package.json`, new `test/quote-lifecycle.test.js`, `test/admin-quotes-api.test.js`, `test/portal-accept-quote-api.test.js`, `test/studio-workflow.test.js`, `test/project-payment-transition.test.js`
+- Discriminating checks:
+  - keep admin quote create/send and portal quote checkout as Adapters over quote lifecycle decisions
+  - preserve payment-purpose routing and metadata behavior from the accepted ADRs
+  - keep Project financial transition policy separate from Quote state transitions
+
+### Done
+
+- Added `lib/automation/quote-lifecycle.js` with Quote status constants and lifecycle functions for created project patches, sent quote/project transitions, viewed patches, checkout intent calculation, and accepted quote patches.
+- Updated `lib/db/studio-records.js` so admin quote creation and sending consume lifecycle transitions instead of assembling quote/project state patches inline.
+- Updated `api/portal/actions.js` so quote checkout start uses lifecycle checkout eligibility, amount-due calculation, and viewed-state patching.
+- Updated `lib/automation/project-payment-transition.js` so accepted quote patch construction is delegated to the Quote lifecycle Module while Project payment transition remains the owner of Project financial state.
+- Added direct Quote lifecycle tests and route-level coverage that accepted quotes are rejected before checkout starts.
+- Added the new Module to `npm run check:js`.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/quote-lifecycle.test.js test/admin-quotes-api.test.js test/portal-accept-quote-api.test.js test/studio-workflow.test.js test/project-payment-transition.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `git diff --check -- lib/automation/quote-lifecycle.js lib/automation/project-payment-transition.js api/portal/actions.js lib/db/studio-records.js package.json test/quote-lifecycle.test.js test/portal-accept-quote-api.test.js` (pass)
+  - `get_errors` on touched quote lifecycle files/tests (pass)
+- Codebase delta summary:
+  - Added `lib/automation/quote-lifecycle.js`
+  - Added `test/quote-lifecycle.test.js`
+  - Updated `lib/db/studio-records.js`
+  - Updated `api/portal/actions.js`
+  - Updated `lib/automation/project-payment-transition.js`
+  - Updated `test/portal-accept-quote-api.test.js`
+  - Updated `package.json`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Continue `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md` at Task 4: deepen the Portal Action policy Module.
+
+---
+
+## Step 46 - Deepen Portal Action Policy Module
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered deep-module workflow deepening)
+
+### Will Be Done
+
+- Add one owning Portal Action policy Module and route browser visibility plus server authority checks through the same eligibility decisions.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+- Codebase state: dirty `main...origin/main`; existing uncommitted changes were left intact and not reverted
+- Target files/tests: new `lib/portal/action-policy.js`, `lib/portal/action-rules.js`, `lib/portal/balance-payment-validator.js`, `api/portal/actions.js`, `portal.html`, `package.json`, new `test/portal-action-policy.test.js`, `test/portal-action-rules.test.js`, `test/balance-payment-validator.test.js`, `test/portal-actions.test.js`, `test/portal-view.test.js`
+- Discriminating checks:
+  - preserve ADR-0004 dual-layer validation by keeping browser/shared visibility and server authority as separate Adapters
+  - make both Adapters consume one real policy seam for Balance Payment and Final Delivery approval
+  - preserve existing portal action names and denial messages where customers already see them
+
+### Done
+
+- Added `lib/portal/action-policy.js` with `evaluatePortalAction`, `getPortalActionPolicy`, and `getAllowedPortalActions` for Balance Payment and Final Approval decisions.
+- Updated `lib/portal/action-rules.js` so the browser/shared `canPayBalance`, `canApproveFinal`, and `getAllowedPortalActions` functions are compatibility Adapters over the policy Module.
+- Updated `lib/portal/balance-payment-validator.js` so server balance payment authority uses the same policy reason, status, error, and amount-cents decision as visibility.
+- Updated `api/portal/actions.js` so final approval authority uses the policy Module instead of an inline status/lock check.
+- Added `lib/portal/action-policy.js` to `portal.html` before `action-rules.js` and to `npm run check:js`.
+- Added direct policy tests plus parity coverage for the action-rules Adapter, balance payment validator, and final-approval route.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/portal-action-policy.test.js test/portal-action-rules.test.js test/balance-payment-validator.test.js test/portal-actions.test.js test/portal-view.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `git diff --check -- lib/portal/action-policy.js lib/portal/action-rules.js lib/portal/balance-payment-validator.js api/portal/actions.js portal.html package.json test/portal-action-policy.test.js test/portal-action-rules.test.js test/balance-payment-validator.test.js test/portal-actions.test.js` (pass)
+  - `get_errors` on touched Portal Action policy files/tests (pass)
+- Codebase delta summary:
+  - Added `lib/portal/action-policy.js`
+  - Added `test/portal-action-policy.test.js`
+  - Updated `lib/portal/action-rules.js`
+  - Updated `lib/portal/balance-payment-validator.js`
+  - Updated `api/portal/actions.js`
+  - Updated `portal.html`
+  - Updated `test/portal-action-rules.test.js`
+  - Updated `test/balance-payment-validator.test.js`
+  - Updated `test/portal-actions.test.js`
+  - Updated `package.json`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Continue `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md` at Task 5: deepen the follow-up orchestration Module.
+
+---
+
+## Step 47 - Deepen Follow-Up Orchestration Module
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (ordered deep-module workflow deepening)
+
+### Will Be Done
+
+- Add one owning follow-up orchestration Module and move candidate selection, queue intent normalization, enqueue outcome classification, and cron pipeline sequencing behind one Interface.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+- Codebase state: dirty `main...origin/main`; existing uncommitted changes were left intact and not reverted
+- Target files/tests: new `lib/automation/follow-up-orchestrator.js`, `lib/automation/follow-up-selector.js`, `lib/automation/follow-up-dispatcher.js`, `lib/db/studio-records.js`, `api/cron/follow-ups.js`, `package.json`, new `test/follow-up-orchestrator.test.js`, `test/follow-up-selector.test.js`, `test/follow-up-dispatcher.test.js`, `test/follow-up-cron-api.test.js`, `test/studio-records.test.js`
+- Discriminating checks:
+  - keep Supabase persistence in `studio-records.js` and email transport/template dispatch in `follow-up-dispatcher.js`
+  - make cron an Adapter over one run-pipeline Interface
+  - preserve existing follow-up job, event, and email-event payload contracts
+
+### Done
+
+- Added `lib/automation/follow-up-orchestrator.js` with follow-up candidate selection, queue intent normalization, duplicate/enqueue outcome classification, and `runFollowUpPipeline` for dry-run, queue, and optional dispatch runs.
+- Updated `api/cron/follow-ups.js` so the Vercel cron route delegates pipeline sequencing to `runFollowUpPipeline` instead of assembling candidates, queue results, and dispatch results inline.
+- Updated `lib/db/studio-records.js` so `getFollowUpCandidates` and `queueFollowUpJobs` use the orchestrator for selection, persistence-ready job intent, duplicate skips, and enqueue failures while Supabase writes remain in the DB adapter.
+- Kept `lib/automation/follow-up-dispatcher.js` as the email transport/template dispatch Adapter.
+- Added direct orchestration tests covering candidate selection delegation, queue-intent normalization, queue outcome builders, dry-run payloads, and queue+dispatch pipeline runs.
+- Added the new Module to `npm run check:js`.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/follow-up-orchestrator.test.js test/follow-up-selector.test.js test/follow-up-dispatcher.test.js test/follow-up-cron-api.test.js test/studio-records.test.js` (pass)
+  - `npm run check:js` (pass)
+  - `git diff --check -- lib/automation/follow-up-orchestrator.js lib/db/studio-records.js api/cron/follow-ups.js package.json test/follow-up-orchestrator.test.js` (pass)
+  - `get_errors` on touched follow-up orchestration files/tests (pass)
+- Codebase delta summary:
+  - Added `lib/automation/follow-up-orchestrator.js`
+  - Added `test/follow-up-orchestrator.test.js`
+  - Updated `lib/db/studio-records.js`
+  - Updated `api/cron/follow-ups.js`
+  - Updated `package.json`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Continue `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md` at Task 6: reassess whether email sequencing still needs its own deep Module.
