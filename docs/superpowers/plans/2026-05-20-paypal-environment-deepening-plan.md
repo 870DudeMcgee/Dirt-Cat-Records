@@ -8,6 +8,8 @@
 
 **Architecture:** the existing Checkout Payment, Quote Payment, Balance Payment, Delivery Lock, and Portal Action seams already have central modules. This plan targets the remaining shallow PayPal environment and webhook seams without reopening the accepted ADRs unless implementation forces a new metadata decision.
 
+Related durable review: `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`
+
 **Tech Stack:** Vercel Functions, PayPal REST + webhooks, Supabase, Google Drive, Resend, static frontend, Node test runner.
 
 ---
@@ -17,11 +19,13 @@
 - Working repo: `/Users/jewelbait/Desktop/DirtCatRecords`
 - Branch: `main`
 - Remote: `https://github.com/870DudeMcgee/Dirt-Cat-Records.git`
-- Current commit: `27aabae`
-- Repo state: clean `main...origin/main`, no uncommitted changes, no local-only commits on `main`
+- Current baseline commit: `b9436bd`
+- Repo state note: use `git status -sb` and `git log` as the source of truth for worktree cleanliness; status docs can lag behind `HEAD` while doc-state resync is in progress
 - Known branch note: `studio-automation-system` exists as another branch pointer but is not checked out and does not affect `main`
 - Stage 7 state: preview checkout reaches PayPal sandbox and returns to `success.html`; the unresolved proof gap is the real sandbox webhook/automation round-trip
 - Documentation caveat: some historical `vercel.app` preview URLs remain in append-only history docs and older plan docs; they are not active runtime configuration
+- Env-audit caveat: on this machine, `npx vercel env pull` can preserve key names while writing empty placeholders for pulled secrets, so use pulled files for key-presence/profile checks rather than proof that deployed secret values are populated
+- Deployment caveat: treat the repo as operating at the Vercel Hobby function cap unless a fresh function-count check proves otherwise; do not add new API entrypoints casually during this plan
 
 ## Source Documents
 

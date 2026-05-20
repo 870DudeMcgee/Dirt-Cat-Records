@@ -1077,88 +1077,89 @@ Roadmap link: `docs/roadmap.md` (Stage 0 setup reliability + Stage 7 workflow ha
 
 ---
 
-## Step 23 - Lock In Daily Workflow And Supabase Fallback
+## Step 23 - Resync Live-State Docs To b9436bd Workflow Reality
 
 Date/Time: 2026-05-20
 Owner: GitHub Copilot + Josh
-Roadmap link: `docs/roadmap.md` (Stage 0 setup reliability + Stage 7 workflow hardening)
+Roadmap link: `docs/roadmap.md` (Stage 0 source-of-truth hygiene + Stage 7 launch hardening)
 
 ### Will Be Done
 
-- Add a concise daily workflow checklist to the operator docs and explicitly document that the Supabase VS Code sidebar is currently non-authoritative while Vercel is working again.
+- Update the live-state docs so they match the current `b9436bd` baseline, the package/tooling reality, and the latest env-audit caveat before resuming implementation work.
 
 ### Context Check (Before)
 
-- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
-- Codebase state: workflow tooling is in place, Vercel extension use is now viable again, Supabase CLI is on `PATH`, but the Supabase sidebar still fails silently despite the local stack being healthy
-- Target files/tests: `README.md`, `docs/agent-handoff.md`, `docs/roadmap.md`
-- Discriminating check: verify the doc edits are diagnostics-clean and pass `git diff --check`
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
+- Codebase state: `main...origin/main` at `b9436bd` with doc-only drift in `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and `docs/execution-log.md`
+- Target files/tests: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`, `docs/execution-log.md`
+- Discriminating checks: confirm package/tooling reality from `package.json` and `.vscode/tasks.json`; confirm whether env-pull parity findings reflect missing key names or empty pulled values
 
 ### Done
 
-- Added a `Daily Workflow` checklist to `README.md` covering local runtime startup, env checks, provider-authoritative surfaces, and pre-push guardrails.
-- Documented that the Supabase sidebar should be treated as optional on this machine and that local Studio plus the CLI remain the working inspection path.
-- Updated `docs/agent-handoff.md` so the next session treats Vercel as useful in-editor again while keeping Supabase CLI/Studio-first.
-- Updated `docs/roadmap.md` so the workflow tooling state reflects the current practical split: Vercel usable in-editor, Supabase still CLI/Studio-first.
+- Updated `README.md` so the current code baseline points at `b9436bd`, package-level `npm run dev:stack` is described accurately, and the env audit section now warns that pulled Vercel env files can contain empty placeholders on this machine.
+- Updated `docs/roadmap.md` so the Stage 7/current-workflow state matches the `b9436bd` baseline and the package-level local startup reality.
+- Updated `docs/agent-handoff.md` so the current repo state, last pushed commit, recently landed workflow changes, and workflow caveats all match the latest codebase reality.
+- Updated `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md` so the plan starts from `b9436bd` and reflects the current env-audit caveat.
+- Appended this execution-log entry instead of rewriting older historical steps.
 
 ### Context Check (After)
 
 - Validation run:
-  - `get_errors` on `README.md`, `docs/agent-handoff.md`, and `docs/roadmap.md` (pass)
-  - `git diff --check` (pass)
+  - `get_errors` on the updated doc files
+  - `git diff --check`
 - Codebase delta summary:
   - Updated `README.md`
-  - Updated `docs/agent-handoff.md`
   - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
   - Updated `docs/execution-log.md`
 
 ### Needs To Be Done Next
 
-- Use the new daily workflow as the default operating loop for Stage 7 work.
-- Only revisit the Supabase extension if extension-host logs show a clear actionable failure instead of a silent blank panel.
+- Finish the doc-state sync by validating the updated files and reviewing the resulting worktree.
+- Once the live-state docs are internally consistent, resume Stage 7 webhook verification from the current preview deployment.
 
 ---
 
-## Step 24 - Add One-Command Local Stack Startup
+## Step 24 - Publish Architecture Readiness Review And Remove Doc Drift Traps
 
 Date/Time: 2026-05-20
 Owner: GitHub Copilot + Josh
-Roadmap link: `docs/roadmap.md` (Stage 0 setup reliability + Stage 7 workflow hardening)
+Roadmap link: `docs/roadmap.md` (Stage 0 source-of-truth hygiene + Stage 7 launch hardening)
 
 ### Will Be Done
 
-- Add a single repo command and matching VS Code task that start local Supabase first and then hand off to the existing Vercel dev runtime, then document that as the default full local workflow.
+- Add one durable architecture readiness review, then resync the editable source-of-truth docs so agents and operators stop depending on duplicated preview URLs, frozen commit hashes, and other drift-prone state prose.
 
 ### Context Check (Before)
 
-- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
-- Codebase state: local Supabase and Vercel workflows were both usable, but required two separate startup commands each session
-- Target files/tests: `package.json`, `.vscode/tasks.json`, `README.md`, `docs/agent-handoff.md`, `docs/roadmap.md`
-- Discriminating check: run the new combined command and confirm it reaches the existing `vercel dev` ready state after Supabase startup
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`, `CONTEXT.md`, `docs/adr/0001-paypal-metadata-versioning.md`, `docs/adr/0002-payment-purpose-routing.md`, `docs/adr/0003-delivery-lock-and-balance-gating.md`, `docs/adr/0004-portal-action-validation.md`
+- Codebase state: `main...origin/main` with doc-only drift in `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, and `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`; runtime code still validated earlier in the session through `npm run deploy:preflight`
+- Target files/tests: new `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`, `docs/execution-log.md`
+- Discriminating check: confirm the doc sync lands without whitespace or patch-hygiene regressions before any commit or push
 
 ### Done
 
-- Added `npm run dev:stack` in `package.json` as `npx supabase start && npm run dev:vercel`.
-- Added a matching background VS Code task in `.vscode/tasks.json`.
-- Ran the combined command and confirmed it tolerates an already-running Supabase stack, then starts `vercel dev` and reaches `http://localhost:3000`.
-- Updated `README.md` so the combined command is the documented normal full local workflow while still leaving the separate commands available when needed.
-- Updated `docs/agent-handoff.md` and `docs/roadmap.md` so the new one-command startup path is visible in handoff and workflow status.
+- Added `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md` as the durable gap register for current architecture friction, immediate blockers, and anti-drift rules.
+- Updated `README.md` with a documentation map, anti-drift guidance, the architecture review link, and a less brittle current-state summary.
+- Updated `docs/roadmap.md` so Stage 7 points at the real webhook truth gap without freezing the active preview URL into another editable doc.
+- Updated `docs/agent-handoff.md` so the next worker starts from git and Vercel as the live state source of truth, while still inheriting the current next action and architecture constraints.
+- Updated `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md` so the plan references the new durable review and explicitly carries the Hobby-cap deployment constraint.
+- Appended this execution-log entry instead of rewriting earlier historical steps.
 
 ### Context Check (After)
 
 - Validation run:
-  - `npm run dev:stack` (pass: Supabase ready, then `vercel dev` ready at `http://localhost:3000`)
-  - `get_errors` on `README.md`, `docs/agent-handoff.md`, `docs/roadmap.md` (pass)
   - `git diff --check` (pass)
 - Codebase delta summary:
-  - Updated `package.json`
-  - Updated `.vscode/tasks.json`
+  - Added `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`
   - Updated `README.md`
-  - Updated `docs/agent-handoff.md`
   - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
   - Updated `docs/execution-log.md`
 
 ### Needs To Be Done Next
 
-- Use `npm run dev:stack` as the default local startup path for future Stage 7 work.
-- If startup ever feels slow or noisy, consider a future follow-up to add a dedicated stop/status helper pair, but no extra orchestration is required now.
+- Re-run doc hygiene validation after this append-only log update.
+- Commit and push the documentation sync so the next session starts from a clean, indexed repo state.

@@ -4,15 +4,18 @@ This document tracks the staged work needed to turn the current site, checkout, 
 
 For current handoff context, see [`docs/agent-handoff.md`](agent-handoff.md).
 For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [`docs/adr/`](adr).
+For the durable architecture gap register and anti-drift rules, see [`docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`](superpowers/specs/2026-05-20-architecture-readiness-review.md).
 
-Current next focus: Stage 7 launch hardening through real-provider validation and launch-checklist completion.
+Current next focus: Stage 7 launch hardening through the real PayPal sandbox webhook truth gap, then launch-checklist completion.
 Ordered architecture follow-on: [`docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`](superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md).
 
-Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run now passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, and preview now has the correct sandbox PayPal environment split. The latest preview deployment is public enough for webhook testing, its deployed checkout flow reaches sandbox PayPal, and the latest diagnostic preview now reaches `success.html` after sandbox payment approval. The remaining work is the narrower launch-hardening slice: confirm the real webhook/automation round-trip after the now-successful preview checkout, verify production-domain magic-link behavior, verify Drive sharing and Resend deliverability, then restore preview protection and close the launch checklist.
+Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, and preview has the correct sandbox PayPal environment split. The active preview target for webhook testing must be confirmed from Vercel before use, because preview URLs are intentionally no longer duplicated across editable docs. The remaining work is the narrower launch-hardening slice: confirm the real webhook and automation round-trip after the now-successful preview checkout, verify production-domain magic-link behavior, verify Drive sharing and Resend deliverability, then restore preview protection and close the launch checklist.
 
-Current workflow tooling state: the repo now includes workspace-level VS Code settings, extension recommendations, reusable tasks, a combined `npm run dev:stack` local startup path, an environment parity audit, and a GitHub Actions preflight workflow so the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, GitLens, Thunder Client, and Prettier extensions all have repo-native surfaces to work with. In practice, Vercel is working in-editor again, while Supabase should still be treated as a CLI/Studio-first workflow until the sidebar stops failing silently.
+Current workflow tooling state: the repo now includes workspace-level VS Code settings, extension recommendations, reusable tasks, a package-level `npm run dev:stack` convenience script, an environment parity audit, a GitHub Actions preflight workflow, and a dedicated architecture readiness review so the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, GitLens, Thunder Client, and Prettier workflow has one durable document map.
 
 Permanent workflow constraint: before every commit/push meant to be runtime-ready, run the credential sanity gate from `README.md` and `docs/execution-trail.md`, including `npm run check:env`, the raw Google Drive folder id check, and the documented preview/production env audit when deployed provider behavior changes.
+
+Permanent documentation constraint: do not freeze preview URLs, exact worktree cleanliness, or point-in-time commit hashes into multiple editable docs. Confirm them from Vercel and git, keep the next action in `docs/agent-handoff.md`, and keep historical evidence in `docs/execution-log.md`.
 
 ## Execution Rule
 
@@ -118,15 +121,14 @@ Current status:
 
 - Local setup-wizard credential gate passes again with the custom `dirtcatrecords.com` Resend sender.
 - Deploy guardrails pass locally and on push.
+- The deployment seam should be treated as `12/12` on the Vercel Hobby function cap until a fresh function-count check proves otherwise.
 - Production public runtime responds correctly on the canonical `www` host.
 - Production env names now cover the documented runtime requirements.
 - Preview env names now cover the documented sandbox PayPal and server runtime requirements.
-- The latest preview deployment is temporarily public for PayPal sandbox webhook testing.
-- Preview browser checkout now reaches sandbox PayPal from the deployed preview URL and reaches `success.html` on the latest diagnostic deployment.
+- The preview deployment used for sandbox webhook testing is intentionally not hardcoded here; confirm the active public target from Vercel before testing.
+- Preview browser checkout now reaches sandbox PayPal and reaches `success.html` on the active diagnostic deployment.
 - The capture route now tolerates sandbox responses where the initial PayPal order read omits `custom_id` but the capture response still includes valid checkout metadata.
-- The current preview deployment for retesting that fix is `https://dirt-cat-records-3dcr0o8r9-dirt-cat-records-projects.vercel.app`.
-- The repo is clean on `27aabae`, aligned with `origin/main`, and the strongest current stale-preview signal still points to external PayPal webhook registration drift rather than conflicting repo code.
-- The remaining work is live-provider verification first, then the ordered PayPal environment deepening plan.
+- The remaining work is live-provider verification first, then the ordered PayPal environment deepening plan and the deepening opportunities documented in the architecture readiness review.
 
 - [x] Run the admin sandbox test against real providers.
 - [ ] Verify PayPal sandbox checkout and webhook end to end.
