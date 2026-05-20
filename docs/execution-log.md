@@ -1163,3 +1163,51 @@ Roadmap link: `docs/roadmap.md` (Stage 0 source-of-truth hygiene + Stage 7 launc
 
 - Re-run doc hygiene validation after this append-only log update.
 - Commit and push the documentation sync so the next session starts from a clean, indexed repo state.
+
+---
+
+## Step 25 - Add Local Env Profile Switching Without Changing Runtime Filenames
+
+Date/Time: 2026-05-20
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 0 source-of-truth workflow hardening)
+
+### Will Be Done
+
+- Add local preview/production env profile helpers that keep `.env.local` as the only runtime-active filename so local env switching becomes more automatic without breaking the current loader seam.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: clean `main...origin/main` after the architecture-readiness doc sync; current runtime env loading still points at `.env.local`
+- Target files/tests: new `scripts/use-local-env.js`, `package.json`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Discriminating check: verify the helper can switch preview and production profiles inside a temporary directory while leaving the repo's real local secret files untouched
+
+### Done
+
+- Added `scripts/use-local-env.js` with three commands:
+  - `init <preview|production>` to create `.env.local.preview` or `.env.local.production` from `.env.example`
+  - `use <preview|production>` to copy the stored profile into `.env.local`
+  - `status` to report the active `.env.local` state and available stored profiles
+- Added package scripts for local env profile initialization, activation, status, and profile-specific env checks.
+- Kept `.env.local` as the only runtime-active filename so `lib/env/runtime.js`, `scripts/google-refresh-token.js`, and existing operator commands do not need to change.
+- Updated the repo docs so the new local env workflow is explicit and does not compete with the deployed Vercel env workflow.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --check scripts/use-local-env.js` (pass)
+  - temporary-directory profile switch exercise for `preview`, `production`, and `status` using the new helper without touching real repo secrets (pass)
+  - package-script lookup through `require('./package.json')` for `env:use:preview`, `env:use:production`, `env:status`, and `check:js` (pass)
+- Codebase delta summary:
+  - Added `scripts/use-local-env.js`
+  - Updated `package.json`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Run `npm run check:js` and `git diff --check` after the final doc/package sync.
+- If the workflow feels right in practice, optionally expose the env profile commands as VS Code tasks later.

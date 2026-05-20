@@ -57,6 +57,7 @@ What is already in the repo now:
 - focused tests for Resend sender validation in `test/resend-email.test.js`
 - deploy guardrail enforcement in `.husky/pre-push` and `package.json`
 - environment parity audit in `scripts/check-env-parity.js`, `package.json`, and `.vscode/tasks.json`
+- local env profile helpers in `scripts/use-local-env.js` and `package.json` that keep `.env.local` as the runtime-active filename while switching stored preview/production profiles
 - package-level local stack convenience in `package.json` via `npm run dev:stack`
 - local Supabase stack configuration in `supabase/config.toml`
 - GitHub Actions preflight workflow in `.github/workflows/ci.yml`
@@ -152,6 +153,7 @@ Workflow note for the next session:
 - Use `npm run dev:stack` when you want package-level convenience for starting Supabase and then the Vercel dev runtime; do not treat it as a VS Code task, because it currently is not one.
 - Prefer `npx vercel ...` and `npx supabase ...` as the documented CLI path unless a specific local extension workflow proves it needs a global install on `PATH`.
 - Run `npm run check:env` locally and the documented preview/production env-pull audit before treating provider issues as extension failures.
+- Use `npm run env:use:preview` and `npm run env:use:production` to switch local profiles without changing what the runtime loader reads; `.env.local` remains the active filename.
 - Treat pulled Vercel env files as key-presence/profile audits only when they come back with empty placeholders; verify populated deployed values from the Vercel UI/extension when a provider issue depends on the actual secret contents.
 - Prefer Thunder Client only as a GUI wrapper around the documented API smoke paths, not as a replacement for the repo docs.
 - Use the architecture readiness review when deciding whether a new task is Stage 7 verification work or PayPal seam-deepening work.

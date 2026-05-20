@@ -41,6 +41,7 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 - The repo now includes workspace-level VS Code settings, reusable tasks, and extension recommendations for the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, and Prettier workflow.
 - The workspace recommendations now also include GitLens for repo-history inspection and Thunder Client for repeatable local/preview API checks.
 - The repo now includes an environment parity audit for `.env.local` and pulled Vercel env files so provider setup drift can be checked without printing secrets.
+- The repo now includes local env profile helpers so preview-style and production-style secrets can coexist locally without changing the runtime filename that the app loads.
 - The PayPal capture route now restores checkout metadata from either the pre-capture order read or the capture response, which covers sandbox responses where the initial order read omits `custom_id`.
 - GitHub Actions now runs the same `npm run deploy:preflight` guardrail on `push` to `main` and on pull requests.
 - The local credential sanity gate now passes with the live Google Drive probe and a local custom Resend sender on `dirtcatrecords.com`.
@@ -82,6 +83,7 @@ CLI strategy for this repo:
 - `supabase` and `vercel` do not need global installs here. The repo-standard path is `npx supabase ...` and `npx vercel ...` so local scripts and docs stay consistent across machines.
 - Global installs are fine as a personal convenience, but they are not the documented requirement for this repo.
 - `npm run dev:stack` exists as a package-level convenience command when you want local Supabase startup followed by `npm run dev:vercel`, but it is not currently exposed as a VS Code task.
+- `npm run env:init:preview`, `npm run env:init:production`, `npm run env:use:preview`, `npm run env:use:production`, and `npm run env:status` manage local env profiles while keeping `.env.local` as the only runtime-active filename.
 
 Recommended use inside VS Code:
 
@@ -224,20 +226,61 @@ These are used by admin simulation/sandbox test runs.
 
 Use this checklist any time you set up `.env.local`, update Vercel environment variables, or debug provider communication.
 
-1. Copy `.env.example` to `.env.local` and fill every required value before testing runtime behavior.
-2. Set `SITE_URL` to the real site origin for deployed environments and to `http://localhost:3000` when you need local runtime links.
-3. Set `ADMIN_EMAIL` to the real owner/admin inbox that should access admin APIs.
-4. Fill PayPal credentials from the PayPal developer dashboard:
+1. Initialize untracked local profiles once with `npm run env:init:preview` and `npm run env:init:production`.
+2. Fill `.env.local.preview` with preview-style local values and `.env.local.production` with production-style local values.
+3. Activate the profile you want to run with by copying it into `.env.local`:
+   `npm run env:use:preview` or `npm run env:use:production`.
+4. Set `SITE_URL` in the active profile to `http://localhost:3000` when you need local runtime links, even if the rest of the profile uses preview or production provider values.
+5. Set `ADMIN_EMAIL` to the real owner/admin inbox that should access admin APIs.
+6. Fill PayPal credentials from the PayPal developer dashboard:
    `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENV`, `PAYPAL_WEBHOOK_ID`.
-   Use sandbox values for Preview and live values for Production.
-5. Fill Supabase credentials from the Supabase project settings:
+   Use sandbox values in `.env.local.preview` and live values in `.env.local.production`.
+7. Fill Supabase credentials from the Supabase project settings:
    `SUPABASE_URL`, `SUPABASE_PUBLIC_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
-6. Fill Google Drive automation credentials:
+8. Fill Google Drive automation credentials:
    `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`, `GOOGLE_DRIVE_PROJECTS_FOLDER_ID`.
-7. Fill Resend credentials:
+9. Fill Resend credentials:
    `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and optionally `RESEND_REPLY_TO_EMAIL`.
-8. Set `TEST_CUSTOMER_EMAIL` and `TEST_EMAIL_RECIPIENT` to your own inbox while running sandbox/provider tests so test traffic stays contained.
-9. Re-check `.env.local` and Vercel env vars against `.env.example` whenever a provider test fails unexpectedly.
+10. Set `TEST_CUSTOMER_EMAIL` and `TEST_EMAIL_RECIPIENT` to your own inbox while running sandbox/provider tests so test traffic stays contained.
+11. Re-check the active `.env.local` and the target Vercel env vars against `.env.example` whenever a provider test fails unexpectedly.
+
+## Local Env Profiles
+
+Local runtime still loads only `.env.local`. The profile helpers do not change that seam. They only copy one stored local profile into `.env.local` so the rest of the app keeps working unchanged.
+
+Stored local profiles:
+
+- `.env.local.preview`: preview-style local secrets, typically sandbox PayPal values.
+- `.env.local.production`: production-style local secrets, typically live PayPal values.
+- `.env.local`: the active runtime file loaded by the app.
+
+These files are already ignored by the repo's `.env.*` ignore rule.
+
+Recommended workflow:
+
+```bash
+npm run env:init:preview
+npm run env:init:production
+```
+
+Fill both profile files once, then switch the active local env as needed:
+
+```bash
+npm run env:use:preview
+npm run env:use:production
+npm run env:status
+```
+
+Why this does not break runtime behavior:
+
+- `lib/env/runtime.js` still loads `.env.local`.
+- `scripts/google-refresh-token.js` still writes to `.env.local`.
+- existing commands like `npm run check:env` still target `.env.local`.
+- only the helper script changes which stored profile is copied into that active filename.
+
+Safety rule:
+
+- After switching profiles, restart `npm run dev:vercel` or any other local runtime process so it reads the newly activated `.env.local` values.
 
 ## Environment Parity Audit
 
@@ -247,6 +290,18 @@ Local:
 
 ```bash
 npm run check:env
+```
+
+Active local preview-style profile:
+
+```bash
+npm run check:env:preview
+```
+
+Active local production-style profile:
+
+```bash
+npm run check:env:production
 ```
 
 Preview:
