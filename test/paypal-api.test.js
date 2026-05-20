@@ -384,6 +384,7 @@ test("create order route returns 413 for oversized JSON bodies", async () => {
 test("checkout config exposes client id but never client secret", () => {
   const originalClientId = process.env.PAYPAL_CLIENT_ID;
   const originalSecret = process.env.PAYPAL_CLIENT_SECRET;
+  const originalFreeCode = process.env.FRIENDS_FREE_CHECKOUT_CODE;
   const originalBypass = process.env.ALLOW_LOCAL_ADMIN_BYPASS;
   const originalSupabaseUrl = process.env.SUPABASE_URL;
   const originalSupabasePublicKey = process.env.SUPABASE_PUBLIC_KEY;
@@ -397,6 +398,7 @@ test("checkout config exposes client id but never client secret", () => {
   try {
     process.env.PAYPAL_CLIENT_ID = "public-client-id";
     process.env.PAYPAL_CLIENT_SECRET = "server-secret";
+    process.env.FRIENDS_FREE_CHECKOUT_CODE = "FRIENDS2026";
     process.env.ALLOW_LOCAL_ADMIN_BYPASS = "1";
     process.env.SITE_URL = "http://localhost:3000";
     process.env.PAYPAL_ENV = "sandbox";
@@ -478,6 +480,7 @@ test("checkout config exposes client id but never client secret", () => {
       JSON.stringify(response.body).includes("server-secret"),
       false
     );
+    assert.equal(JSON.stringify(response.body).includes("FRIENDS2026"), false);
   } finally {
     if (originalClientId === undefined) {
       delete process.env.PAYPAL_CLIENT_ID;
@@ -489,6 +492,12 @@ test("checkout config exposes client id but never client secret", () => {
       delete process.env.PAYPAL_CLIENT_SECRET;
     } else {
       process.env.PAYPAL_CLIENT_SECRET = originalSecret;
+    }
+
+    if (originalFreeCode === undefined) {
+      delete process.env.FRIENDS_FREE_CHECKOUT_CODE;
+    } else {
+      process.env.FRIENDS_FREE_CHECKOUT_CODE = originalFreeCode;
     }
 
     if (originalBypass === undefined) {
@@ -551,6 +560,137 @@ test("checkout config exposes client id but never client secret", () => {
       process.env.GOOGLE_DRIVE_PROJECTS_FOLDER_ID = originalDriveFolderId;
     }
   }
+});
+
+test("create order route starts no-charge checkout without calling PayPal", async () => {
+  let workflowInput;
+  const handler = createPaypalOrderHandler({
+    getEnv: () => ({ FRIENDS_FREE_CHECKOUT_CODE: "FRIENDS2026" }),
+    fetch: async () => {
+      throw new Error("PayPal fetch should not run for no-charge checkout");
+    },
+    paidProjectWorkflow: async (input) => {
+      workflowInput = input;
+      return {
+        project: { id: "project-free-1", status: "awaiting_files" },
+        order: { id: "order-free-1" },
+        payment: { id: "payment-free-1" },
+      };
+    },
+    idFactory: () => "free-route-123",
+  });
+  const response = createMockResponse();
+
+  await handler(
+    {
+      method: "POST",
+      body: {
+        paymentMethod: "no_charge",
+        discountCode: " friends2026 ",
+        baseServiceId: "mix",
+        songCount: 1,
+        selectedAddOns: [],
+        paymentMode: "full",
+        customer: {
+          name: "Buyer Friend",
+          email: "friend@example.com",
+          projectName: "Friend Project",
+          songTitle: "Song One",
+        },
+      },
+    },
+    response
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.ok, true);
+  assert.equal(response.body.noChargeCheckout, true);
+  assert.equal(response.body.projectId, "project-free-1");
+  assert.equal(response.body.orderSummary.noChargeCheckout, true);
+  assert.equal(response.body.orderSummary.amountDueNowCents, 0);
+  assert.equal(workflowInput.paypalTxnId, "NOCHARGE-free-route-123");
+  assert.equal(workflowInput.amountDueNow, "0.00");
+  assert.equal(workflowInput.remainingBalance, "0.00");
+});
+
+test("create order route rejects invalid no-charge code with generic message", async () => {
+  const handler = createPaypalOrderHandler({
+    getEnv: () => ({ FRIENDS_FREE_CHECKOUT_CODE: "FRIENDS2026" }),
+    fetch: async () => {
+      throw new Error("PayPal fetch should not run for invalid no-charge code");
+    },
+    paidProjectWorkflow: async () => {
+      throw new Error("workflow should not run for invalid no-charge code");
+    },
+  });
+  const response = createMockResponse();
+
+  await handler(
+    {
+      method: "POST",
+      body: {
+        paymentMethod: "no_charge",
+        discountCode: "wrong",
+        baseServiceId: "mix",
+        songCount: 1,
+        selectedAddOns: [],
+        paymentMode: "full",
+        customer: {
+          name: "Buyer Friend",
+          email: "friend@example.com",
+          projectName: "Friend Project",
+          songTitle: "Song One",
+        },
+      },
+    },
+    response
+  );
+
+  assert.equal(response.statusCode, 400);
+  assert.deepEqual(response.body, { error: "Discount code is not valid." });
+});
+
+test("create order route hides workflow public messages for no-charge failures", async () => {
+  const handler = createPaypalOrderHandler({
+    getEnv: () => ({ FRIENDS_FREE_CHECKOUT_CODE: "FRIENDS2026" }),
+    fetch: async () => {
+      throw new Error("PayPal fetch should not run for no-charge checkout");
+    },
+    paidProjectWorkflow: async () => {
+      const error = new Error("internal workflow detail");
+      error.statusCode = 503;
+      error.publicMessage = "Customer-visible workflow detail";
+      throw error;
+    },
+    idFactory: () => "free-route-456",
+  });
+  const response = createMockResponse();
+
+  await handler(
+    {
+      method: "POST",
+      body: {
+        paymentMethod: "no_charge",
+        discountCode: "friends2026",
+        baseServiceId: "mix",
+        songCount: 1,
+        selectedAddOns: [],
+        paymentMode: "full",
+        customer: {
+          name: "Buyer Friend",
+          email: "friend@example.com",
+          projectName: "Friend Project",
+          songTitle: "Song One",
+        },
+      },
+    },
+    response
+  );
+
+  assert.equal(response.statusCode, 503);
+  assert.deepEqual(response.body, {
+    error: "Unable to start no-charge checkout.",
+  });
 });
 
 test("checkout config includes public auth config for browser clients", () => {
