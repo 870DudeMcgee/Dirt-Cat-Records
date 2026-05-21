@@ -2353,3 +2353,48 @@ Roadmap link: `docs/roadmap.md` (ordered deep-module workflow deepening)
 ### Needs To Be Done Next
 
 - Continue launch hardening from `docs/roadmap.md`: hosted Supabase Auth URL configuration and production magic-link verification, Resend deliverability verification, final launch-checklist docs, and preview protection restore after webhook testing is no longer needed.
+
+---
+
+## Step 49 - Support Form Containment Polish
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 2: Normalize form control sizing)
+
+### Will Be Done
+
+- Tighten support-page-specific form layout so text boxes and bottom actions stay visually contained in the support panel on narrow screens.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `README.md`
+- Codebase state: `main...origin/main` with unrelated unstaged `api/webhooks/paypal.js` formatting change still present and excluded from this fix
+- Target files/tests: `style.css`, `test/project-support-page.test.js`, support-flow docs
+
+### Done
+
+- Added support-page-specific form grid rules so the form itself, each support field, and every input/select/textarea has a shrink-safe layout boundary.
+- Added support action-button grid rules so the submit and portal buttons fill the card cleanly and stack at the existing narrow-screen breakpoint.
+- Added focused CSS regression coverage in `test/project-support-page.test.js`.
+- Updated `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` with the support-page containment follow-up.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/project-support-page.test.js` (pass, 3 tests)
+  - `npm run check:js` (pass)
+  - `git diff --check` (pass)
+  - `npm test` (pass, 292 tests)
+  - `get_errors` on touched CSS/test/docs (pass)
+- Codebase delta summary:
+  - Updated `style.css`
+  - Updated `test/project-support-page.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Commit and push the support page polish so the live deployment can pick it up.

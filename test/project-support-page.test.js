@@ -34,3 +34,25 @@ test("shared form styling keeps checkout and support fields inside panels", () =
   assert.match(css, /\.addon-quantity\s*{[\s\S]*width: 92px;/);
   assert.match(css, /#song-count\s*{\s*max-width: 160px;/);
 });
+
+test("support form styling keeps fields and actions shrink-safe", () => {
+  const css = readFileSync(join(root, "style.css"), "utf8");
+
+  assert.match(css, /\.support-form\s*{[\s\S]*display: grid;/);
+  assert.match(css, /\.support-form\s*{[\s\S]*min-width: 0;/);
+  assert.match(css, /\.support-field\s*{[\s\S]*width: 100%;/);
+  assert.match(css, /\.support-field\s*{[\s\S]*min-width: 0;/);
+  assert.match(
+    css,
+    /\.support-field input,\s*\n\.support-field textarea,\s*\n\.support-field select\s*{[\s\S]*justify-self: stretch;/
+  );
+  assert.match(
+    css,
+    /\.support-actions\s*{[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/
+  );
+  assert.match(css, /\.support-actions \.btn\s*{[\s\S]*min-width: 0;/);
+  assert.match(
+    css,
+    /@media \(max-width: 680px\)\s*{[\s\S]*\.support-actions\s*{[\s\S]*grid-template-columns: 1fr;/
+  );
+});
