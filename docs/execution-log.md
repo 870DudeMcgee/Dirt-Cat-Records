@@ -36,6 +36,320 @@ Roadmap link: `docs/roadmap.md` Stage 7 launch hardening
 
 - Review the dirty worktree, commit only intentional launch-candidate changes, push, deploy production from that pushed SHA, and monitor the first live customer workflow.
 
+## Step 47 - Dirt Cat Growth Tools Brainstorm Capture
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (future product exploration, not active Stage 7 work)
+
+### Will Be Done
+
+- Capture and shape the idea dump for free/freemium tools, educational resources, community plays, and quick-win service add-ons.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main`, HEAD `e946297`, with pre-existing local modification in `api/webhooks/paypal.js` and existing local planning-doc edits
+- Target files: new Dirt Cat growth-tools brainstorm spec plus source-of-truth doc pointers
+
+### Done
+
+- Created `docs/superpowers/specs/2026-05-21-dirt-cat-growth-tools-brainstorm.md` as a brainstorming artifact for the growth-tools and lead-magnet idea dump.
+- Clarified the problem statement, goals, constraints, non-goals, audience segments, and product thesis around a Dirt Cat Readiness Score.
+- Compared strategic options across free utilities, education/proof content, community, quick-win services, and an integrated readiness funnel.
+- Preserved and fleshed out the specific ideas: Session Prep Checklist, Stem Quality Analyzer, Reference Track Comparator, Mix Feedback, Survival Guide, Before/After breakdowns, Logic templates, Ask Dirt Cat, feedback group, playlist, behind-the-scenes, Free Mix Review, Mix Ready Audit, and Preset/Print Packs.
+- Recommended the first development slice as a Mix Readiness Starter Kit rather than a software-heavy tool.
+- Added pointers from `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` while keeping Stage 7 launch hardening as the active delivery slice.
+
+### Context Check (After)
+
+- Validation run: `git diff --check` plus direct no-index whitespace check for `docs/superpowers/specs/2026-05-21-dirt-cat-growth-tools-brainstorm.md` (pass); editor diagnostics for edited docs (no errors)
+- Codebase delta summary: planning docs only; pre-existing `api/webhooks/paypal.js` modification left untouched
+
+### Needs To Be Done Next
+
+- Validate the docs, then write a separate implementation plan only after one growth-tools slice is approved.
+
+## Step 46 - Logic Stem Exporter Formal Implementation Plan
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (future product exploration, not active Stage 7 work)
+
+### Will Be Done
+
+- Create the formal executable implementation plan for the separate Logic stem exporter desktop-app repository.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`, `docs/superpowers/plans/`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main`, HEAD `e946297`, with pre-existing local modification in `api/webhooks/paypal.js`
+- Target files: new Logic stem exporter implementation plan plus source-of-truth doc pointers
+
+### Done
+
+- Added `docs/superpowers/plans/2026-05-21-logic-stem-exporter-implementation-plan.md` as the executable implementation plan for the future separate `/Users/jewelbait/Desktop/dirtcat-stem-exporter` repo.
+- Structured the plan around V1 Logic-only delivery, DAW-neutral contracts, a Python `LogicDriver` worker, and long-term Electron/TypeScript ownership of orchestration, package assembly, Drive upload, IPC supervision, and updates.
+- Made the first checkpoint 1-2 stems with selector registry, AX polling, save-dialog injection, file-ready detection, manifest output, and diagnostic failure output.
+- Sequenced the second checkpoint to 8-10 fixture stems before smart sidechain or MIDI Bounce in Place automation.
+- Included Phase 0 readiness and packaging spikes, contract tests across TypeScript and Python, Google Drive resumable upload requirements, Manual Assist Mode, beta support bundles, and a future multi-DAW expansion gate.
+- Added implementation-plan pointers to `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` without making the desktop app part of active Stage 7 web launch hardening.
+
+### Context Check (After)
+
+- Validation run: `git diff --check` plus untracked planning-doc whitespace/non-ASCII scan (pass)
+- Codebase delta summary: planning docs only; pre-existing `api/webhooks/paypal.js` modification left untouched
+
+### Needs To Be Done Next
+
+- If approved, create the separate `dirtcat-stem-exporter` repo and execute Task 0 from the implementation plan.
+
+## Step 45 - Logic Stem Exporter Final Architecture Nitpick Pass
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (future product exploration, not active Stage 7 work)
+
+### Will Be Done
+
+- Address the remaining design-review nitpicks before writing the formal implementation plan.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main`, HEAD `e946297`, with pre-existing local modification in `api/webhooks/paypal.js`
+- Target files: Logic stem exporter brainstorm spec and this execution log
+
+### Done
+
+- Renamed the future guardrail section to `Multi-DAW Extension Strategy` and added explicit `DAWDriver`, `DriverCapabilities`, `ProjectGraph`, `SessionReadiness`, and Mutation Safety boundaries.
+- Clarified that `ProjectGraph` should use a DAW-neutral core plus namespaced DAW-specific extensions instead of forcing every DAW into Logic vocabulary.
+- Updated the target architecture diagram to show Electron/Node owning orchestration long term, with the Python `LogicDriver` as the first driver implementation.
+- Tightened Python ownership so the CLI harness may temporarily host policy, but the long-term Core Export Engine and upload/package orchestration migrate to TypeScript/Electron.
+- Added concrete Free tier limits and basic preset names.
+- Added Google Drive retry/backoff, user-visible progress, cancel/resume, and clear large-upload failure-state requirements.
+- Added a documentation split recommendation for the future `dirtcat-stem-exporter` repo.
+- Narrowed the first development checkpoint to 1-2 stems with selector registry, AX polling, save-dialog injection, file-ready detection, and manifest output before expanding to 8-10 stems.
+- Added recurring post-launch maintenance expectations for Logic and macOS update cycles.
+
+### Context Check (After)
+
+- Validation run: `git diff --check` (pass)
+- Codebase delta summary: planning docs only; pre-existing `api/webhooks/paypal.js` modification left untouched
+
+### Needs To Be Done Next
+
+- Validate the docs, then write the formal implementation plan using these hardened boundaries.
+
+## Step 44 - Logic Stem Exporter Multi-DAW Guardrails
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (future product exploration, not active Stage 7 work)
+
+### Will Be Done
+
+- Refine the Logic stem exporter design so V1 stays Logic-only while preserving a clean path toward future DAW support.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main`, HEAD `e946297`, with pre-existing local modification in `api/webhooks/paypal.js`
+- Target files: Logic stem exporter brainstorm spec and this execution log
+
+### Done
+
+- Added a Multi-DAW posture summary: V1 stays Logic-only, but DAW-agnostic concepts should stay reusable.
+- Added Future Multi-DAW Guardrails covering reusable components, DAW-specific responsibilities, future `DAWDriver` interface shape, likely automation approaches by DAW, and staged expansion strategy.
+- Updated target architecture language from Logic-specific project model to `DAW driver -> Project graph -> Stem recipe -> Export plan -> Bounce run -> Package manifest`.
+- Added a future `DAW Driver Contract` appendix module while explicitly warning not to extract it before the Logic harness works.
+- Added anti-corner naming guidance: use internal `DAWDriver`, `ProjectGraph`, `ExportPlan`, `ExportManifest`, `StemRecipe`, and `SessionReadiness` terms, while marketing V1 as Logic-first.
+
+### Context Check (After)
+
+- Validation run: `git diff --check` (pass)
+- Codebase delta summary: planning docs only; pre-existing `api/webhooks/paypal.js` modification left untouched
+
+### Needs To Be Done Next
+
+- Incorporate these multi-DAW guardrails into the formal implementation plan before creating the separate `dirtcat-stem-exporter` repo.
+
+## Step 43 - Logic Stem Exporter Developer-Lens Nitpick Pass
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (future product exploration, not active Stage 7 work)
+
+### Will Be Done
+
+- Apply the final developer-lens nitpicks to reduce spec density, clarify Python ownership, raise solo-dev timeline estimates, and make selector registry work an early harness requirement.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main`, HEAD `e946297`, with pre-existing local modification in `api/webhooks/paypal.js`
+- Target files: Logic stem exporter brainstorm spec and this execution log
+
+### Done
+
+- Moved Modules 5-15 under an appendix-style long-term architecture section so the main body stays focused on V1 execution.
+- Updated the target architecture diagram so Electron/Node owns file watching, package assembly, Drive API, lead/licensing integration, and Python owns Logic automation plus raw bounce diagnostics.
+- Clarified that Python may temporarily write manifests and do file-ready checks only during the CLI harness phase, then that ownership should migrate to Electron/Node.
+- Raised the solo/part-time estimates to Phase 1 at 7-10 weeks and Phase 2 at 9-13 weeks.
+- Made the selector registry one of the first harness deliverables.
+
+### Context Check (After)
+
+- Validation run: `git diff --check` (pass)
+- Codebase delta summary: planning docs only; pre-existing `api/webhooks/paypal.js` modification left untouched
+
+### Needs To Be Done Next
+
+- Use the slimmed V1 section plus appendix split as the input for the formal implementation plan.
+
+## Step 42 - Logic Stem Exporter Scope Compression Review
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (future product exploration, not active Stage 7 work)
+
+### Will Be Done
+
+- Address developer-review concerns that the Logic stem exporter spec risks over-engineering, optimistic timelines, Python worker scope creep, and insufficient validation strategy.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main`, HEAD `e946297`, with pre-existing local modification in `api/webhooks/paypal.js`
+- Target files: Logic stem exporter brainstorm spec and this execution log
+
+### Done
+
+- Added a Scope Posture note that the 16-module map is long-term architecture, not the V1 build shape.
+- Added a V1 Compression Rule that collapses the first prototype into Logic Automation Worker, Core Export Engine, Desktop Orchestrator, and Renderer UI.
+- Revised ownership so Python focuses on Logic UI automation and low-level export execution, while Electron/Node owns file watching, package assembly, Drive OAuth/upload orchestration, IPC supervision, token storage, and updates once the desktop shell exists.
+- Added selector registry guidance, clarified that minimum settle intervals are acceptable only inside AX polling loops, and removed the too-absolute fixed-sleep wording.
+- Adjusted timelines: Phase 1 is 6-9 weeks and Phase 2 is 8-11 weeks for a solo/part-time path with real-world sessions.
+- Added contract testing, UI tree snapshot testing, selector-registry testing, fixture/chaos fixture coverage, resumable upload testing, and packaging tests.
+- Added strict first-slice limits: no smart sidechain, no MIDI Bounce in Place automation, no full template engine, no Drive upload, and no Electron UI before the CLI harness proves the bounce loop.
+
+### Context Check (After)
+
+- Validation run: `git diff --check` (pass)
+- Codebase delta summary: planning docs only; pre-existing `api/webhooks/paypal.js` modification left untouched
+
+### Needs To Be Done Next
+
+- Use the compressed V1 shape as the basis for the formal implementation plan.
+- Keep the formal plan centered on the narrow CLI harness before app shell work begins.
+
+## Step 41 - Logic Stem Exporter Risk Register Refinement
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (future product exploration, not active Stage 7 work)
+
+### Will Be Done
+
+- Address the current risk list in the Logic stem exporter brainstorm so known packaging, UI automation, upload, and architecture traps are explicit before implementation planning.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`, `docs/execution-log.md`
+- Skill docs reviewed: `brainstorming`
+- Codebase state: `main...origin/main`, HEAD `e946297`, with pre-existing local modification in `api/webhooks/paypal.js`
+- Target files: Logic stem exporter brainstorm spec and this execution log
+
+### Done
+
+- Added an explicit risk posture summary covering green, yellow, orange, and red risks.
+- Added native Apple Silicon beta guidance and a Rosetta/cross-architecture block before AX traversal.
+- Added Module 4 rules forbidding fixed sleep-based automation and requiring AX polling on element existence, state, role, and readiness.
+- Added Module 13 large-upload rules for Google Drive resumable uploads and future S3/object-store multipart upload.
+- Added Module 15 packaging rules to compare `py2app`, embedded Python, and PyInstaller before choosing release packaging.
+- Expanded the risk register with UI automation fragility, Electron size perception, realistic solo-development timeline, Logic/macOS maintenance burden, competition, large uploads, notarization traps, and architecture mismatch.
+
+### Context Check (After)
+
+- Validation run: `git diff --check` (pass)
+- Codebase delta summary: planning docs only; pre-existing `api/webhooks/paypal.js` modification left untouched
+
+### Needs To Be Done Next
+
+- Use this risk register as the guardrail for the formal implementation plan.
+- Keep Phase 0 focused on proving packaging, AX polling, native ARM64 execution, and resumable upload behavior before deep UI work.
+
+## Step 40 - Logic Stem Exporter Feasibility Refinement
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (future product exploration, not active Stage 7 work)
+
+### Will Be Done
+
+- Refine the Logic stem exporter brainstorm based on feasibility concerns around Logic automation, session mutation, free/pro boundaries, and Rust developer friction.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`, `docs/execution-log.md`
+- Skill docs reviewed: `brainstorming`, `using-superpowers`, `writing-plans`, `executing-plans`
+- Codebase state: `main...origin/main`, HEAD `e946297`, with pre-existing local modification in `api/webhooks/paypal.js`
+- Target files: Logic stem exporter brainstorm spec and this execution log
+
+### Done
+
+- Updated the recommended stack from Tauri/Rust plus Python sidecar to Electron + React/TypeScript plus Python/PyObjC worker.
+- Clarified that iterative solo plus standard master-bus bounce is the core export method, not Logic's Export All Tracks path.
+- Added V1 guidance to avoid full `.logicx` parsing and use Accessibility Inspector, `atomacos`, PyObjC, user-assisted discovery, and a required/recommended Logic Screen Set.
+- Added free/pro boundary recommendations that keep the free tier genuinely useful.
+- Added a Mutation Safety and Session Checkpointing layer for sidechain rerouting and MIDI Bounce in Place.
+- Added user-defined naming variables, deterministic collision handling, Google Drive REST API guidance, Auto-Bounce competitive notes, and concrete open-decision recommendations.
+
+### Context Check (After)
+
+- Validation run: `git diff --check` (pass)
+- Codebase delta summary: planning docs only; pre-existing `api/webhooks/paypal.js` modification left untouched
+
+### Needs To Be Done Next
+
+- Continue brainstorming if more product/technical constraints surface.
+- Once the direction is stable, create the formal implementation plan in a separate plan doc.
+
+## Step 39 - Logic Stem Exporter Deep-Module Brainstorm
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (future product exploration, not active Stage 7 work)
+
+### Will Be Done
+
+- Capture the Logic Pro stem exporter vision as a deep-module brainstorming spec before any implementation plan or app scaffold is created.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/workflow.md`, `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`, `docs/superpowers/specs/2026-05-17-studio-automation-system-design.md`
+- Skill docs reviewed: `using-superpowers`, `brainstorming`, `writing-plans`
+- Codebase state: `main...origin/main`, HEAD `e946297`, with pre-existing local modification in `api/webhooks/paypal.js`
+- Target files: new Logic stem exporter spec plus documentation pointers only
+
+### Done
+
+- Added `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`.
+- Compared CLI-first, UI-first, manual-assist-first, and deeper Logic integration options.
+- Recommended Python automation harness first with Manual Assist Mode as a deliberate fallback.
+- Broke the product into deep Modules for app identity, shell, readiness, Logic UI automation, project modeling, stem recipes, sidechain strategy, MIDI printing, export planning, bounce orchestration, file verification, naming/package manifests, Google Drive sync, diagnostics, and distribution.
+- Added README, roadmap, and handoff pointers while keeping the future product separate from active Stage 7 launch hardening.
+
+### Context Check (After)
+
+- Validation run: `git diff --check` (pass)
+- Codebase delta summary: planning docs only; pre-existing `api/webhooks/paypal.js` modification left untouched
+
+### Needs To Be Done Next
+
+- Review and approve or revise the module boundaries.
+- If approved, create a separate implementation plan that starts with the `logic-export-harness` automation proof slice.
+
 ## Step 0 - Baseline and Process Setup
 
 Date/Time: 2026-05-19

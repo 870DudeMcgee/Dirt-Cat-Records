@@ -21,6 +21,9 @@ Use [`docs/workflow.md`](docs/workflow.md) and [`docs/deployment-ledger.md`](doc
 The ordered follow-on plan for the PayPal environment and webhook seams lives in [`docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`](docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md).
 The ordered follow-on plan for workflow deepening after the PayPal seam work lives in [`docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`](docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md).
 The durable architecture gap register lives in [`docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`](docs/superpowers/specs/2026-05-20-architecture-readiness-review.md).
+Future product exploration for the Logic Pro stem exporter desktop app lives in [`docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`](docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md). It is intentionally separate from the active web checkout, portal, and admin launch-hardening work.
+The executable follow-on implementation plan for that separate desktop-app repo lives in [`docs/superpowers/plans/2026-05-21-logic-stem-exporter-implementation-plan.md`](docs/superpowers/plans/2026-05-21-logic-stem-exporter-implementation-plan.md).
+Future growth-tool and lead-magnet exploration lives in [`docs/superpowers/specs/2026-05-21-dirt-cat-growth-tools-brainstorm.md`](docs/superpowers/specs/2026-05-21-dirt-cat-growth-tools-brainstorm.md). It is also future product work, not part of the active launch-hardening slice.
 
 ## Temporary Workflow Freeze
 

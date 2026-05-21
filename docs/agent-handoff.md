@@ -25,6 +25,9 @@ If `main` is dirty when a new implementation slice starts, recover by branching 
 6. `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
 7. `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
 8. `docs/superpowers/plans/2026-05-19-v1-usability-testability-contract.md`
+9. Future product only: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`
+10. Future product implementation plan only: `docs/superpowers/plans/2026-05-21-logic-stem-exporter-implementation-plan.md`
+11. Future growth tools only: `docs/superpowers/specs/2026-05-21-dirt-cat-growth-tools-brainstorm.md`
 
 ## Current Focus
 
@@ -33,6 +36,10 @@ Stage 7 launch hardening is effectively in launch-candidate state. Workflow hard
 The customer portal magic-link seam now has a confirmed app-side fix too: `portal.js` calls the merged server-backed `api/portal/actions.js?action=auth` preparation step so known customer emails get a confirmed Supabase auth user before the browser requests a magic link, and the browser request now sets `shouldCreateUser: false` to avoid signup-confirmation fallback. The hosted Supabase Auth URL Configuration has now been corrected too: generated confirmation links use `https://www.dirtcatrecords.com` instead of the invalid schemeless redirect.
 
 The immediate next gap is release discipline, not more site feature work. The owner has manually tested the current V1 website, checkout, portal, support, and provider workflow and reported that it works well. `npm run deploy:preflight` also passed on 2026-05-21 with function count `12/12`, `297` tests passing, JavaScript syntax checks passing, and `git diff --check` passing. Next work should freeze V1 behavior, commit only intentional launch-candidate changes, deploy production only from committed and pushed code, restore or confirm preview protection after webhook testing, and monitor the first real customer workflow. Future product tracks should stay parked until the launch candidate is released and observed.
+
+A separate future-product brainstorm now exists for the Logic Pro stem exporter desktop app at `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`, with an executable follow-on plan at `docs/superpowers/plans/2026-05-21-logic-stem-exporter-implementation-plan.md`. Treat both as future product work until the web launch has settled and the separate `dirtcat-stem-exporter` repo is explicitly started.
+
+A broader future-product brainstorm now exists for Dirt Cat growth tools, lead magnets, education, community, and quick-win service offers at `docs/superpowers/specs/2026-05-21-dirt-cat-growth-tools-brainstorm.md`. Treat it as captured product exploration only until the web launch has settled and one slice is approved for planning.
 
 Current constraints that matter before new feature work:
 
@@ -191,6 +198,7 @@ Pre-commit review status:
 4. Deploy production only from a committed and pushed SHA.
 5. Restore or confirm Vercel Authentication / preview protection after preview webhook testing is complete.
 6. Monitor the first real customer workflow through PayPal, Supabase, Google Drive, Resend, the portal, and the admin dashboard.
+7. Keep the Logic stem exporter and growth-tool brainstorms as future product work until this launch has settled.
 
 Workflow note for the next session:
 
