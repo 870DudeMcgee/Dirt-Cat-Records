@@ -234,6 +234,12 @@ Webhook note: `PAYPAL_WEBHOOK_ID` is environment-specific and must match the Pay
 
 Safety caveat: `PAYPAL_CLIENT_SECRET` must never be committed, exposed to browser/static JavaScript, or stored in client-visible environment variables. Keep it only in server-side Vercel environment variables.
 
+### Free Checkout Code
+
+- `FRIENDS_FREE_CHECKOUT_CODE`: server-side code that makes direct checkout free for trusted friends. Leave blank to disable the no-charge path.
+
+Safety caveat: `FRIENDS_FREE_CHECKOUT_CODE` must never be returned from client-visible config or committed with a real value. Store the real code only in local or Vercel environment variables.
+
 ### Supabase
 
 - `SUPABASE_URL`: Supabase project URL.
@@ -293,14 +299,15 @@ Use this checklist any time you set up `.env.local`, update Vercel environment v
 6. Fill PayPal credentials from the PayPal developer dashboard:
    `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENV`, `PAYPAL_WEBHOOK_ID`.
    Use sandbox values in `.env.local.preview` and live values in `.env.local.production`.
-7. Fill Supabase credentials from the Supabase project settings:
+7. Optionally set `FRIENDS_FREE_CHECKOUT_CODE` in local or Vercel env vars to enable no-charge direct checkout for trusted friends.
+8. Fill Supabase credentials from the Supabase project settings:
    `SUPABASE_URL`, `SUPABASE_PUBLIC_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
-8. Fill Google Drive automation credentials:
+9. Fill Google Drive automation credentials:
    `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`, `GOOGLE_DRIVE_PROJECTS_FOLDER_ID`.
-9. Fill Resend credentials:
+10. Fill Resend credentials:
    `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and optionally `RESEND_REPLY_TO_EMAIL`.
-10. Set `TEST_CUSTOMER_EMAIL` and `TEST_EMAIL_RECIPIENT` to your own inbox while running sandbox/provider tests so test traffic stays contained.
-11. Re-check the active `.env.local` and the target Vercel env vars against `.env.example` whenever a provider test fails unexpectedly.
+11. Set `TEST_CUSTOMER_EMAIL` and `TEST_EMAIL_RECIPIENT` to your own inbox while running sandbox/provider tests so test traffic stays contained.
+12. Re-check the active `.env.local` and the target Vercel env vars against `.env.example` whenever a provider test fails unexpectedly.
 
 ## Local Env Profiles
 
