@@ -259,7 +259,7 @@ git diff --check
 - Keep `docs/roadmap.md` as the checklist source of truth for when this plan becomes the active slice.
 - Keep `docs/agent-handoff.md` focused on the current next action and where this plan sits relative to Stage 7 and the PayPal plan.
 - Keep `docs/execution-log.md` append-only with one bounded step per deepening slice.
-- Update `README.md` when operator workflow or architecture source-of-truth links change.
+- Update `docs/operator-guide.md` when operator workflow changes. Update `README.md` only when the project overview or architecture source-of-truth links in the doc map change.
 
 ## Risks And Rollback Notes
 

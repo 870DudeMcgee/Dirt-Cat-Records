@@ -17,17 +17,18 @@ If `main` is dirty when a new implementation slice starts, recover by branching 
 
 ## Read First
 
-1. `docs/roadmap.md`
-2. `docs/execution-log.md`
-3. `README.md`
-4. This file
-5. `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`
-6. `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
-7. `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
-8. `docs/superpowers/plans/2026-05-19-v1-usability-testability-contract.md`
-9. Future product only: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`
-10. Future product implementation plan only: `docs/superpowers/plans/2026-05-21-logic-stem-exporter-implementation-plan.md`
-11. Future growth tools only: `docs/superpowers/specs/2026-05-21-dirt-cat-growth-tools-brainstorm.md`
+1. `README.md`
+2. `docs/operator-guide.md`
+3. `docs/roadmap.md`
+4. `docs/execution-log.md`
+5. This file
+6. `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`
+7. `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
+8. `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`
+9. `docs/superpowers/plans/2026-05-19-v1-usability-testability-contract.md`
+10. Future product only: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`
+11. Future product implementation plan only: `docs/superpowers/plans/2026-05-21-logic-stem-exporter-implementation-plan.md`
+12. Future growth tools only: `docs/superpowers/specs/2026-05-21-dirt-cat-growth-tools-brainstorm.md`
 
 ## Current Focus
 
@@ -111,7 +112,7 @@ What is already in the repo now:
 - workspace VS Code settings, tasks, and extension recommendations in `.vscode/`
 - GitLens and Thunder Client are now included in the repo recommendations, while Live Server / Tailwind / Docker / ESLint are documented as non-authoritative or not yet wired for this codebase
 - portal payment-start consolidation in `api/portal/actions.js` and `portal.js`
-- documentation updates in `README.md`, `.env.example`, `docs/deployment-preflight.md`, and `docs/execution-trail.md`
+- documentation updates in `README.md`, `docs/operator-guide.md`, `.env.example`, `docs/deployment-preflight.md`, and `docs/execution-trail.md`
 - architecture tracking plan for PayPal environment and webhook deepening in `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`
 - architecture gap register and anti-drift rules in `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`
 
@@ -218,7 +219,8 @@ Workflow note for the next session:
 
 - Roadmap status lives in `docs/roadmap.md`.
 - Step-by-step implementation truth lives in `docs/execution-log.md`.
-- Runtime/operator commands live in `README.md`.
+- `README.md` is the GitHub-facing project overview and doc map.
+- Runtime/operator commands live in `docs/operator-guide.md`.
 - Architecture gap tracking and anti-drift rules live in `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`.
 - Ordered PayPal environment/webhook work lives in `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`.
 - Ordered deep-module workflow deepening lives in `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`.

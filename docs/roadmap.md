@@ -18,7 +18,7 @@ Current Stage 7 state: the local credential sanity gate passes again, the `v1-us
 
 Current workflow tooling state: the repo now includes workspace-level VS Code settings, extension recommendations, reusable tasks, a package-level `npm run dev:stack` convenience script, an environment parity audit, local env profile switch helpers that keep `.env.local` as the active runtime filename, a shared safe runtime fingerprint in the setup wizard, the public checkout config, and the env audit, a GitHub Actions preflight workflow, and a dedicated architecture readiness review so the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, GitLens, Thunder Client, and Prettier workflow has one durable document map.
 
-Permanent workflow constraint: before every commit/push meant to be runtime-ready, run the credential sanity gate from `README.md` and `docs/execution-trail.md`, including `npm run check:env`, the raw Google Drive folder id check, and the documented preview/production env audit when deployed provider behavior changes.
+Permanent workflow constraint: before every commit/push meant to be runtime-ready, run the credential sanity gate from `docs/operator-guide.md` and `docs/execution-trail.md`, including `npm run check:env`, the raw Google Drive folder id check, and the documented preview/production env audit when deployed provider behavior changes.
 
 Immediate workflow constraints:
 
@@ -45,7 +45,7 @@ Process details: [`docs/execution-trail.md`](execution-trail.md).
 
 Goal: make the repo clean, understandable, and hard to misuse.
 
-- [x] Expand setup documentation in `README.md`.
+- [x] Expand setup documentation in `docs/operator-guide.md` while keeping `README.md` concise.
 - [x] Expand `.env.example` so it matches the app's real runtime requirements.
 - [x] Expand `.gitignore` for local, OS, and dependency noise.
 - [x] Decide how to handle the large audio assets currently committed under `assets/`: keep the current WAV files for now, then replace the site previews with MP3 versions later.
@@ -168,7 +168,7 @@ Current status:
 - [x] Verify Resend sender domain, reply-to, and deliverability.
 - [x] Verify Google Drive folder creation and sharing permissions.
 - [x] Verify Vercel environment variables are set for production.
-- [x] Document the launch checklist in `README.md`.
+- [x] Document the launch checklist in `docs/operator-guide.md` and link it from `README.md`.
 
 Ordered follow-on after the Stage 7 webhook proof:
 
@@ -199,7 +199,7 @@ Goal: owner can run deterministic local/sandbox validation with dummy data and c
 - [x] Expand cleanup path to remove quote/project artifacts where allowed and safely close on fallback.
 - [x] Add one-click `Run Owner Proof` admin action that focuses the showcase admin project and renders customer portal previews inline.
 - [x] Add automated tests for scenario and cleanup behavior.
-- [x] Document exact owner-run commands in `README.md`.
+- [x] Document exact owner-run commands in `docs/operator-guide.md`.
 
 ## Deployment Guardrail
 
@@ -210,4 +210,4 @@ Goal: keep Vercel Hobby deployments under the 12-function limit and fail fast be
 - [x] Add `npm run deploy:preflight` for function-count, test, syntax, and diff checks.
 - [x] Enforce `npm run deploy:preflight` in `.husky/pre-push`.
 - [x] Add a GitHub Actions workflow that runs the same deploy preflight on pull requests and pushes to `main`.
-- [x] Document the deploy workflow in `docs/deployment-preflight.md` and `README.md`.
+- [x] Document the deploy workflow in `docs/deployment-preflight.md`, `docs/operator-guide.md`, and the `README.md` doc map.

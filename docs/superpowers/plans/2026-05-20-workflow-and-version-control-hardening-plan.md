@@ -1,6 +1,6 @@
 # Workflow And Version Control Hardening Plan
 
-> **For agentic workers:** use this plan before any more shared preview or production verification work. Keep one task in progress at a time. Update `docs/execution-log.md`, `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` at each checkpoint.
+> **For agentic workers:** use this plan before any more shared preview or production verification work. Keep one task in progress at a time. Update `docs/execution-log.md`, `docs/operator-guide.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` at each checkpoint. Update `README.md` only when the project overview or doc map changes.
 
 **Goal:** stop losing time to deployment/source-of-truth ambiguity by making it cheap to answer four questions at any moment:
 
@@ -15,7 +15,7 @@
 
 - local dirty-worktree preview deploys can be shared before the code is pushed;
 - the stable preview alias can drift away from the deployment actually used for browser testing;
-- `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and older plan docs can all accumulate status prose about the same moving state;
+- `README.md`, `docs/operator-guide.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and older plan docs can all accumulate status prose about the same moving state;
 - `main` is functioning as both the integration branch and an active scratch workspace;
 - there is no durable deployment ledger that maps git SHA, Vercel deployment URL, alias target, and test purpose.
 
@@ -46,7 +46,8 @@ When this plan is complete, the repo should operate under this contract:
 - shared preview only points at a pushed commit with a known SHA.
 - production only points at a pushed commit with a known SHA.
 - a single deployment ledger records branch, SHA, deployment URL, alias target, environment, and test purpose.
-- `README.md` owns operator workflow only.
+- `README.md` owns the GitHub-facing project overview and doc map only.
+- `docs/operator-guide.md` owns operator workflow only.
 - `docs/roadmap.md` owns staged status and active delivery slice only.
 - `docs/agent-handoff.md` owns current next action only.
 - `docs/execution-log.md` owns append-only evidence only.
@@ -59,7 +60,7 @@ When this plan is complete, the repo should operate under this contract:
 - A worker can determine whether preview came from a dirty local deploy or a pushed commit in under two minutes.
 - No shared preview alias changes happen without an append-only ledger entry.
 - No production deploy happens without a recorded SHA and verification checkpoint.
-- `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and `docs/execution-log.md` each have a narrow documented purpose and no overlapping status prose.
+- `README.md`, `docs/operator-guide.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, and `docs/execution-log.md` each have a narrow documented purpose and no overlapping status prose.
 - New work starts from a named branch or worktree, not from a long-lived dirty `main` session.
 - The repo documents one standard path for: start work, validate locally, publish preview, repoint shared alias if needed, verify, and ship production.
 

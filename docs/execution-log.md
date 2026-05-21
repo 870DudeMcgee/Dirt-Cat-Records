@@ -2,6 +2,41 @@
 
 This file is append-only. Add one entry per implementation step.
 
+## Step 49 - README Reset And Operator Guide Split
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` Stage 7 launch hardening documentation hygiene
+
+### Will Be Done
+
+- Move detailed operator/setup material out of the GitHub-facing README and rewrite the README as a concise description of the current repo and product.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/workflow.md`, `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`, `docs/execution-log.md`
+- Skill docs reviewed: `brainstorming`, `using-superpowers`, `doc-coauthoring`, `verification-before-completion`
+- Codebase state: `main...origin/main`, HEAD `2e96601`, clean worktree before edits
+
+### Done
+
+- Preserved the previous detailed README content in `docs/operator-guide.md`.
+- Rewrote `README.md` as a focused project overview with current status, what the app does, tech stack, repo map, quick start, verification commands, documentation map, and safety notes.
+- Updated `docs/roadmap.md`, `docs/agent-handoff.md`, the architecture readiness documentation map, and active workflow/deepening plan tracking rules so runtime/operator details now point at `docs/operator-guide.md`.
+
+### Context Check (After)
+
+- Validation run: `git diff --check`; no whitespace errors.
+- Validation run: no-index whitespace check for new `docs/operator-guide.md`; no whitespace errors.
+- Validation run: stale README operator-ownership grep; no conflicting current ownership references found.
+- Editor diagnostics for edited markdown files: no errors.
+- Size check: `README.md` is now 110 lines; `docs/operator-guide.md` preserves the detailed guide at 658 lines.
+- Launch gate: `npm run deploy:preflight` passed with Vercel function count `12/12`, `297` tests passed, JavaScript syntax checks passed, and `git diff --check` passed.
+
+### Needs To Be Done Next
+
+- Review and commit the documentation-only split when ready.
+
 ## Step 48 - V1 Launch Readiness Pass
 
 Date/Time: 2026-05-21

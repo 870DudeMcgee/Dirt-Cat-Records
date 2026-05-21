@@ -26,7 +26,9 @@ This document is the stable architecture and readiness reference for those issue
 Use the smallest doc that actually owns the fact you need.
 
 - `README.md`
-  Purpose: operator workflow, setup rules, runtime commands, and high-level current state.
+  Purpose: GitHub-facing project overview, current status summary, quick start, and doc map.
+- `docs/operator-guide.md`
+  Purpose: operator workflow, setup rules, runtime commands, credential checklist, launch checklist, and owner-proof instructions.
 - `docs/roadmap.md`
   Purpose: staged checklist source of truth and the currently active delivery slice.
 - `docs/agent-handoff.md`
@@ -46,7 +48,7 @@ Use the smallest doc that actually owns the fact you need.
 
 - Do not freeze a preview deployment URL into more than one editable doc. Keep the active target in the handoff or execution log, and verify it from Vercel before using it.
 - Do not treat prose as the source of truth for worktree cleanliness or the latest pushed commit. Use `git status -sb` and `git log -1 --oneline`.
-- If operator workflow changes, update `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` in the same slice.
+- If operator workflow changes, update `docs/operator-guide.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` in the same slice. Update `README.md` only when the overview or doc map changes.
 - If the next action changes, update `docs/agent-handoff.md` and `docs/roadmap.md` together.
 - If a step is historical evidence, log it in `docs/execution-log.md` rather than expanding status prose elsewhere.
 

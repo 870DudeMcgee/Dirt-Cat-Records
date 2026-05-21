@@ -253,7 +253,7 @@ git diff --check
 - Keep `docs/roadmap.md` as the checklist source of truth.
 - Keep `docs/agent-handoff.md` focused on current repo state and exact next action.
 - Keep `docs/execution-log.md` append-only with one bounded step per implementation slice.
-- Update `README.md` when operator workflow or source-of-truth rules change.
+- Update `docs/operator-guide.md` when operator workflow or source-of-truth rules change. Update `README.md` only when the project overview or doc map changes.
 
 ## Risks And Rollback Notes
 
