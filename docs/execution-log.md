@@ -2557,3 +2557,52 @@ Roadmap link: `docs/roadmap.md` (Stage 2: portal access and mobile navigation po
 ### Needs To Be Done Next
 
 - Browser-check the responsive nav and logo layout on the next preview or local Vercel run at narrow mobile widths before launch sign-off.
+
+---
+
+## Step 53 - Refine Mobile Header Visual Weight
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 2: mobile navigation visual refinement after live-device review)
+
+### Will Be Done
+
+- Keep the working responsive navigation behavior, but refine the mobile presentation so the hamburger sits on the left, the closed header no longer feels like a heavy black bar, and the home hero logo has better vertical rhythm.
+
+### Context Check (Before)
+
+- Plan docs reviewed: session plan for Mobile Header Visual Refinement, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main` at `c9f157c`, synced with remote, with unrelated unstaged `api/webhooks/paypal.js` change still present and excluded from this visual fix
+- Target files/tests: `style.css`, `test/project-support-page.test.js`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+
+### Done
+
+- Changed the enhanced mobile nav shell from a full-width dark strip to a transparent, safe-area-aware floating control surface.
+- Moved the mobile hamburger presentation to the left side by anchoring the enhanced nav at the upper-left and removing the previous right-justified mobile flex layout.
+- Kept the hamburger hit target, focus treatment, blur, border, and contrast so it remains usable over the hero image.
+- Re-anchored the opened mobile menu panel from the left side and made it compact instead of a full-width top slab.
+- Retuned mobile home hero logo sizing, top offset, and hero top padding so the logo reads more centered within the mobile first viewport.
+- Expanded focused tests to assert the transparent enhanced mobile nav shell, left-anchored menu panel, and safe-area-aware positioning.
+- Updated status docs with the live-device mobile header refinement.
+
+### Context Check (After)
+
+- Validation run:
+  - `npx prettier --write style.css test/project-support-page.test.js README.md docs/roadmap.md docs/agent-handoff.md docs/execution-log.md` (pass)
+  - `node --test test/project-support-page.test.js` (pass, 7 tests)
+  - `npm run check:js` (pass)
+  - `npm test` (pass, 296 tests)
+  - `git diff --check` (pass)
+  - `get_errors` on touched CSS/test/docs (pass)
+- Codebase delta summary:
+  - Updated `style.css`
+  - Updated `test/project-support-page.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Live-test the refined mobile header on iPhone Safari after deployment and compare against the screenshot feedback.

@@ -220,26 +220,36 @@ body::after {
 
 @media (max-width: 900px) {
   body {
-    padding-top: 58px;
+    padding-top: 0;
   }
 
-  #main-nav {
-    min-height: 58px;
-    padding: 0.45rem 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+  #main-nav.nav-ready {
+    width: auto;
+    min-height: 0;
+    padding: calc(env(safe-area-inset-top, 0px) + 0.75rem) 0 0 0.75rem;
+    background: transparent;
+    border-bottom: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   #main-nav.nav-ready .nav-toggle {
     display: grid;
+    background: rgba(10, 10, 18, 0.46);
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow:
+      0 0 18px rgba(255, 0, 255, 0.18),
+      0 10px 28px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   #main-nav.nav-ready ul {
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 4.35rem);
     left: 0.75rem;
-    right: 0.75rem;
+    right: auto;
+    width: min(310px, calc(100vw - 1.5rem));
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
@@ -249,11 +259,12 @@ body::after {
     opacity: 0;
     pointer-events: none;
     transform: translateY(-6px);
-    background: rgba(5, 5, 10, 0.94);
+    background: rgba(5, 5, 10, 0.9);
     border: 1px solid rgba(138, 43, 226, 0.34);
-    border-top: 0;
-    border-radius: 0 0 8px 8px;
+    border-radius: 8px;
     box-shadow: 0 24px 48px rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     transition:
       max-height 0.22s ease,
       opacity 0.18s ease,
@@ -649,11 +660,11 @@ textarea::placeholder {
 }
 @media (max-width: 768px) {
   #hero-container {
-    padding-top: 220px;
+    padding-top: 190px;
   }
   #main-logo {
-    max-width: min(170px, 48vw);
-    top: 72px;
+    max-width: min(166px, 46vw);
+    top: 96px;
   }
   #hero-heading {
     font-size: 42px;
@@ -663,11 +674,12 @@ textarea::placeholder {
 
 @media (max-width: 380px) {
   #hero-container {
-    padding-top: 205px;
+    padding-top: 178px;
   }
 
   #main-logo {
-    max-width: min(150px, 46vw);
+    max-width: min(150px, 44vw);
+    top: 88px;
   }
 }
 

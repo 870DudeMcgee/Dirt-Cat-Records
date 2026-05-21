@@ -58,8 +58,12 @@ test("responsive navigation styling supports a hamburger menu", () => {
   const script = readFileSync(join(root, "nav.js"), "utf8");
 
   assert.match(css, /\.nav-toggle\s*{/);
+  assert.match(css, /#main-nav\.nav-ready\s*{[\s\S]*background: transparent;/);
   assert.match(css, /#main-nav\.nav-ready \.nav-toggle/);
   assert.match(css, /#main-nav\.nav-ready\.nav-open ul/);
+  assert.match(css, /#main-nav\.nav-ready ul\s*{[\s\S]*left: 0\.75rem;/);
+  assert.match(css, /#main-nav\.nav-ready ul\s*{[\s\S]*right: auto;/);
+  assert.match(css, /env\(safe-area-inset-top, 0px\)/);
   assert.match(css, /@media \(max-width: 900px\)/);
   assert.match(script, /aria-expanded/);
   assert.match(script, /aria-controls/);

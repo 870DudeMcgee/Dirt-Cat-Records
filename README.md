@@ -98,8 +98,8 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 - Shared form styling now keeps checkout, portal, and support inputs/buttons contained inside their glass panels, including add-on quantity fields, discount-code rows, and the support page's dedicated centered form layout.
 - Paid customers now have a dedicated `support.html` support flow backed by `api/public/project-support.js`, so the success page no longer routes them into the homepage or free-review funnel when they need help.
 - Primary pages now expose Support as a standard navigation link so paid customers can find help without waiting for the success-page prompt.
-- Primary pages now expose Portal as a standard navigation link and use a shared responsive hamburger menu on narrow screens so the customer nav stays usable without wrapping across the fixed header.
-- Mobile hero logo sizing now leaves room below the fixed nav so the home, checkout, success, and support logos do not appear clipped at the top of the viewport.
+- Primary pages now expose Portal as a standard navigation link and use a shared responsive hamburger menu on narrow screens so the customer nav stays usable without wrapping across the fixed header; the mobile trigger now sits as a lighter left-side floating control instead of a heavy full-width black bar.
+- Mobile hero logo sizing and spacing now leave room below the floating nav and keep the home, checkout, success, and support logos from feeling clipped or cramped at the top of the viewport.
 - Historical `vercel.app` URLs still present in append-only logs and older plan docs are historical records, not active runtime configuration.
 - A single preview deployment on 2026-05-20 failed after `vercel build` completed, but the immediately following preview deployment reached `Ready`; treat that one failure as transient unless the same deployment-stage error starts repeating.
 - The repo now has a dedicated workflow hardening plan focused on the bigger failure mode behind recent debugging waste: shared environments and docs can drift away from a known pushed commit unless provenance is treated as a first-class workflow artifact.

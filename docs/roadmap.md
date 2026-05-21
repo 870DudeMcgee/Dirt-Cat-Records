@@ -79,6 +79,7 @@ Goal: customers should see clear next steps and only the actions that apply to t
 - [x] Add visible Portal navigation on the primary customer-facing pages.
 - [x] Collapse crowded customer navigation behind a responsive hamburger menu on narrow screens.
 - [x] Resize and reposition mobile hero logos so they are not clipped by the fixed navigation.
+- [x] Refine the mobile hamburger into a lighter left-side floating control and retune the home hero logo rhythm after live-device review.
 
 ## Stage 3: Build Josh's Operational Admin Dashboard
 
