@@ -2499,3 +2499,61 @@ Roadmap link: `docs/roadmap.md` (Stage 2: support access polish)
 ### Needs To Be Done Next
 
 - Commit and push the standard Support nav styling so Vercel can deploy it.
+
+---
+
+## Step 52 - Add Responsive Portal Navigation And Mobile Logo Fix
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 2: portal access and mobile navigation polish)
+
+### Will Be Done
+
+- Add Portal as a standard customer-facing navigation destination, collapse crowded mobile navigation behind an accessible hamburger menu, and fix mobile hero logo sizing so the fixed header no longer clips the logo.
+
+### Context Check (Before)
+
+- Plan docs reviewed: session plan for Portal V1 Access And Mobile Nav, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Skills reviewed before action: `frontend-design`, `executing-plans`, `verification-before-completion`
+- Codebase state: `main...origin/main` with unrelated unstaged `api/webhooks/paypal.js` change still present and excluded from this fix
+- Target files/tests: root HTML pages, new `nav.js`, `style.css`, `package.json`, `test/project-support-page.test.js`, status docs
+
+### Done
+
+- Added Portal to the customer-facing nav on the primary pages and loaded shared `nav.js` wherever the fixed nav appears.
+- Added `nav.js` to inject a real hamburger button, manage `aria-expanded` and `aria-controls`, close on link click, close on Escape, and close when clicking outside the nav.
+- Updated `style.css` so desktop nav stays single-line and narrower screens collapse into a two-column hamburger menu with visible focus states.
+- Repositioned and resized the fixed home hero logo and checkout-style hero logos on mobile so they sit below the fixed header instead of being clipped.
+- Added `nav.js` to `npm run check:js` syntax coverage.
+- Expanded page tests to cover Portal navigation, shared responsive-nav script loading, and hamburger CSS/ARIA support.
+- Updated `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` with the Portal navigation, mobile hamburger, and logo hardening status.
+
+### Context Check (After)
+
+- Validation run:
+  - `npx prettier --write index.html checkout.html success.html portal.html support.html admin.html style.css nav.js package.json test/project-support-page.test.js README.md docs/roadmap.md docs/agent-handoff.md` (pass)
+  - `node --test test/project-support-page.test.js` (pass, 7 tests)
+  - `npm run check:js` (pass)
+  - `npm test` (pass, 296 tests)
+  - `git diff --check` (pass)
+  - `get_errors` on touched HTML/CSS/JS/test/docs (pass)
+- Codebase delta summary:
+  - Updated `index.html`
+  - Updated `checkout.html`
+  - Updated `portal.html`
+  - Updated `success.html`
+  - Updated `support.html`
+  - Updated `admin.html`
+  - Added `nav.js`
+  - Updated `style.css`
+  - Updated `package.json`
+  - Updated `test/project-support-page.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Browser-check the responsive nav and logo layout on the next preview or local Vercel run at narrow mobile widths before launch sign-off.

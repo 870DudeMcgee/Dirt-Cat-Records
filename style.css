@@ -136,7 +136,8 @@ body::after {
   left: 0;
   width: 100%;
   z-index: 999;
-  padding: 0.8rem 1rem;
+  min-height: 60px;
+  padding: 0.7rem 1rem;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -145,26 +146,142 @@ body::after {
 #main-nav ul {
   display: flex;
   justify-content: center;
+  align-items: center;
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#main-nav ul::-webkit-scrollbar {
+  display: none;
 }
 #main-nav a {
   color: #fff;
   text-decoration: none;
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 0.92rem;
   transition: color 0.3s ease;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 #main-nav a:hover {
   color: #ff00ff;
   text-shadow:
     0 0 15px #ff00ff,
     0 0 30px #ff00ff;
+}
+
+.nav-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 8px;
+  background: rgba(10, 10, 16, 0.76);
+  color: #fff;
+  cursor: pointer;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.54);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+#main-nav.nav-open .nav-toggle span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+#main-nav.nav-open .nav-toggle span:nth-child(2) {
+  opacity: 0;
+}
+
+#main-nav.nav-open .nav-toggle span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+#main-nav a:focus-visible,
+.nav-toggle:focus-visible {
+  outline: 2px solid #8ef2d1;
+  outline-offset: 4px;
+}
+
+@media (max-width: 900px) {
+  body {
+    padding-top: 58px;
+  }
+
+  #main-nav {
+    min-height: 58px;
+    padding: 0.45rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  #main-nav.nav-ready .nav-toggle {
+    display: grid;
+  }
+
+  #main-nav.nav-ready ul {
+    position: absolute;
+    top: 100%;
+    left: 0.75rem;
+    right: 0.75rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    max-height: 0;
+    padding: 0 0.75rem;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px);
+    background: rgba(5, 5, 10, 0.94);
+    border: 1px solid rgba(138, 43, 226, 0.34);
+    border-top: 0;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.42);
+    transition:
+      max-height 0.22s ease,
+      opacity 0.18s ease,
+      padding 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  #main-nav.nav-ready.nav-open ul {
+    max-height: 76vh;
+    padding: 0.75rem;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  #main-nav.nav-ready a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 0.88rem;
+    line-height: 1.1;
+    text-align: center;
+  }
 }
 
 /* 
@@ -199,7 +316,7 @@ body::after {
   max-width: 350px;
   position: fixed;
   z-index: 2;
-  top: 50px;
+  top: 72px;
   left: 50%;
   transform: translateX(-50%);
   pointer-events: none;
@@ -532,23 +649,25 @@ textarea::placeholder {
 }
 @media (max-width: 768px) {
   #hero-container {
-    padding-top: 200px;
+    padding-top: 220px;
   }
   #main-logo {
-    max-width: 200px;
-    top: 75px;
+    max-width: min(170px, 48vw);
+    top: 72px;
   }
   #hero-heading {
     font-size: 42px;
     padding: 0 5vw;
   }
-  #main-nav ul {
-    justify-content: center;
-    gap: 0.5rem;
+}
+
+@media (max-width: 380px) {
+  #hero-container {
+    padding-top: 205px;
   }
-  #main-nav a {
-    padding: 0.1rem 0.2rem;
-    font-size: 0.95rem;
+
+  #main-logo {
+    max-width: min(150px, 46vw);
   }
 }
 
@@ -2738,7 +2857,16 @@ footer {
 
 @media (max-width: 680px) {
   .checkout-page {
-    padding-inline: 0.75rem;
+    padding: 2rem 0.75rem 4rem;
+  }
+
+  .checkout-hero {
+    gap: 0.7rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .checkout-logo {
+    width: min(180px, 54vw);
   }
 
   .choice-grid {

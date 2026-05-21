@@ -18,7 +18,7 @@ test("project support page provides a dedicated paid-customer support form", () 
   assert.match(html, /support\.js/);
   assert.equal(html.includes("free mix review"), false);
 });
-test("primary pages expose a visible support navigation link", () => {
+test("primary pages expose visible portal and support navigation links", () => {
   const pageNames = [
     "index.html",
     "checkout.html",
@@ -32,7 +32,38 @@ test("primary pages expose a visible support navigation link", () => {
     const html = readFileSync(join(root, pageName), "utf8");
 
     assert.match(html, /href="support\.html"/);
+    assert.match(html, /href="portal\.html"/);
   });
+});
+
+test("primary pages load the shared responsive navigation script", () => {
+  const pageNames = [
+    "index.html",
+    "checkout.html",
+    "portal.html",
+    "success.html",
+    "support.html",
+    "admin.html",
+  ];
+
+  pageNames.forEach((pageName) => {
+    const html = readFileSync(join(root, pageName), "utf8");
+
+    assert.match(html, /<script src="nav\.js"><\/script>/);
+  });
+});
+
+test("responsive navigation styling supports a hamburger menu", () => {
+  const css = readFileSync(join(root, "style.css"), "utf8");
+  const script = readFileSync(join(root, "nav.js"), "utf8");
+
+  assert.match(css, /\.nav-toggle\s*{/);
+  assert.match(css, /#main-nav\.nav-ready \.nav-toggle/);
+  assert.match(css, /#main-nav\.nav-ready\.nav-open ul/);
+  assert.match(css, /@media \(max-width: 900px\)/);
+  assert.match(script, /aria-expanded/);
+  assert.match(script, /aria-controls/);
+  assert.match(script, /Escape/);
 });
 
 test("support navigation uses the standard nav link styling", () => {
