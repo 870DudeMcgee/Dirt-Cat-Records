@@ -26,6 +26,10 @@ html {
   font-family: "Inter", sans-serif;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   background: black;
   padding-top: 60px;

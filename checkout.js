@@ -64,20 +64,6 @@ const CHECKOUT_ADDONS = {
     billing: "perSong",
     description: "Additional stem batch beyond the included deliverables.",
   },
-  rushDelivery: {
-    id: "rushDelivery",
-    label: "Rush Delivery",
-    priceCents: 7500,
-    billing: "perProject",
-    description: "Prioritized scheduling when timing matters.",
-  },
-  consultation: {
-    id: "consultation",
-    label: "Consultation Call",
-    priceCents: 4000,
-    billing: "perProject",
-    description: "Focused call before or during the project.",
-  },
 };
 
 const checkoutState = {

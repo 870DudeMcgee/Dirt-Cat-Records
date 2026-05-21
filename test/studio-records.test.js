@@ -531,7 +531,7 @@ test("createAdminQuote can build quote line items from catalog inputs and adjust
     {
       baseServiceId: "mix",
       songCount: 2,
-      selectedAddOns: [{ addOnId: "rushDelivery", quantity: 1 }],
+      selectedAddOns: [{ addOnId: "extraStems", quantity: 1 }],
       paymentMode: "full",
       adjustmentCents: -1000,
       adjustmentLabel: "Loyalty discount",

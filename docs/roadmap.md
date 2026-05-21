@@ -73,7 +73,7 @@ Goal: customers should see clear next steps and only the actions that apply to t
 - [x] Add a useful empty state when no projects are found.
 - [x] Improve portal action error handling.
 - [x] Keep portal action confirmations visible after login and refresh project cards after customer submissions.
-- [x] Show unlimited revision access for friends free-code projects and add paid-project upsell links for extra revisions, new services, and custom add-ons.
+- [x] Show unlimited revision access for friends free-code projects and add paid-project upsell links for extra revisions, new services, and custom add-ons. Consultation is included with every service, and rush delivery is no longer sold separately.
 - [x] Normalize form control sizing so checkout, portal, and support inputs/buttons stay contained inside their panels, including the support form's dedicated centered layout and action-button layout.
 - [x] Add visible Support navigation on the primary customer-facing pages.
 - [x] Add visible Portal navigation on the primary customer-facing pages.

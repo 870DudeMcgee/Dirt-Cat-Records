@@ -25,8 +25,6 @@ test("PayPal metadata stays compact and round-trips into server pricing input", 
       { addOnId: "cleanRadioEdit", quantity: 1 },
       { addOnId: "instrumentalAcapella", quantity: 1 },
       { addOnId: "extraStems", quantity: 3 },
-      { addOnId: "rushDelivery", quantity: 1 },
-      { addOnId: "consultation", quantity: 1 },
     ],
     paymentMode: "deposit",
   });
@@ -42,8 +40,6 @@ test("PayPal metadata stays compact and round-trips into server pricing input", 
       { addOnId: "cleanRadioEdit", quantity: "1" },
       { addOnId: "instrumentalAcapella", quantity: "1" },
       { addOnId: "extraStems", quantity: "3" },
-      { addOnId: "rushDelivery", quantity: "1" },
-      { addOnId: "consultation", quantity: "1" },
     ],
     paymentMode: "deposit",
   });
@@ -109,7 +105,7 @@ test("PayPal capture derives checkout summary from server-created metadata", () 
   const orderSummary = calculateOrder({
     baseServiceId: "mixMaster",
     songCount: 5,
-    selectedAddOns: [{ addOnId: "rushDelivery", quantity: 1 }],
+    selectedAddOns: [],
     paymentMode: "deposit",
   });
 
@@ -332,7 +328,7 @@ test("PayPal order payload uses server-calculated amount and compact metadata", 
   const orderSummary = calculateOrder({
     baseServiceId: "mix",
     songCount: 2,
-    selectedAddOns: [{ addOnId: "rushDelivery", quantity: 1 }],
+    selectedAddOns: [{ addOnId: "extraStems", quantity: 1 }],
     paymentMode: "full",
   });
   let paypalPayload;
@@ -345,7 +341,7 @@ test("PayPal order payload uses server-calculated amount and compact metadata", 
 
   await createPaypalOrder(paypalClient, orderSummary);
 
-  assert.equal(paypalPayload.purchase_units[0].amount.value, "343.20");
+  assert.equal(paypalPayload.purchase_units[0].amount.value, "318.20");
   assert.equal(paypalPayload.purchase_units[0].amount.currency_code, "USD");
   assert.equal(typeof paypalPayload.purchase_units[0].custom_id, "string");
   assert.ok(paypalPayload.purchase_units[0].custom_id.length <= 127);

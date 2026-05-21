@@ -94,7 +94,7 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 - Preview browser validation now reaches sandbox PayPal from the deployed checkout flow and reaches `success.html` on the active diagnostic deployment.
 - The portal magic-link UI now prevents duplicate sends in the same tab and applies a one-minute resend cooldown with a clearer message when Supabase OTP throttling is hit.
 - Customer portal actions now keep confirmation visible after login, including revision-request success, file-link success, quote/balance checkout starts, and final approval feedback.
-- Friends free-code checkout projects now carry unlimited revision access into the customer portal, and paid projects show a compact upsell panel for extra revisions, new checkout work, and custom add-ons.
+- Friends free-code checkout projects now carry unlimited revision access into the customer portal, and paid projects show a compact upsell panel for extra revisions, new checkout work, and custom add-ons. Checkout consultation is included with every service, and rush delivery is no longer sold as a separate add-on.
 - Shared form styling now keeps checkout, portal, and support inputs/buttons contained inside their glass panels, including add-on quantity fields, discount-code rows, and the support page's dedicated centered form layout.
 - Paid customers now have a dedicated `support.html` support flow backed by `api/public/project-support.js`, so the success page no longer routes them into the homepage or free-review funnel when they need help.
 - Primary pages now expose Support as a standard navigation link so paid customers can find help without waiting for the success-page prompt.

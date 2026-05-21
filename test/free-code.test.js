@@ -8,7 +8,7 @@ const {
 const checkoutInput = Object.freeze({
   baseServiceId: "mixMaster",
   songCount: 2,
-  selectedAddOns: [{ addOnId: "rushDelivery", quantity: 1 }],
+  selectedAddOns: [],
   paymentMode: "deposit",
   discountCode: " friends2026 ",
   customer: {
@@ -58,7 +58,7 @@ test("buildNoChargeCheckoutPayment preserves catalog value and forces zero due",
   assert.equal(payment.buyerName, "Buyer Friend");
   assert.equal(payment.artistName, "Friend EP");
   assert.equal(payment.projectTitle, "Song One");
-  assert.equal(payment.totalAmount, "433.20");
+  assert.equal(payment.totalAmount, "358.20");
   assert.equal(payment.amountDueNow, "0.00");
   assert.equal(payment.remainingBalance, "0.00");
   assert.equal(payment.status, "paid");
@@ -66,8 +66,8 @@ test("buildNoChargeCheckoutPayment preserves catalog value and forces zero due",
   assert.equal(payment.orderSummary.noChargeReason, "friends_free_code");
   assert.equal(payment.orderSummary.noChargeLabel, "Friends comp");
   assert.equal(payment.orderSummary.unlimitedRevisions, true);
-  assert.equal(payment.orderSummary.originalTotalCents, 43320);
-  assert.equal(payment.orderSummary.totalCents, 43320);
+  assert.equal(payment.orderSummary.originalTotalCents, 35820);
+  assert.equal(payment.orderSummary.totalCents, 35820);
   assert.equal(payment.orderSummary.amountDueNowCents, 0);
   assert.equal(payment.orderSummary.remainingBalanceCents, 0);
   assert.equal(payment.orderSummary.paymentMode, "full");

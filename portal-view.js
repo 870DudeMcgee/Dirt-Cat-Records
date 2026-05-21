@@ -268,7 +268,7 @@
           ${renderRevisionUpsell(project)}
           <a class="portal-upsell-card" href="checkout.html">
             <strong>Start Another Service</strong>
-            <span>Book a mix, master, mix + master, rush delivery, exports, or a new custom deposit.</span>
+            <span>Book a mix, master, mix + master, exports, or a new custom deposit.</span>
           </a>
           <a class="portal-upsell-card" href="${escapeHtml(buildSupportHref(project, "project_status", "I want to add another service or custom upgrade to this project."))}">
             <strong>Ask For A Custom Add-On</strong>
