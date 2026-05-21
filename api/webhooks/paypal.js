@@ -63,11 +63,9 @@ function createPaypalWebhookHandler(dependencies = {}) {
       const status = isClientWebhookError(error) ? 400 : 500;
       if (status === 500)
         logError("PayPal webhook handling failed:", sanitizeErrorForLog(error));
-      return res
-        .status(status)
-        .json({
-          error: status === 400 ? error.message : "Webhook handling failed",
-        });
+      return res.status(status).json({
+        error: status === 400 ? error.message : "Webhook handling failed",
+      });
     }
   };
 }

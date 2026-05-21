@@ -6,12 +6,12 @@ For current handoff context, see [`docs/agent-handoff.md`](agent-handoff.md).
 For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [`docs/adr/`](adr).
 For the durable architecture gap register and anti-drift rules, see [`docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`](superpowers/specs/2026-05-20-architecture-readiness-review.md).
 
-Current next focus: resume Stage 7 launch hardening by running the real portal magic-link and checkout/webhook retests on the shared preview whose provenance is recorded in `docs/deployment-ledger.md`, then verify the same portal path on production.
+Current next focus: treat the current web app as the V1 launch candidate, keep future-product work out of the release scope, and move through final release packaging from a clean committed state.
 Workflow hardening plan: [`docs/superpowers/plans/2026-05-20-workflow-and-version-control-hardening-plan.md`](superpowers/plans/2026-05-20-workflow-and-version-control-hardening-plan.md).
 Ordered architecture follow-on: [`docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`](superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md).
 Ordered deep-module follow-on after the PayPal seam work: [`docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md`](superpowers/plans/2026-05-20-deep-modules-architecture-plan.md).
 
-Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, and preview has the correct sandbox PayPal environment split. Shared preview provenance is now ledgered instead of copied into multiple editable docs, and the active preview target for webhook testing must be confirmed from Vercel plus `docs/deployment-ledger.md` before use. The remaining work is the narrower launch-hardening slice: re-run the real portal magic-link flow on the shared preview, confirm the next real webhook and automation round-trip against that same alias, verify production-domain magic-link behavior, verify Drive sharing and Resend deliverability, then restore preview protection and close the launch checklist.
+Current Stage 7 state: the local credential sanity gate passes again, the `v1-usability` Stage 7 sandbox run passes end to end locally against the real Supabase, Google Drive, and Resend integrations plus sandbox-like PayPal payment events, production runtime smoke is healthy on the canonical `www` host, preview has the correct sandbox PayPal environment split, and the owner has manually tested the current V1 website, checkout, portal, support, and provider workflow successfully. Shared preview provenance is now ledgered instead of copied into multiple editable docs. The remaining work is release discipline: keep the web app frozen unless a real launch blocker appears, commit only intentional launch-candidate changes, deploy production only from committed and pushed code, restore or confirm preview protection after webhook testing, and monitor the first real customer workflow.
 
 Current workflow tooling state: the repo now includes workspace-level VS Code settings, extension recommendations, reusable tasks, a package-level `npm run dev:stack` convenience script, an environment parity audit, local env profile switch helpers that keep `.env.local` as the active runtime filename, a shared safe runtime fingerprint in the setup wizard, the public checkout config, and the env audit, a GitHub Actions preflight workflow, and a dedicated architecture readiness review so the Vercel, PayPal, Supabase, GitHub PR, GitHub Actions, GitLens, Thunder Client, and Prettier workflow has one durable document map.
 
@@ -153,19 +153,19 @@ Current status:
 - The setup wizard readiness report and the public checkout-config route now expose the same non-secret runtime fingerprint so the deployed preview environment can be compared directly against `npm run check:env:preview` before blaming PayPal, Supabase, or Resend.
 - Customer portal auth now provisions confirmed Supabase users server-side for known customer emails before requesting browser magic links, which prevents the portal from falling into browser-driven signup confirmation.
 - The portal magic-link UI now locks duplicate sends and applies a one-minute resend cooldown in the browser so Supabase OTP throttling is handled as a recoverable wait state instead of a raw retry failure.
-- Hosted Supabase Auth URL Configuration is still externally misconfigured for confirmation-link fallback: generated signup links currently use `redirect_to=www.dirtcatrecords.com` without a scheme, which causes `requested_path_is_invalid` until the dashboard `Site URL` is corrected.
+- Hosted Supabase Auth URL Configuration has been corrected so generated links use the canonical `https://www.dirtcatrecords.com` flow.
 - The portal auth preparation step now lives inside `api/portal/actions.js?action=auth` so the repo stays deployable on the Vercel Hobby function cap.
 - The latest failed preview deployment email corresponded to a transient Vercel output-deploy failure: `vercel inspect --logs` showed the build completed, and the next preview deployment reached `Ready`.
 - The shared preview alias used for browser retests was then repointed to that newer `Ready` deployment so the portal path now serves the resend-guarded `portal.js` instead of the older raw-error client.
-- The remaining work is live-provider verification first, then the ordered PayPal environment deepening plan and the deepening opportunities documented in the architecture readiness review.
+- Owner manual acceptance has passed for the current launch candidate; future product work should stay parked until this version is released and observed.
 
 - [x] Run the admin sandbox test against real providers.
 - [x] Verify PayPal sandbox checkout and webhook end to end.
-- [ ] Correct hosted Supabase Auth URL Configuration so `Site URL` is `https://www.dirtcatrecords.com`, then verify production magic link redirects on the canonical domain.
-- [ ] Verify Resend sender domain, reply-to, and deliverability.
+- [x] Correct hosted Supabase Auth URL Configuration so `Site URL` is `https://www.dirtcatrecords.com`, then verify production magic link redirects on the canonical domain.
+- [x] Verify Resend sender domain, reply-to, and deliverability.
 - [x] Verify Google Drive folder creation and sharing permissions.
 - [x] Verify Vercel environment variables are set for production.
-- [ ] Document the launch checklist in `README.md`.
+- [x] Document the launch checklist in `README.md`.
 
 Ordered follow-on after the Stage 7 webhook proof:
 

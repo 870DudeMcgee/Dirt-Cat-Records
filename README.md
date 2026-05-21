@@ -73,6 +73,7 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 ## Current Status
 
 - Stages 0 through 6 are implemented and covered by the current automated test suite.
+- V1 is in launch-candidate state: the owner has manually tested the current website, checkout, portal, support, and provider workflow and reported that the full version works well.
 - The repo currently passes `npm run deploy:preflight`; if branch/worktree state matters, trust `git status -sb` and `git log` over status prose in repo docs.
 - The V1 owner-proof sandbox harness is implemented and documented.
 - Deploy guardrails are active: portal payment starts were consolidated into `api/portal/actions.js`, the repo stays under the 12-function Hobby limit, and `.husky/pre-push` runs `npm run deploy:preflight` before push.
@@ -604,6 +605,17 @@ curl -sS "http://localhost:3000/api/cron/follow-ups?dryRun=false&dispatch=true" 
 9. Run sandbox mode before taking real customer payments.
 10. Run `npm test` and `npm run check:js` before every deploy.
 
+Final launch readiness pass:
+
+1. Freeze V1 site, checkout, portal, support, admin, and automation behavior unless a real launch blocker appears.
+2. Keep the Logic stem exporter and growth-tool brainstorms as future product tracks, outside the web launch scope.
+3. Confirm the worktree contains only intentional release docs/code before committing.
+4. Run `npm run deploy:preflight` from the release commit.
+5. Deploy production only from committed and pushed code.
+6. After deploy, smoke-test the canonical `https://www.dirtcatrecords.com` path: public pages, checkout config, checkout, success, portal magic link, support, admin setup, Resend delivery, Drive folder/share evidence, and PayPal webhook records.
+7. Restore or confirm preview protection after any webhook-specific preview testing is finished.
+8. Monitor the first real customer workflow through PayPal, Supabase, Google Drive, Resend, and the admin dashboard.
+
 Stage 7 note: the admin setup check now performs a live Google Drive access probe for `GOOGLE_DRIVE_PROJECTS_FOLDER_ID`. If storage fails with `File not found`, verify that the value is the raw folder id and that the OAuth client can access that folder.
 
 Sandbox verification note: PayPal sandbox buyer emails use `@personal.example.com`, so they cannot accept Google Drive folder sharing. To verify the Drive-sharing step on preview without changing production behavior, set `GOOGLE_DRIVE_TEST_SHARE_EMAIL` in preview/local sandbox environments to a real Google account you control. The override is ignored when `PAYPAL_ENV=live`.
@@ -612,13 +624,15 @@ Latest preview verification note: with `GOOGLE_DRIVE_TEST_SHARE_EMAIL` set on pr
 
 Current verification state:
 
+- Owner manual acceptance has passed for the current V1 launch candidate.
+- `npm run deploy:preflight` passed on 2026-05-21: Vercel function count `12/12`, `297` tests passed, JavaScript syntax checks passed, and `git diff --check` passed.
 - Local setup checks pass with the custom `dirtcatrecords.com` Resend sender.
 - Customer portal login no longer relies on browser-side Supabase signup creation: `/api/portal/auth` now provisions a confirmed auth user for known customer emails first, and `portal.js` requests the magic link with `shouldCreateUser: false`.
-- The hosted Supabase Auth URL Configuration is still an external dependency: generated signup links currently fall back to `redirect_to=www.dirtcatrecords.com`, so the hosted `Site URL` must be corrected to `https://www.dirtcatrecords.com` before considering confirmation-link flows fixed end to end.
+- The hosted Supabase Auth URL Configuration has been corrected and owner-tested so generated links use the canonical `https://www.dirtcatrecords.com` flow.
 - The portal auth preparation logic was folded into `api/portal/actions.js?action=auth` instead of a new standalone function so preview deployments stay under the Vercel Hobby 12-function cap.
 - Local `v1-usability` sandbox run passed with a `dcrtest-sbx` Stage 7 run id and cleanup also passed.
 - Vercel production env parity is now present for the documented runtime requirements.
-- Preview env coverage is still incomplete and is missing at least `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, PayPal vars, and likely should use `PAYPAL_ENV=sandbox` for safe preview testing.
+- Preview env coverage is present for the documented sandbox PayPal and server runtime requirements.
 - Production-safe runtime smoke now passes on `https://www.dirtcatrecords.com`: `portal.html` and `admin.html` return `200`, `GET /api/checkout-config` returns valid public config JSON, and `GET /api/admin/setup-wizard?action=setup` returns `401` without admin auth as expected.
 
 ## Asset Notes

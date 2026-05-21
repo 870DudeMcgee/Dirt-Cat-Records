@@ -2,6 +2,40 @@
 
 This file is append-only. Add one entry per implementation step.
 
+## Step 48 - V1 Launch Readiness Pass
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` Stage 7 launch hardening
+
+### Will Be Done
+
+- Reframe the current website as a V1 launch candidate, separate future-product planning from launch scope, and verify the repo's release gate.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/deployment-ledger.md`, `docs/execution-log.md`
+- Skill docs reviewed: `using-superpowers`, `finishing-a-development-branch`, `verification-before-completion`
+- Codebase state: `main...origin/main`, HEAD `e946297`, with current local docs/planning edits and a formatting-only delta in `api/webhooks/paypal.js`
+- Owner signal: Josh manually tested the current website, checkout, portal, support, and provider workflow and reported that it works great.
+
+### Done
+
+- Confirmed the release-relevant code diff in `api/webhooks/paypal.js` is formatting-only.
+- Confirmed the Logic stem exporter and growth-tool artifacts are future-product planning, not part of the active web launch scope.
+- Ran `npm run deploy:preflight` through the VS Code task runner.
+- Updated `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` so the docs reflect V1 launch-candidate status and the final release discipline checklist.
+
+### Context Check (After)
+
+- Validation run: `npm run deploy:preflight` (pass)
+- Evidence: Vercel function count `12/12`; `297` tests passed; JavaScript syntax checks passed; `git diff --check` passed.
+- Launch posture: no known application behavior blocker remains from this readiness pass; remaining work is release hygiene, committed deployment, preview protection, and first-customer monitoring.
+
+### Needs To Be Done Next
+
+- Review the dirty worktree, commit only intentional launch-candidate changes, push, deploy production from that pushed SHA, and monitor the first live customer workflow.
+
 ## Step 0 - Baseline and Process Setup
 
 Date/Time: 2026-05-19

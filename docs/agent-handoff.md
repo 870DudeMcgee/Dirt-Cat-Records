@@ -28,11 +28,11 @@ If `main` is dirty when a new implementation slice starts, recover by branching 
 
 ## Current Focus
 
-Stage 7 launch hardening is still the active delivery slice. Workflow hardening Tasks 0 through 3 are now in place, and the shared preview alias has been reset onto a clean preview deployment published from pushed `ae958f9` and recorded in `docs/deployment-ledger.md`. The feature foundation is in place through Stage 6, the local setup gate passes again, the local `v1-usability` sandbox run passes end to end, the public production runtime responds on the canonical `www` host, and preview has the correct sandbox PayPal env split. Preview browser checkout reaches the success page, the paid-success flow has a dedicated project-support path instead of bouncing customers back into the marketing site, and the latest debugging pass confirmed and fixed the full preview webhook chain: checkout and webhook delivery were first split across two deployments, the webhook parser was updated to handle the actual sandbox event shapes, and the Drive-sharing verification now passes on preview by using a preview-only share override account.
+Stage 7 launch hardening is effectively in launch-candidate state. Workflow hardening Tasks 0 through 3 are now in place, and the shared preview alias has been reset onto a clean preview deployment published from pushed `ae958f9` and recorded in `docs/deployment-ledger.md`. The feature foundation is in place through Stage 6, the local setup gate passes again, the local `v1-usability` sandbox run passes end to end, the public production runtime responds on the canonical `www` host, and preview has the correct sandbox PayPal env split. Preview browser checkout reaches the success page, the paid-success flow has a dedicated project-support path instead of bouncing customers back into the marketing site, and the latest debugging pass confirmed and fixed the full preview webhook chain: checkout and webhook delivery were first split across two deployments, the webhook parser was updated to handle the actual sandbox event shapes, and the Drive-sharing verification now passes on preview by using a preview-only share override account.
 
 The customer portal magic-link seam now has a confirmed app-side fix too: `portal.js` calls the merged server-backed `api/portal/actions.js?action=auth` preparation step so known customer emails get a confirmed Supabase auth user before the browser requests a magic link, and the browser request now sets `shouldCreateUser: false` to avoid signup-confirmation fallback. The hosted Supabase Auth URL Configuration has now been corrected too: generated confirmation links use `https://www.dirtcatrecords.com` instead of the invalid schemeless redirect.
 
-The immediate next gap is no longer workflow hardening first; it is external-truth verification on the ledgered shared preview. Recent time loss came from shared environments, local worktrees, preview aliases, and editable docs drifting away from a known pushed commit, so the repo now has the minimum workflow contract needed to stop that. Re-test the real customer portal magic-link flow on the current shared preview first, then run the next real checkout/webhook retest against that same alias before shipping the portal auth fix to production and confirming the same flow there. After the live portal and webhook truth gap is closed again, return to the ordered PayPal environment deepening plan in `docs/superpowers/plans/2026-05-20-paypal-environment-deepening-plan.md`. After that plan is no longer the controlling uncertainty, use `docs/superpowers/plans/2026-05-20-deep-modules-architecture-plan.md` as the execution path for the broader deep-module work. The durable gap register for the architecture and documentation seams now lives in `docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`.
+The immediate next gap is release discipline, not more site feature work. The owner has manually tested the current V1 website, checkout, portal, support, and provider workflow and reported that it works well. `npm run deploy:preflight` also passed on 2026-05-21 with function count `12/12`, `297` tests passing, JavaScript syntax checks passing, and `git diff --check` passing. Next work should freeze V1 behavior, commit only intentional launch-candidate changes, deploy production only from committed and pushed code, restore or confirm preview protection after webhook testing, and monitor the first real customer workflow. Future product tracks should stay parked until the launch candidate is released and observed.
 
 Current constraints that matter before new feature work:
 
@@ -186,12 +186,11 @@ Pre-commit review status:
 ## Next Session Start Here
 
 1. Use Vercel, git, and `docs/deployment-ledger.md` to confirm the currently active shared preview deployment, alias target, and pushed SHA before opening checkout or checking webhook logs.
-2. Run one real portal magic-link test on that shared preview deployment and confirm the first send works while duplicate retries are held in the browser.
-3. Run the next real checkout/webhook retest against that same shared preview alias.
-4. Deploy the same portal auth fix to production and verify the magic-link flow on the canonical domain.
-5. Verify Resend sender, reply-to, and deliverability behavior beyond provider acceptance.
-6. Restore Vercel Authentication after preview webhook testing is complete.
-7. Continue launch hardening from `docs/roadmap.md`: production Supabase Auth URL configuration/magic-link verification, Resend deliverability verification, preview protection restore when webhook testing is complete, and final launch-checklist documentation.
+2. Keep the V1 web app frozen unless a real launch blocker appears.
+3. Review the current dirty worktree and commit only intentional launch-candidate docs/code.
+4. Deploy production only from a committed and pushed SHA.
+5. Restore or confirm Vercel Authentication / preview protection after preview webhook testing is complete.
+6. Monitor the first real customer workflow through PayPal, Supabase, Google Drive, Resend, the portal, and the admin dashboard.
 
 Workflow note for the next session:
 
