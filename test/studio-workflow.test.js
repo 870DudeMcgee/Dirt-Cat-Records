@@ -322,6 +322,78 @@ test("createPaidProjectWorkflow applies balance payment and unlocks finals when 
   );
 });
 
+test("createPaidProjectWorkflow creates paid no-charge project with zero balance", async () => {
+  const calls = [];
+  const records = fakeRecords(calls);
+  let createdProject;
+  records.createProject = async (input) => {
+    calls.push({ type: "project.create", input });
+    createdProject = {
+      id: "project-free-1",
+      status: input.status,
+      project_type: input.projectType,
+      total_amount: input.totalAmount,
+      amount_paid: input.amountPaid,
+      balance_due: input.balanceDue,
+      final_delivery_locked: input.finalDeliveryLocked,
+      project_code: "DCR-000124",
+    };
+    return createdProject;
+  };
+  records.updateProject = async (_id, patch) => {
+    createdProject = { ...createdProject, ...patch };
+    return createdProject;
+  };
+  records.upsertPaymentAndOrder = async ({ payment }) => {
+    calls.push({ type: "payment.upsert", payment });
+    return {
+      order: { id: "order-free-1" },
+      payment: { id: "payment-free-1" },
+    };
+  };
+
+  const workflow = createPaidProjectWorkflow({
+    records,
+    drive: fakeDrive(calls),
+    email: fakeEmail(calls),
+    env: { ADMIN_EMAIL: "josh@example.com" },
+  });
+
+  const result = await workflow({
+    paymentPurpose: "checkout",
+    paypalTxnId: "NOCHARGE-free-1",
+    paypalOrderId: "NOCHARGE-free-1",
+    buyerEmail: "friend@example.com",
+    buyerName: "Buyer Friend",
+    artistName: "Friend EP",
+    projectTitle: "Song One",
+    totalAmount: "433.20",
+    amountDueNow: "0.00",
+    remainingBalance: "0.00",
+    status: "paid",
+    orderSummary: {
+      baseServiceId: "mixMaster",
+      songCount: 2,
+      paymentMode: "full",
+      noChargeCheckout: true,
+      amountDueNowCents: 0,
+      remainingBalanceCents: 0,
+      totalCents: 43320,
+      originalTotalCents: 43320,
+    },
+  });
+
+  assert.equal(result.project.project_type, "paid");
+  assert.equal(result.project.status, "awaiting_files");
+  assert.equal(result.project.total_amount, 433.2);
+  assert.equal(result.project.amount_paid, 0);
+  assert.equal(result.project.balance_due, 0);
+  assert.equal(result.project.final_delivery_locked, false);
+  assert.ok(calls.some((call) => call.type === "drive.create"));
+  assert.ok(calls.some((call) => call.type === "email.customer"));
+  assert.ok(calls.some((call) => call.type === "link.project"));
+});
+
 test("default email adapter logs failed email without aborting free review workflow", async () => {
   const calls = [];
   const records = fakeRecords(calls);
