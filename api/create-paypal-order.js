@@ -1,4 +1,8 @@
 const { ensureRuntimeEnv } = require("../lib/env/runtime");
+const {
+  createPaidProjectWorkflow,
+} = require("../lib/automation/studio-workflow");
+const { buildNoChargeCheckoutPayment } = require("../lib/checkout/free-code");
 const { calculateOrder, centsToDollars } = require("../lib/checkout/pricing");
 const {
   buildOrderMetadata,
@@ -20,6 +24,9 @@ const MAX_JSON_BODY_BYTES = 32 * 1024;
 function createPaypalOrderHandler(dependencies = {}) {
   const fetchImpl = dependencies.fetch || globalThis.fetch;
   const getEnv = dependencies.getEnv || (() => process.env);
+  const paidProjectWorkflow =
+    dependencies.paidProjectWorkflow || createPaidProjectWorkflow(dependencies);
+  const idFactory = dependencies.idFactory;
 
   return async function paypalOrderHandler(req, res) {
     setJsonHeaders(res);
@@ -35,6 +42,16 @@ function createPaypalOrderHandler(dependencies = {}) {
       return res
         .status(error.statusCode || 400)
         .json({ error: error.publicMessage || "Invalid JSON payload" });
+    }
+
+    if (body && body.paymentMethod === "no_charge") {
+      return handleNoChargeCheckout({
+        body,
+        res,
+        env: getEnv(),
+        paidProjectWorkflow,
+        idFactory,
+      });
     }
 
     let orderSummary;
@@ -77,6 +94,36 @@ function createPaypalOrderHandler(dependencies = {}) {
         .json({ error: error.publicMessage || "PayPal order creation failed" });
     }
   };
+}
+
+async function handleNoChargeCheckout({
+  body,
+  res,
+  env,
+  paidProjectWorkflow,
+  idFactory,
+}) {
+  let paymentInput;
+  try {
+    paymentInput = buildNoChargeCheckoutPayment(body, { env, idFactory });
+  } catch (error) {
+    return res.status(400).json({ error: "Discount code is not valid." });
+  }
+
+  try {
+    const result = await paidProjectWorkflow(paymentInput);
+    return res.status(200).json({
+      ok: true,
+      noChargeCheckout: true,
+      projectId: result.project?.id || null,
+      orderSummary: paymentInput.orderSummary,
+    });
+  } catch (error) {
+    console.error("No-charge checkout failed:", sanitizeErrorForLog(error));
+    return res.status(error.statusCode || 500).json({
+      error: "Unable to start no-charge checkout.",
+    });
+  }
 }
 
 async function createPaypalOrder(paypalClient, orderSummary) {
@@ -238,6 +285,7 @@ module.exports._private = {
   getPaypalAccessToken,
   getPaypalBaseUrl,
   getPaypalClient,
+  handleNoChargeCheckout,
   normalizeQuotePaymentInput,
   parseOrderMetadata,
   readJsonBody,

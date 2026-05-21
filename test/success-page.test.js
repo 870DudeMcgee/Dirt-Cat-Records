@@ -16,3 +16,13 @@ test("paid success page uses portal-first intake instead of mailto form", () => 
   assert.match(html, /project portal/i);
   assert.match(html, /watch your email/i);
 });
+
+test("success page exposes stable anchors for no-charge completion copy", () => {
+  const html = readFileSync(join(root, "success.html"), "utf8");
+
+  assert.match(html, /id="success-kicker"/);
+  assert.match(html, /id="success-title"/);
+  assert.match(html, /id="success-copy"/);
+  assert.match(html, /id="success-step-payment"/);
+  assert.match(html, /id="paid-summary"/);
+});

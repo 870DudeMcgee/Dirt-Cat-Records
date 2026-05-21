@@ -1,89 +1,172 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dirt Cat Records | Secure Checkout</title>
-  <meta name="description" content="Build a Dirt Cat Records remote mixing or mastering project with clear pricing, add-ons, deposits, and secure PayPal checkout." />
-  <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
-  <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <nav id="main-nav">
-    <ul>
-      <li><a href="index.html#hero-container">Home</a></li>
-      <li><a href="index.html#services">Offers</a></li>
-      <li><a href="index.html#listen">Listen</a></li>
-      <li><a href="checkout.html">Checkout</a></li>
-      <li><a href="index.html#fat-footer">Contact</a></li>
-    </ul>
-  </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dirt Cat Records | Secure Checkout</title>
+    <meta
+      name="description"
+      content="Build a Dirt Cat Records remote mixing or mastering project with clear pricing, add-ons, deposits, and secure PayPal checkout."
+    />
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
+    <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav id="main-nav">
+      <ul>
+        <li><a href="index.html#hero-container">Home</a></li>
+        <li><a href="index.html#services">Offers</a></li>
+        <li><a href="index.html#listen">Listen</a></li>
+        <li><a href="checkout.html">Checkout</a></li>
+        <li><a href="index.html#fat-footer">Contact</a></li>
+      </ul>
+    </nav>
 
-  <main class="checkout-page">
-    <section class="checkout-hero">
-      <img class="checkout-logo" src="assets/Dirt-Cat-Logo.PNG" alt="Dirt Cat Records logo" />
-      <p class="hero-kicker">REMOTE MIXING · SECURE PAYPAL CHECKOUT</p>
-      <h1>Build Your Mix Project</h1>
-      <p>Choose your service, song count, and add-ons. You will see the full breakdown before paying.</p>
-    </section>
+    <main class="checkout-page">
+      <section class="checkout-hero">
+        <img
+          class="checkout-logo"
+          src="assets/Dirt-Cat-Logo.PNG"
+          alt="Dirt Cat Records logo"
+        />
+        <p class="hero-kicker">REMOTE MIXING · SECURE PAYPAL CHECKOUT</p>
+        <h1>Build Your Mix Project</h1>
+        <p>
+          Choose your service, song count, and add-ons. You will see the full
+          breakdown before paying.
+        </p>
+      </section>
 
-    <section class="checkout-layout" aria-label="Checkout builder">
-      <form id="checkout-form" class="checkout-builder">
-        <fieldset class="checkout-panel">
-          <legend>1. Choose Service</legend>
-          <div id="service-options" class="choice-grid"></div>
-        </fieldset>
+      <section class="checkout-layout" aria-label="Checkout builder">
+        <form id="checkout-form" class="checkout-builder">
+          <fieldset class="checkout-panel">
+            <legend>1. Choose Service</legend>
+            <div id="service-options" class="choice-grid"></div>
+          </fieldset>
 
-        <fieldset class="checkout-panel">
-          <legend>2. Song Count</legend>
-          <label class="field-label" for="song-count">Number of songs</label>
-          <input id="song-count" name="songCount" type="number" min="1" max="50" value="1" required />
-          <p class="field-help">Mix, master, and mix + master projects receive multi-song discounts. Add-ons are priced separately.</p>
-        </fieldset>
+          <fieldset class="checkout-panel">
+            <legend>2. Song Count</legend>
+            <label class="field-label" for="song-count">Number of songs</label>
+            <input
+              id="song-count"
+              name="songCount"
+              type="number"
+              min="1"
+              max="50"
+              value="1"
+              required
+            />
+            <p class="field-help">
+              Mix, master, and mix + master projects receive multi-song
+              discounts. Add-ons are priced separately.
+            </p>
+          </fieldset>
 
-        <fieldset class="checkout-panel">
-          <legend>3. Add-Ons</legend>
-          <div id="addon-options" class="addon-list"></div>
-        </fieldset>
+          <fieldset class="checkout-panel">
+            <legend>3. Add-Ons</legend>
+            <div id="addon-options" class="addon-list"></div>
+          </fieldset>
 
-        <fieldset class="checkout-panel">
-          <legend>4. Project Details</legend>
-          <label class="field-label" for="customer-name">Name</label>
-          <input id="customer-name" name="customerName" type="text" autocomplete="name" required />
+          <fieldset class="checkout-panel">
+            <legend>4. Project Details</legend>
+            <label class="field-label" for="customer-name">Name</label>
+            <input
+              id="customer-name"
+              name="customerName"
+              type="text"
+              autocomplete="name"
+              required
+            />
 
-          <label class="field-label" for="customer-email">Email</label>
-          <input id="customer-email" name="customerEmail" type="email" autocomplete="email" required />
+            <label class="field-label" for="customer-email">Email</label>
+            <input
+              id="customer-email"
+              name="customerEmail"
+              type="email"
+              autocomplete="email"
+              required
+            />
 
-          <label class="field-label" for="project-name">Artist / Project Name</label>
-          <input id="project-name" name="projectName" type="text" required />
+            <label class="field-label" for="project-name"
+              >Artist / Project Name</label
+            >
+            <input id="project-name" name="projectName" type="text" required />
 
-          <label class="field-label" for="song-title">Song or Project Title</label>
-          <input id="song-title" name="songTitle" type="text" required />
+            <label class="field-label" for="song-title"
+              >Song or Project Title</label
+            >
+            <input id="song-title" name="songTitle" type="text" required />
 
-          <label class="field-label" for="reference-link">Optional Reference Link</label>
-          <input id="reference-link" name="referenceLink" type="url" placeholder="Drive, Dropbox, SoundCloud, or private stream" />
+            <label class="field-label" for="reference-link"
+              >Optional Reference Link</label
+            >
+            <input
+              id="reference-link"
+              name="referenceLink"
+              type="url"
+              placeholder="Drive, Dropbox, SoundCloud, or private stream"
+            />
 
-          <label class="terms-row">
-            <input id="terms-confirmed" name="termsConfirmed" type="checkbox" required />
-            <span>I understand the selected deliverables, payment amount, and any remaining balance shown here.</span>
-          </label>
-        </fieldset>
-      </form>
+            <label class="terms-row">
+              <input
+                id="terms-confirmed"
+                name="termsConfirmed"
+                type="checkbox"
+                required
+              />
+              <span
+                >I understand the selected deliverables, payment amount, and any
+                remaining balance shown here.</span
+              >
+            </label>
+          </fieldset>
+        </form>
 
-      <aside class="checkout-summary" aria-live="polite">
-        <p class="checkout-summary-kicker">Live Breakdown</p>
-        <h2>Project Total</h2>
-        <div id="summary-lines" class="summary-lines"></div>
-        <div class="payment-mode" id="payment-mode"></div>
-        <p id="checkout-error" class="checkout-error" role="alert"></p>
-        <div id="paypal-button-container"></div>
-        <div id="test-checkout-container"></div>
-        <p class="field-help secure-note">Payments are processed by PayPal. Dirt Cat Records never sees or stores card details.</p>
-      </aside>
-    </section>
-  </main>
+        <aside class="checkout-summary" aria-live="polite">
+          <p class="checkout-summary-kicker">Live Breakdown</p>
+          <h2>Project Total</h2>
+          <div id="summary-lines" class="summary-lines"></div>
+          <div class="payment-mode" id="payment-mode"></div>
+          <div class="discount-code-box">
+            <label class="field-label" for="discount-code">Discount code</label>
+            <div class="discount-code-row">
+              <input
+                id="discount-code"
+                name="discountCode"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button
+                class="btn btn-secondary"
+                id="apply-discount-code"
+                type="button"
+              >
+                Apply
+              </button>
+            </div>
+            <p class="field-help" id="discount-code-status"></p>
+          </div>
+          <button
+            class="btn btn-primary no-charge-checkout-button"
+            id="no-charge-checkout"
+            type="button"
+            hidden
+          >
+            Start Project
+          </button>
+          <p id="checkout-error" class="checkout-error" role="alert"></p>
+          <div id="paypal-button-container"></div>
+          <div id="test-checkout-container"></div>
+          <p class="field-help secure-note">
+            Payments are processed by PayPal. Dirt Cat Records never sees or
+            stores card details.
+          </p>
+        </aside>
+      </section>
+    </main>
 
-  <script src="checkout.js"></script>
-</body>
+    <script src="checkout.js"></script>
+  </body>
 </html>
