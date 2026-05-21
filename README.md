@@ -4,13 +4,15 @@ Dirt Cat Records is a web app for selling and managing mix/mastering services. I
 
 ## Status
 
-V1 launch candidate. Core checkout, portal, admin, payment, email, Google Drive automation, support, and follow-up flows are implemented. Remaining work is primarily production launch discipline, preview protection, and monitoring the first real customer workflow.
+V1 launch candidate. Core checkout, portal, admin, payment, email, Google Drive automation, support, and follow-up flows are implemented. Remaining work is primarily production launch discipline, production deployment, and final owner verification.
 
 See [docs/agent-handoff.md](docs/agent-handoff.md) for the current next action and [docs/roadmap.md](docs/roadmap.md) for the staged launch checklist.
 
+> This repo controls live studio operations. Run the deployment preflight and follow the deployment ledger process before shared preview or production changes.
+
 ## Features
 
-### Customer-Facing
+### Customer-facing
 
 - Public service pages and free mix-review intake.
 - PayPal checkout for direct paid services.
@@ -19,14 +21,14 @@ See [docs/agent-handoff.md](docs/agent-handoff.md) for the current next action a
 - Portal actions for file links, revision requests, Quote acceptance, Balance Payments, and Final Delivery approval.
 - Dedicated paid-customer support form.
 
-### Owner/Admin
+### Owner/admin
 
 - Private admin dashboard for studio operations.
 - Project queue, project detail, status updates, admin notes, final delivery controls, and extra revision actions.
 - Quote creation and send workflow for custom work and free-review conversions.
 - Setup checks, sandbox proof runs, owner-proof preview cards, and cleanup tools.
 
-### Automation And Integrations
+### Automation and Integrations
 
 - PayPal order creation, capture handling, and webhook confirmation.
 - Supabase-backed customer auth and studio records.
@@ -52,11 +54,18 @@ See [docs/agent-handoff.md](docs/agent-handoff.md) for the current next action a
 Customer
   -> Public site, checkout, portal, or support page
   -> Vercel Functions
-       -> PayPal checkout, capture, and webhooks
-       -> Supabase auth and studio records
+       -> Supabase records and auth
+       -> PayPal orders, captures, and webhooks
        -> Google Drive project folders
        -> Resend transactional email
-  -> Customer portal and owner admin dashboard
+
+Owner
+  -> Admin dashboard
+  -> Vercel Functions
+       -> Supabase records
+       -> PayPal payment state
+       -> Google Drive delivery folders
+       -> Resend transactional email
 ```
 
 The central domain objects are Projects, Quotes, Checkout Payments, Quote Payments, Balance Payments, Delivery Lock, Final Delivery, and Portal Actions. The canonical language lives in [CONTEXT.md](CONTEXT.md).
@@ -173,19 +182,19 @@ The app is currently designed to stay within the Vercel Hobby limit of 12 Server
 
 Use the smallest doc that owns the fact you need.
 
-### Start Here
+### Start here
 
 - [docs/operator-guide.md](docs/operator-guide.md): detailed setup, environment, runtime, credential, launch, and owner-proof instructions.
 - [docs/agent-handoff.md](docs/agent-handoff.md): current repo state and next-session guidance.
 - [docs/roadmap.md](docs/roadmap.md): staged checklist and active launch-hardening status.
 
-### Launch And Deployment
+### Launch and Deployment
 
 - [docs/workflow.md](docs/workflow.md): branch discipline, preview classes, alias rules, and deployment provenance.
 - [docs/deployment-preflight.md](docs/deployment-preflight.md): Vercel Hobby function-limit guardrail and deployment triage.
 - [docs/deployment-ledger.md](docs/deployment-ledger.md): append-only shared preview and production deployment records.
 
-### Planning And History
+### Planning and History
 
 - [docs/execution-trail.md](docs/execution-trail.md): required implementation logging process.
 - [docs/execution-log.md](docs/execution-log.md): append-only history and validation evidence.
