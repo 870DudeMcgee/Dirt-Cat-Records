@@ -2526,6 +2526,36 @@ footer {
   accent-color: #6bd9ff;
 }
 
+.discount-code-box {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.discount-code-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.discount-code-row .btn {
+  min-height: 44px;
+}
+
+#discount-code-status {
+  min-height: 1.4rem;
+}
+
+#discount-code-status.is-error {
+  color: #ffb4a8;
+}
+
+.no-charge-checkout-button {
+  width: 100%;
+  margin-top: 1rem;
+}
+
 .checkout-error {
   min-height: 1.35rem;
   margin: 0.9rem 0;
