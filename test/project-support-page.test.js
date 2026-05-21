@@ -107,11 +107,11 @@ test("homepage hero has a dedicated phone layout", () => {
   );
   assert.match(
     css,
-    /@media \(max-width: 768px\)\s*{[\s\S]*#main-logo\s*{[\s\S]*width: min\(112px, 30vw\);/
+    /@media \(max-width: 768px\)\s*{[\s\S]*#main-logo\s*{[\s\S]*width: min\(168px, 50vw\);/
   );
   assert.match(
     css,
-    /@media \(max-width: 768px\)\s*{[\s\S]*#hero-heading\s*{[\s\S]*font-size: clamp\(1\.72rem, 7\.6vw, 1\.98rem\);/
+    /@media \(max-width: 768px\)\s*{[\s\S]*#hero-heading\s*{[\s\S]*font-size: clamp\(2\.08rem, 9\.4vw, 2\.42rem\);/
   );
   assert.match(
     css,

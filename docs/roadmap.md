@@ -82,6 +82,7 @@ Goal: customers should see clear next steps and only the actions that apply to t
 - [x] Refine the mobile hamburger into a lighter left-side floating control and retune the home hero logo rhythm after live-device review.
 - [x] Repair the homepage phone hero so the logo, headline, subtitle, and CTA fit the first mobile viewport without the open menu swallowing the page.
 - [x] Recast the mobile hamburger menu as a vertical neon signal list instead of a two-column button grid.
+- [x] Loosen the homepage phone hero back toward the checkout page's roomier mobile sizing after iPhone review.
 
 ## Stage 3: Build Josh's Operational Admin Dashboard
 

@@ -2704,3 +2704,48 @@ Roadmap link: `docs/roadmap.md` (Stage 2: mobile navigation visual polish after 
 ### Needs To Be Done Next
 
 - Review the vertical menu in Mobile View and tune panel width or row height if the live device frame feels too tall.
+
+---
+
+## Step 56 - Loosen Homepage Mobile Hero Rhythm
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 2: mobile homepage hero polish after iPhone review)
+
+### Will Be Done
+
+- Retune the homepage mobile hero so its sizing and spacing feels closer to the checkout page while preserving first-viewport CTA visibility.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main` at `2d08d37`, with unrelated unstaged `api/webhooks/paypal.js` change present and excluded from this visual fix
+- Target files/tests: `style.css`, `test/project-support-page.test.js`, status docs
+
+### Done
+
+- Compared checkout and homepage hero metrics in the same Playwright `devices["iPhone 14"]` WebKit context with the explicit iPhone Safari user agent, `isMobile: true`, and `hasTouch: true` before navigation.
+- Loosened the homepage phone hero toward the checkout page rhythm by increasing the inline logo, widening the heading/subtitle/buttons, raising type sizes, and restoring more vertical breathing room.
+- Preserved first-viewport CTA visibility on the real iPhone 14 visual viewport.
+- Updated focused CSS assertions and status docs with the checkout-inspired homepage mobile rhythm.
+
+### Context Check (After)
+
+- Validation run:
+  - `npx prettier --write style.css test/project-support-page.test.js` (pass)
+  - `node --test test/project-support-page.test.js` (pass, 8 tests)
+  - `npm run check:js` (pass)
+  - `git diff --check` (pass)
+  - Playwright WebKit comparison using `devices["iPhone 14"]`, explicit iPhone Safari user agent, `isMobile: true`, and `hasTouch: true` before navigation (pass; checkout logo 188px, homepage logo 168px; homepage CTAs end at 584px in a 390x664 visual viewport; open menu remains single-column, 236px wide, scrollbar hidden, and ends at 398px)
+- Codebase delta summary:
+  - Updated `style.css`
+  - Updated `test/project-support-page.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Review on a physical iPhone after the next push/deploy and tune by eye if Safari chrome leaves less lower breathing room than the Playwright visual viewport.
