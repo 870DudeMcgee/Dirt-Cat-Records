@@ -107,9 +107,7 @@ async function handleNoChargeCheckout({
   try {
     paymentInput = buildNoChargeCheckoutPayment(body, { env, idFactory });
   } catch (error) {
-    return res
-      .status(400)
-      .json({ error: error.message || "Discount code is not valid." });
+    return res.status(400).json({ error: "Discount code is not valid." });
   }
 
   try {

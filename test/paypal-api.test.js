@@ -650,6 +650,51 @@ test("create order route rejects invalid no-charge code with generic message", a
   assert.deepEqual(response.body, { error: "Discount code is not valid." });
 });
 
+test("create order route hides no-charge payload validation after valid code", async () => {
+  let fetchCalled = false;
+  let workflowCalled = false;
+  const handler = createPaypalOrderHandler({
+    getEnv: () => ({ FRIENDS_FREE_CHECKOUT_CODE: "FRIENDS2026" }),
+    fetch: async () => {
+      fetchCalled = true;
+      throw new Error(
+        "PayPal fetch should not run for invalid no-charge payload"
+      );
+    },
+    paidProjectWorkflow: async () => {
+      workflowCalled = true;
+      throw new Error("workflow should not run for invalid no-charge payload");
+    },
+  });
+  const response = createMockResponse();
+
+  await handler(
+    {
+      method: "POST",
+      body: {
+        paymentMethod: "no_charge",
+        discountCode: "friends2026",
+        baseServiceId: "mix",
+        songCount: 1,
+        selectedAddOns: [],
+        paymentMode: "full",
+        customer: {
+          name: "Buyer Friend",
+          email: "not-an-email",
+          projectName: "Friend Project",
+          songTitle: "Song One",
+        },
+      },
+    },
+    response
+  );
+
+  assert.equal(response.statusCode, 400);
+  assert.deepEqual(response.body, { error: "Discount code is not valid." });
+  assert.equal(fetchCalled, false);
+  assert.equal(workflowCalled, false);
+});
+
 test("create order route hides workflow public messages for no-charge failures", async () => {
   const handler = createPaypalOrderHandler({
     getEnv: () => ({ FRIENDS_FREE_CHECKOUT_CODE: "FRIENDS2026" }),
