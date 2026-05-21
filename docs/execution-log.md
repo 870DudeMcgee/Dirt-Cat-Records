@@ -2606,3 +2606,101 @@ Roadmap link: `docs/roadmap.md` (Stage 2: mobile navigation visual refinement af
 ### Needs To Be Done Next
 
 - Live-test the refined mobile header on iPhone Safari after deployment and compare against the screenshot feedback.
+
+---
+
+## Step 54 - Repair Mobile Homepage Hero Layout
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 2: mobile navigation and homepage hero polish after live-device review)
+
+### Will Be Done
+
+- Rework the narrow-screen homepage hero and opened hamburger menu so the mobile first viewport is readable, compact, and polished on iPhone Safari.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`, `docs/execution-trail.md`
+- Skills reviewed before action: `design-spells`, `frontend-design`, `brainstorming`
+- Codebase state: `main...origin/main` at `75b180f`, with unrelated unstaged `api/webhooks/paypal.js` change present and excluded from this visual fix
+- Target files/tests: `style.css`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+
+### Done
+
+- Converted the homepage mobile logo from a fixed overlay into an inline hero element on phone breakpoints so it no longer crowds the headline.
+- Retuned the phone hero spacing, heading scale, subtitle scale, CTA stack, overlay darkness, and `100svh` height so the first viewport reads cleanly in iPhone-style Mobile View.
+- Hid mobile page and open-menu scrollbars while preserving normal scrolling.
+- Reworked the hamburger menu links from chunky boxed buttons into compact switchboard-style rows with subtle separators and small glow markers.
+- Added focused CSS regression assertions for the compact mobile nav, scrollbar hiding, and dedicated phone hero layout.
+- Updated `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` with the mobile homepage repair status.
+
+### Context Check (After)
+
+- Validation run:
+  - `npx prettier --write style.css test/project-support-page.test.js README.md docs/roadmap.md docs/agent-handoff.md docs/execution-log.md` (pass)
+  - `node --test test/project-support-page.test.js` (pass, 8 tests)
+  - `npm run check:js` (pass)
+  - `git diff --check` (pass)
+  - `get_errors` on touched CSS/test/docs (pass)
+- Codebase delta summary:
+  - Updated `style.css`
+  - Updated `test/project-support-page.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Re-check the exact iPhone Safari rendering after deployment or through the shared Mobile View pane, especially the lower CTA position beneath Safari browser chrome.
+
+---
+
+## Step 55 - Recast Mobile Menu As Vertical Signal List
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 2: mobile navigation visual polish after Mobile View review)
+
+### Will Be Done
+
+- Replace the two-column mobile hamburger menu with a more distinctive single-column list that better matches the site's neon studio identity.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Skills reviewed before action: `design-spells`, `frontend-design`
+- Codebase state: `main...origin/main` at `75b180f`, with unrelated unstaged `api/webhooks/paypal.js` change present and excluded from this visual fix
+- Target files/tests: `style.css`, `test/project-support-page.test.js`, `README.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+
+### Done
+
+- Replaced the two-column mobile hamburger panel with a single-column vertical list.
+- Added a subtle glowing signal rail inside the menu panel, small color-shifting link markers, and animated line accents on hover/focus so the menu feels closer to the neon studio identity.
+- Kept the menu compact, scroll-safe, and accessible while avoiding chunky boxed buttons.
+- Fixed the mobile hamburger icon geometry so the open state renders as a centered X instead of a chevron-like shape.
+- Tuned the late phone-only homepage hero overrides after validating against a real Playwright `devices["iPhone 14"]` WebKit context, which exposed that the earlier viewport-only screenshots were not exercising the same mobile metrics.
+- Updated focused CSS assertions for the single-column menu, signal rail, link markers, and line accents.
+- Updated `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` with the vertical mobile menu direction.
+
+### Context Check (After)
+
+- Validation run:
+  - `npx prettier --write style.css test/project-support-page.test.js README.md docs/roadmap.md docs/agent-handoff.md docs/execution-log.md` (pass)
+  - `node --test test/project-support-page.test.js` (pass, 8 tests)
+  - `npm run check:js` (pass)
+  - `git diff --check` (pass)
+  - Playwright WebKit device-profile validation with `devices["iPhone 14"]`, explicit iPhone Safari user agent, `isMobile: true`, and `hasTouch: true` before navigation (pass; closed CTA stack ends at 459px in a 390x664 visual viewport; open menu is single-column, 236px wide, scrollbar hidden, and ends at 398px)
+  - `get_errors` on touched CSS/test/docs (pass)
+- Codebase delta summary:
+  - Updated `style.css`
+  - Updated `test/project-support-page.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Review the vertical menu in Mobile View and tune panel width or row height if the live device frame feels too tall.

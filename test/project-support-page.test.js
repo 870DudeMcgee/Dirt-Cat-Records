@@ -63,6 +63,18 @@ test("responsive navigation styling supports a hamburger menu", () => {
   assert.match(css, /#main-nav\.nav-ready\.nav-open ul/);
   assert.match(css, /#main-nav\.nav-ready ul\s*{[\s\S]*left: 0\.75rem;/);
   assert.match(css, /#main-nav\.nav-ready ul\s*{[\s\S]*right: auto;/);
+  assert.match(css, /#main-nav\.nav-ready ul\s*{[\s\S]*width: min\(236px/);
+  assert.match(
+    css,
+    /#main-nav\.nav-ready ul\s*{[\s\S]*grid-template-columns: 1fr;/
+  );
+  assert.match(css, /#main-nav\.nav-ready ul::before/);
+  assert.match(css, /#main-nav\.nav-ready a\s*{[\s\S]*border: 0;/);
+  assert.match(css, /#main-nav\.nav-ready a\s*{[\s\S]*font-size: 0\.76rem;/);
+  assert.match(css, /#main-nav\.nav-ready a::before/);
+  assert.match(css, /#main-nav\.nav-ready a::after/);
+  assert.match(css, /scrollbar-width: none;/);
+  assert.match(css, /#main-nav\.nav-ready ul::-webkit-scrollbar/);
   assert.match(css, /env\(safe-area-inset-top, 0px\)/);
   assert.match(css, /@media \(max-width: 900px\)/);
   assert.match(script, /aria-expanded/);
@@ -76,6 +88,36 @@ test("support navigation uses the standard nav link styling", () => {
 
   assert.match(html, /<a href="support\.html">Support<\/a>/);
   assert.equal(css.includes("nav-support-link"), false);
+});
+
+test("homepage hero has a dedicated phone layout", () => {
+  const css = readFileSync(join(root, "style.css"), "utf8");
+
+  assert.match(
+    css,
+    /@media \(max-width: 768px\)\s*{[\s\S]*#hero-container\s*{[\s\S]*min-height: 100svh;/
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 768px\)\s*{[\s\S]*#hero-container\s*{[\s\S]*justify-content: flex-start;/
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 768px\)\s*{[\s\S]*#main-logo\s*{[\s\S]*position: relative;/
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 768px\)\s*{[\s\S]*#main-logo\s*{[\s\S]*width: min\(112px, 30vw\);/
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 768px\)\s*{[\s\S]*#hero-heading\s*{[\s\S]*font-size: clamp\(1\.72rem, 7\.6vw, 1\.98rem\);/
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 768px\)\s*{[\s\S]*\.hero-actions \.btn\s*{[\s\S]*width: 100%;/
+  );
+  assert.match(css, /@keyframes mobileLogoPulse/);
 });
 
 test("shared form styling keeps checkout and support fields inside panels", () => {

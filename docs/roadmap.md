@@ -80,6 +80,8 @@ Goal: customers should see clear next steps and only the actions that apply to t
 - [x] Collapse crowded customer navigation behind a responsive hamburger menu on narrow screens.
 - [x] Resize and reposition mobile hero logos so they are not clipped by the fixed navigation.
 - [x] Refine the mobile hamburger into a lighter left-side floating control and retune the home hero logo rhythm after live-device review.
+- [x] Repair the homepage phone hero so the logo, headline, subtitle, and CTA fit the first mobile viewport without the open menu swallowing the page.
+- [x] Recast the mobile hamburger menu as a vertical neon signal list instead of a two-column button grid.
 
 ## Stage 3: Build Josh's Operational Admin Dashboard
 
