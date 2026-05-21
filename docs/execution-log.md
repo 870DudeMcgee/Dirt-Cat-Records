@@ -2398,3 +2398,54 @@ Roadmap link: `docs/roadmap.md` (Stage 2: Normalize form control sizing)
 ### Needs To Be Done Next
 
 - Commit and push the support page polish so the live deployment can pick it up.
+
+---
+
+## Step 50 - Support Layout and Navigation Follow-Up
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 2: Normalize form control sizing + support access)
+
+### Will Be Done
+
+- Make the support page change visibly distinct by giving it a dedicated centered layout and add a Support navigation button across the primary pages.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `README.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main` with unrelated unstaged `api/webhooks/paypal.js` formatting change still present and excluded from this fix
+- Target files/tests: root HTML pages, `style.css`, `test/project-support-page.test.js`, status docs
+
+### Done
+
+- Added a visible `Support` navigation button on `index.html`, `checkout.html`, `portal.html`, `success.html`, `support.html`, and `admin.html`.
+- Added support-specific page classes and CSS so `support.html` uses a centered one-column layout, an inset form surface, and non-sticky support context instead of the shared checkout two-column layout.
+- Added focused regression coverage for the support page layout classes, cross-page support navigation, and support nav button styling.
+- Updated `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` with the support layout/navigation follow-up.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/project-support-page.test.js` (pass, 5 tests)
+  - `npm run check:js` (pass)
+  - `git diff --check` (pass)
+  - `get_errors` on touched HTML/CSS/test files (pass)
+  - `npm test` (pass, 294 tests)
+- Codebase delta summary:
+  - Updated `index.html`
+  - Updated `checkout.html`
+  - Updated `portal.html`
+  - Updated `success.html`
+  - Updated `support.html`
+  - Updated `admin.html`
+  - Updated `style.css`
+  - Updated `test/project-support-page.test.js`
+  - Updated `README.md`
+  - Updated `docs/roadmap.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Commit and push the support layout/navigation follow-up so Vercel can deploy it.

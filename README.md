@@ -95,8 +95,9 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 - The portal magic-link UI now prevents duplicate sends in the same tab and applies a one-minute resend cooldown with a clearer message when Supabase OTP throttling is hit.
 - Customer portal actions now keep confirmation visible after login, including revision-request success, file-link success, quote/balance checkout starts, and final approval feedback.
 - Friends free-code checkout projects now carry unlimited revision access into the customer portal, and paid projects show a compact upsell panel for extra revisions, new checkout work, and custom add-ons.
-- Shared form styling now keeps checkout, portal, and support inputs/buttons contained inside their glass panels, including add-on quantity fields, discount-code rows, and the support page's field/action layout.
+- Shared form styling now keeps checkout, portal, and support inputs/buttons contained inside their glass panels, including add-on quantity fields, discount-code rows, and the support page's dedicated centered form layout.
 - Paid customers now have a dedicated `support.html` support flow backed by `api/public/project-support.js`, so the success page no longer routes them into the homepage or free-review funnel when they need help.
+- Primary pages now expose a visible Support navigation button so paid customers can find help without waiting for the success-page prompt.
 - Historical `vercel.app` URLs still present in append-only logs and older plan docs are historical records, not active runtime configuration.
 - A single preview deployment on 2026-05-20 failed after `vercel build` completed, but the immediately following preview deployment reached `Ready`; treat that one failure as transient unless the same deployment-stage error starts repeating.
 - The repo now has a dedicated workflow hardening plan focused on the bigger failure mode behind recent debugging waste: shared environments and docs can drift away from a known pushed commit unless provenance is treated as a first-class workflow artifact.

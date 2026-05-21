@@ -9,10 +9,32 @@ test("project support page provides a dedicated paid-customer support form", () 
   const html = readFileSync(join(root, "support.html"), "utf8");
 
   assert.match(html, /Project Support/);
+  assert.match(html, /checkout-page support-page/);
+  assert.match(html, /checkout-layout support-layout/);
+  assert.match(html, /checkout-panel support-panel/);
+  assert.match(html, /checkout-summary support-summary/);
   assert.match(html, /project-support-form/);
   assert.match(html, /portal access or magic link/i);
   assert.match(html, /support\.js/);
   assert.equal(html.includes("free mix review"), false);
+});
+
+test("primary pages expose a visible support navigation link", () => {
+  const pageNames = [
+    "index.html",
+    "checkout.html",
+    "portal.html",
+    "success.html",
+    "support.html",
+    "admin.html",
+  ];
+
+  pageNames.forEach((pageName) => {
+    const html = readFileSync(join(root, pageName), "utf8");
+
+    assert.match(html, /href="support\.html"/);
+    assert.match(html, /nav-support-link/);
+  });
 });
 
 test("shared form styling keeps checkout and support fields inside panels", () => {
@@ -40,6 +62,10 @@ test("support form styling keeps fields and actions shrink-safe", () => {
 
   assert.match(css, /\.support-form\s*{[\s\S]*display: grid;/);
   assert.match(css, /\.support-form\s*{[\s\S]*min-width: 0;/);
+  assert.match(css, /\.support-form\s*{[\s\S]*padding: clamp/);
+  assert.match(css, /\.support-layout\s*{[\s\S]*minmax\(0, 780px\)/);
+  assert.match(css, /\.support-panel\s*{[\s\S]*padding: clamp/);
+  assert.match(css, /\.support-summary\s*{[\s\S]*position: relative;/);
   assert.match(css, /\.support-field\s*{[\s\S]*width: 100%;/);
   assert.match(css, /\.support-field\s*{[\s\S]*min-width: 0;/);
   assert.match(
@@ -54,5 +80,15 @@ test("support form styling keeps fields and actions shrink-safe", () => {
   assert.match(
     css,
     /@media \(max-width: 680px\)\s*{[\s\S]*\.support-actions\s*{[\s\S]*grid-template-columns: 1fr;/
+  );
+});
+
+test("support navigation link is styled as a button", () => {
+  const css = readFileSync(join(root, "style.css"), "utf8");
+
+  assert.match(css, /#main-nav \.nav-support-link\s*{[\s\S]*inline-flex;/);
+  assert.match(
+    css,
+    /#main-nav \.nav-support-link\s*{[\s\S]*border-radius: 999px;/
   );
 });

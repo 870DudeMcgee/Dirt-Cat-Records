@@ -167,6 +167,20 @@ body::after {
     0 0 30px #ff00ff;
 }
 
+#main-nav .nav-support-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid rgba(107, 217, 255, 0.58);
+  border-radius: 999px;
+  background: rgba(8, 18, 32, 0.78);
+  box-shadow:
+    0 0 0 1px rgba(107, 217, 255, 0.08) inset,
+    0 0 18px rgba(107, 217, 255, 0.22);
+}
+
 /* 
   HERO SECTION
 */
@@ -2635,6 +2649,25 @@ footer {
   max-width: none;
   min-width: 0;
   gap: 1rem;
+  padding: clamp(0.85rem, 2vw, 1.1rem);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.support-layout {
+  grid-template-columns: minmax(0, 780px);
+  justify-content: center;
+  max-width: 860px;
+}
+
+.support-panel {
+  padding: clamp(1.2rem, 3vw, 2rem);
+}
+
+.support-summary {
+  position: relative;
+  top: auto;
 }
 
 .support-intro {
@@ -2659,6 +2692,7 @@ footer {
   justify-self: stretch;
   min-height: 56px;
   padding-inline: 1rem;
+  border-radius: 10px;
 }
 
 .support-field select {
