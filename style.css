@@ -167,20 +167,6 @@ body::after {
     0 0 30px #ff00ff;
 }
 
-#main-nav .nav-support-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 34px;
-  padding: 0.35rem 0.75rem;
-  border: 1px solid rgba(107, 217, 255, 0.58);
-  border-radius: 999px;
-  background: rgba(8, 18, 32, 0.78);
-  box-shadow:
-    0 0 0 1px rgba(107, 217, 255, 0.08) inset,
-    0 0 18px rgba(107, 217, 255, 0.22);
-}
-
 /* 
   HERO SECTION
 */

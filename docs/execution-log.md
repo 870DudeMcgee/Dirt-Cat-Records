@@ -2409,7 +2409,7 @@ Roadmap link: `docs/roadmap.md` (Stage 2: Normalize form control sizing + suppor
 
 ### Will Be Done
 
-- Make the support page change visibly distinct by giving it a dedicated centered layout and add a Support navigation button across the primary pages.
+- Make the support page change visibly distinct by giving it a dedicated centered layout and add Support navigation across the primary pages.
 
 ### Context Check (Before)
 
@@ -2419,9 +2419,9 @@ Roadmap link: `docs/roadmap.md` (Stage 2: Normalize form control sizing + suppor
 
 ### Done
 
-- Added a visible `Support` navigation button on `index.html`, `checkout.html`, `portal.html`, `success.html`, `support.html`, and `admin.html`.
+- Added visible `Support` navigation on `index.html`, `checkout.html`, `portal.html`, `success.html`, `support.html`, and `admin.html`.
 - Added support-specific page classes and CSS so `support.html` uses a centered one-column layout, an inset form surface, and non-sticky support context instead of the shared checkout two-column layout.
-- Added focused regression coverage for the support page layout classes, cross-page support navigation, and support nav button styling.
+- Added focused regression coverage for the support page layout classes and cross-page support navigation.
 - Updated `README.md`, `docs/roadmap.md`, and `docs/agent-handoff.md` with the support layout/navigation follow-up.
 
 ### Context Check (After)
@@ -2449,3 +2449,53 @@ Roadmap link: `docs/roadmap.md` (Stage 2: Normalize form control sizing + suppor
 ### Needs To Be Done Next
 
 - Commit and push the support layout/navigation follow-up so Vercel can deploy it.
+
+---
+
+## Step 51 - Match Support Nav Styling
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` (Stage 2: support access polish)
+
+### Will Be Done
+
+- Remove the special Support navigation pill styling so Support matches the other navigation links on each page while keeping the project-starting page support CTA unchanged.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/roadmap.md`, `docs/agent-handoff.md`, `README.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main` with unrelated unstaged `api/webhooks/paypal.js` formatting change still present and excluded from this fix
+- Target files/tests: root HTML pages, `style.css`, `test/project-support-page.test.js`, status docs
+
+### Done
+
+- Removed the `nav-support-link` class from Support nav anchors on the primary pages.
+- Removed the special `#main-nav .nav-support-link` pill/button styling from `style.css`.
+- Updated focused tests to require Support as a standard nav link and assert the special support-nav styling is absent.
+- Updated status docs to call this a standard Support navigation link instead of a button.
+
+### Context Check (After)
+
+- Validation run:
+  - `node --test test/project-support-page.test.js` (pass, 5 tests)
+  - `npm run check:js` (pass)
+  - `git diff --check` (initially caught a trailing blank line in `test/project-support-page.test.js`; pass after formatting)
+  - `get_errors` on touched HTML/CSS/test/docs (pass)
+  - `npm test` (pass, 294 tests)
+- Codebase delta summary:
+  - Updated `index.html`
+  - Updated `checkout.html`
+  - Updated `portal.html`
+  - Updated `success.html`
+  - Updated `support.html`
+  - Updated `admin.html`
+  - Updated `style.css`
+  - Updated `test/project-support-page.test.js`
+  - Updated `README.md`
+  - Updated `docs/agent-handoff.md`
+  - Updated `docs/execution-log.md`
+
+### Needs To Be Done Next
+
+- Commit and push the standard Support nav styling so Vercel can deploy it.

@@ -18,7 +18,6 @@ test("project support page provides a dedicated paid-customer support form", () 
   assert.match(html, /support\.js/);
   assert.equal(html.includes("free mix review"), false);
 });
-
 test("primary pages expose a visible support navigation link", () => {
   const pageNames = [
     "index.html",
@@ -33,8 +32,15 @@ test("primary pages expose a visible support navigation link", () => {
     const html = readFileSync(join(root, pageName), "utf8");
 
     assert.match(html, /href="support\.html"/);
-    assert.match(html, /nav-support-link/);
   });
+});
+
+test("support navigation uses the standard nav link styling", () => {
+  const html = readFileSync(join(root, "index.html"), "utf8");
+  const css = readFileSync(join(root, "style.css"), "utf8");
+
+  assert.match(html, /<a href="support\.html">Support<\/a>/);
+  assert.equal(css.includes("nav-support-link"), false);
 });
 
 test("shared form styling keeps checkout and support fields inside panels", () => {
@@ -80,15 +86,5 @@ test("support form styling keeps fields and actions shrink-safe", () => {
   assert.match(
     css,
     /@media \(max-width: 680px\)\s*{[\s\S]*\.support-actions\s*{[\s\S]*grid-template-columns: 1fr;/
-  );
-});
-
-test("support navigation link is styled as a button", () => {
-  const css = readFileSync(join(root, "style.css"), "utf8");
-
-  assert.match(css, /#main-nav \.nav-support-link\s*{[\s\S]*inline-flex;/);
-  assert.match(
-    css,
-    /#main-nav \.nav-support-link\s*{[\s\S]*border-radius: 999px;/
   );
 });
