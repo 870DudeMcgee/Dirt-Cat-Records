@@ -13,7 +13,7 @@ test("cleanupAutomationTestRun deletes drive folders and marks run cleaned", asy
   const calls = [];
   const result = await cleanupAutomationTestRun({
     report: {
-      id: "sandbox-20260517T120000-abc123",
+      id: "dcrtest-sbx-20260517T120000-abc123",
       createdDriveFolders: [{ id: "folder-1" }],
       createdRecords: [{ table: "projects", id: "project-1" }],
     },
@@ -43,7 +43,7 @@ test("cleanupAutomationTestRun deletes tracked non-project records", async () =>
   const calls = [];
   await cleanupAutomationTestRun({
     report: {
-      id: "sandbox-20260517T120000-abc123",
+      id: "dcrtest-sbx-20260517T120000-abc123",
       createdDriveFolders: [],
       createdRecords: [
         { table: "projects", id: "project-1" },

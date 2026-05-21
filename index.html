@@ -530,6 +530,7 @@
         document.getElementById("card-container").offsetTop - 1000;
 
       window.addEventListener("scroll", () => {
+        if (!logo) return;
         const scrollY = window.scrollY;
 
         if (scrollY < fadeStart) {

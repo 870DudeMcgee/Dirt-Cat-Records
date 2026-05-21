@@ -134,7 +134,7 @@ node --test test/follow-up-dispatcher.test.js test/follow-up-cron-api.test.js te
 Stage 7 validation note:
 
 - `GET /api/admin/setup-wizard?action=setup` originally reported `overallStatus: passed`, which was misleading.
-- The first Stage 7 sandbox run (`sandbox-20260519T160000-stage7a`) failed with `Sandbox free review did not create all required Drive folders.`
+- The first Stage 7 sandbox run (`dcrtest-sbx-20260519T160000-stage7a`) failed with `Sandbox free review did not create all required Drive folders.`
 - The recorded `drive_failed` event showed the real provider error: `Unable to search Google Drive folders: File not found: ...`
 - Setup checks now run a live Google Drive access probe, and the setup endpoint correctly fails in `storage` when the Drive folder configuration is invalid.
 - The concrete Drive misconfiguration was fixed by switching `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` to the raw folder id form the app expects.
@@ -142,8 +142,8 @@ Stage 7 validation note:
 - Portal quote checkout and balance payment start actions now live in `api/portal/actions.js`, which keeps the deployed function count at 11.
 - `GET /api/admin/setup-wizard?action=setup` now passes locally, including `storage`.
 - `GET /api/admin/setup-wizard?action=setup` now fails early in `email` when `RESEND_FROM_EMAIL` uses a public inbox domain like `gmail.com`, and passes again after switching the local sender to `Dirt Cat Records <studio@dirtcatrecords.com>`.
-- The Stage 7 sandbox run `sandbox-20260519T113900-stage7c` passed end to end.
-- The cleanup path for `sandbox-20260519T113900-stage7c` also passed with `cleanupStatus: cleaned`.
+- The Stage 7 sandbox run `dcrtest-sbx-20260519T113900-stage7c` passed end to end.
+- The cleanup path for `dcrtest-sbx-20260519T113900-stage7c` also passed with `cleanupStatus: cleaned`.
 - `npx vercel env ls production` now shows the required site/admin, Resend, Google Drive, cron, PayPal, and Supabase env names for the documented runtime.
 - `npx vercel env ls preview` now shows the required site/admin, Resend, Google Drive, cron, Supabase, and sandbox PayPal env names for the documented preview runtime.
 - `https://www.dirtcatrecords.com/portal.html` and `https://www.dirtcatrecords.com/admin.html` return `200`.

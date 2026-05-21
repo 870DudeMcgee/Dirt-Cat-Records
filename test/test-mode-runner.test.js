@@ -69,7 +69,7 @@ test("runAutomationTest sandbox creates marked artifacts through real adapters",
   const calls = [];
   const result = await runAutomationTest({
     mode: "sandbox",
-    testRunId: "sandbox-20260517T120000-abc123",
+    testRunId: "dcrtest-sbx-20260517T120000-abc123",
     env: {
       ADMIN_EMAIL: "josh@example.com",
       TEST_CUSTOMER_EMAIL: "test@example.com",
@@ -126,7 +126,7 @@ test("runAutomationTest sandbox creates marked artifacts through real adapters",
 test("runAutomationTest sandbox fails when provider adapters fail silently", async () => {
   const result = await runAutomationTest({
     mode: "sandbox",
-    testRunId: "sandbox-20260517T120000-failed1",
+    testRunId: "dcrtest-sbx-20260517T120000-failed1",
     env: {
       ADMIN_EMAIL: "josh@example.com",
       TEST_CUSTOMER_EMAIL: "test@example.com",
@@ -155,7 +155,7 @@ test("runAutomationTest sandbox v1-usability exercises quote and balance payment
   const result = await runAutomationTest({
     mode: "sandbox",
     scenario: "v1-usability",
-    testRunId: "sandbox-20260519T120000-v1flow",
+    testRunId: "dcrtest-sbx-20260519T120000-v1flow",
     env: {
       ADMIN_EMAIL: "josh@example.com",
       TEST_CUSTOMER_EMAIL: "test@example.com",
@@ -215,12 +215,13 @@ test("runAutomationTest sandbox v1-usability exercises quote and balance payment
   );
   assert.ok(
     result.report.paypalEvents.some(
-      (event) => event.id === "sandbox-20260519T120000-v1flow-quote-capture"
+      (event) => event.id === "dcrtest-sbx-20260519T120000-v1flow-quote-capture"
     )
   );
   assert.ok(
     result.report.paypalEvents.some(
-      (event) => event.id === "sandbox-20260519T120000-v1flow-balance-capture"
+      (event) =>
+        event.id === "dcrtest-sbx-20260519T120000-v1flow-balance-capture"
     )
   );
   assert.equal(result.report.ownerProof.projectId, "project-3");

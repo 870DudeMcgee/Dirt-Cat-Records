@@ -62,7 +62,7 @@ test("test-runs endpoint passes mode scenario and testRunId to automation runner
       body: {
         mode: "sandbox",
         scenario: "v1-usability",
-        testRunId: "sandbox-20260519T120000-owner01",
+        testRunId: "dcrtest-sbx-20260519T120000-owner01",
       },
     },
     res
@@ -72,7 +72,7 @@ test("test-runs endpoint passes mode scenario and testRunId to automation runner
   assert.equal(calls.length, 1);
   assert.equal(calls[0].mode, "sandbox");
   assert.equal(calls[0].scenario, "v1-usability");
-  assert.equal(calls[0].testRunId, "sandbox-20260519T120000-owner01");
+  assert.equal(calls[0].testRunId, "dcrtest-sbx-20260519T120000-owner01");
 });
 
 function response() {

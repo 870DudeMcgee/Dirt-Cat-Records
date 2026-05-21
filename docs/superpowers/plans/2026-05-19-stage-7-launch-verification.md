@@ -34,6 +34,7 @@
 ### Task 1: Lock The Local Baseline
 
 **Files:**
+
 - Modify: none expected
 - Inspect: `test/paypal-api.test.js`
 
@@ -92,6 +93,7 @@ Do not push until the preview webhook verification path is clear, unless a new p
 ### Task 2: Verify Preview PayPal Sandbox Payment And Webhook
 
 **Files:**
+
 - Modify after verification: `docs/execution-log.md`
 - Modify after verification: `docs/roadmap.md`
 - Inspect if failure occurs: `api/create-paypal-order.js`, `api/webhooks/paypal.js`, `lib/paypal/webhook.js`, `lib/automation/studio-workflow.js`
@@ -180,6 +182,7 @@ Only mark complete if the webhook was accepted and processed.
 ### Task 3: Verify Supabase Magic-Link Redirects On Production Domain
 
 **Files:**
+
 - Modify after verification: `docs/execution-log.md`
 - Modify after verification: `docs/roadmap.md`
 - Inspect if failure occurs: `portal.js`, `lib/auth/supabase-auth.js`, Supabase Auth URL settings
@@ -230,6 +233,7 @@ Only mark complete if the redirect lands on the production domain and portal API
 ### Task 4: Verify Google Drive Sharing From A Real Stage 7 Artifact
 
 **Files:**
+
 - Modify after verification: `docs/execution-log.md`
 - Modify after verification: `docs/roadmap.md`
 - Inspect if failure occurs: `lib/google/drive.js`, `lib/automation/setup-checks.js`, Google Drive folder permissions
@@ -239,7 +243,7 @@ Only mark complete if the redirect lands on the production domain and portal API
 Use the folder from Task 2, or if Task 2 did not create one, use the successful local run noted in the handoff:
 
 ```text
-sandbox-20260519T113900-stage7c
+dcrtest-sbx-20260519T113900-stage7c
 ```
 
 Expected:
@@ -289,6 +293,7 @@ Only mark complete if folder creation and sharing permissions are confirmed manu
 ### Task 5: Verify Resend Sender, Reply-To, And Deliverability
 
 **Files:**
+
 - Modify after verification: `docs/execution-log.md`
 - Modify after verification: `docs/roadmap.md`
 - Inspect if failure occurs: `lib/email/resend.js`, Resend domain settings, DNS records
@@ -344,6 +349,7 @@ Only mark complete if the email is accepted and observable in the recipient inbo
 ### Task 6: Restore Vercel Authentication For Preview
 
 **Files:**
+
 - Modify after verification: `docs/execution-log.md`
 - Modify after verification: `docs/agent-handoff.md`
 - Inspect if failure occurs: Vercel project settings
@@ -394,6 +400,7 @@ Update `docs/agent-handoff.md` to remove any statement that preview is intention
 ### Task 7: Final Launch Checklist Documentation
 
 **Files:**
+
 - Modify: `README.md`
 - Modify: `docs/roadmap.md`
 - Modify: `docs/agent-handoff.md`

@@ -332,7 +332,7 @@ Roadmap link: `docs/roadmap.md` (Stage 7: Run the admin sandbox test against rea
 - Confirmed Stage 7 starts from clean `main` at `85dddab`.
 - Applied process skills before execution: `using-superpowers`, `executing-plans`, and `verification-before-completion`.
 - Ran the live admin setup endpoint through local `vercel dev`.
-- Ran a deterministic sandbox run: `sandbox-20260519T160000-stage7a`.
+- Ran a deterministic sandbox run: `dcrtest-sbx-20260519T160000-stage7a`.
 - Confirmed the sandbox currently fails in the free-review workflow because Drive folders are not created.
 - Queried the recorded `drive_failed` project event from Supabase and captured the concrete provider error.
 - Added a real Google Drive access probe to `runSetupChecks` so Stage 7 setup now fails early instead of reporting a false pass.
@@ -344,7 +344,7 @@ Roadmap link: `docs/roadmap.md` (Stage 7: Run the admin sandbox test against rea
 
 - Validation run:
   - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` before fix (pass but misleading)
-  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs" ...` with `testRunId=sandbox-20260519T160000-stage7a` (fail: `Sandbox free review did not create all required Drive folders.`)
+  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs" ...` with `testRunId=dcrtest-sbx-20260519T160000-stage7a` (fail: `Sandbox free review did not create all required Drive folders.`)
   - direct Supabase `project_events` query for `event_type=drive_failed` (captured `Unable to search Google Drive folders: File not found: ...`)
   - `node --test test/google-drive.test.js test/setup-checks.test.js` (pass)
   - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` after fix (expected fail in `storage` with explicit Drive folder access error)
@@ -362,7 +362,7 @@ Roadmap link: `docs/roadmap.md` (Stage 7: Run the admin sandbox test against rea
 
 - Fix the `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` value in the active runtime environment so it is the raw folder id, not the full Drive URL.
 - Re-run `GET /api/admin/setup-wizard?action=setup` and confirm `storage` passes.
-- Re-run the deterministic sandbox path for `sandbox-20260519T160000-stage7a` or a fresh Stage 7 test run after the Drive config is corrected.
+- Re-run the deterministic sandbox path for `dcrtest-sbx-20260519T160000-stage7a` or a fresh Stage 7 test run after the Drive config is corrected.
 
 ## Step 7 - Credential Workflow And Commit Gate Documentation
 
@@ -552,7 +552,7 @@ Roadmap link: `docs/roadmap.md` (Stage 7: Run the admin sandbox test against rea
 ### Done
 
 - Re-ran `GET /api/admin/setup-wizard?action=setup` against local `vercel dev` and confirmed the setup gate now passes, including the live Google Drive probe.
-- Ran the deterministic `v1-usability` sandbox scenario with `testRunId=sandbox-20260519T112619-stage7b`.
+- Ran the deterministic `v1-usability` sandbox scenario with `testRunId=dcrtest-sbx-20260519T112619-stage7b`.
 - Confirmed the sandbox now fails in the email provider path, not the Drive path.
 - Captured the persisted sandbox report and the concrete provider error: Resend rejects the configured sender because the `gmail.com` domain is not verified.
 
@@ -562,8 +562,8 @@ Roadmap link: `docs/roadmap.md` (Stage 7: Run the admin sandbox test against rea
   - `git status -sb && git log -1 --oneline --decorate` (dirty docs on `main...origin/main`, HEAD `3162aa2`)
   - `npx vercel dev` (pass, local runtime ready)
   - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` (pass, `storage` provider passed)
-  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs" ...` with `testRunId=sandbox-20260519T112619-stage7b` (fail: `Sandbox free review email failed: Resend email failed: The gmail.com domain is not verified.`)
-  - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=test-runs&testRunId=sandbox-20260519T112619-stage7b"` (pass, persisted report fetched)
+  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs" ...` with `testRunId=dcrtest-sbx-20260519T112619-stage7b` (fail: `Sandbox free review email failed: Resend email failed: The gmail.com domain is not verified.`)
+  - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=test-runs&testRunId=dcrtest-sbx-20260519T112619-stage7b"` (pass, persisted report fetched)
 - Codebase delta summary:
   - Updated `docs/execution-log.md`
 
@@ -638,7 +638,7 @@ Roadmap link: `docs/roadmap.md` (Stage 7: Verify Resend sender domain, reply-to,
 
 - Updated `.env.local` so the local runtime uses `Dirt Cat Records <studio@dirtcatrecords.com>` as the Resend sender and `studio@dirtcatrecords.com` as the reply-to address.
 - Re-ran `GET /api/admin/setup-wizard?action=setup` and confirmed the setup gate now passes again with the local custom Resend domain.
-- Ran the deterministic Stage 7 sandbox flow with `testRunId=sandbox-20260519T113900-stage7c` and confirmed the full `v1-usability` scenario passes end to end.
+- Ran the deterministic Stage 7 sandbox flow with `testRunId=dcrtest-sbx-20260519T113900-stage7c` and confirmed the full `v1-usability` scenario passes end to end.
 - Captured evidence that the successful sandbox run exercised Supabase writes, Google Drive folder creation, Resend-backed workflow email acceptance, and sandbox-like PayPal payment events.
 - Cleaned up the same sandbox run after verification so the test artifacts were not left behind.
 
@@ -647,8 +647,8 @@ Roadmap link: `docs/roadmap.md` (Stage 7: Verify Resend sender domain, reply-to,
 - Validation run:
   - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` before sender update (fail in `email` on Gmail sender)
   - `curl -sS "http://localhost:3000/api/admin/setup-wizard?action=setup"` after sender update (pass)
-  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs" ...` with `testRunId=sandbox-20260519T113900-stage7c` (pass, full `v1-usability` scenario)
-  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=cleanup" ...` with `testRunId=sandbox-20260519T113900-stage7c` (pass, `cleanupStatus: cleaned`)
+  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs" ...` with `testRunId=dcrtest-sbx-20260519T113900-stage7c` (pass, full `v1-usability` scenario)
+  - `curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=cleanup" ...` with `testRunId=dcrtest-sbx-20260519T113900-stage7c` (pass, `cleanupStatus: cleaned`)
 - Codebase delta summary:
   - Updated `.env.local`
   - Updated `docs/execution-log.md`

@@ -528,14 +528,14 @@ curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=test-runs"
 	-d '{
 		"mode": "sandbox",
 		"scenario": "v1-usability",
-		"testRunId": "sandbox-20260519T120000-owner01"
+		"testRunId": "dcrtest-sbx-20260519T120000-owner01"
 	}'
 ```
 
 3. Fetch run report:
 
 ```bash
-curl -sS "http://localhost:3000/api/admin/setup-wizard?action=test-runs&testRunId=sandbox-20260519T120000-owner01"
+curl -sS "http://localhost:3000/api/admin/setup-wizard?action=test-runs&testRunId=dcrtest-sbx-20260519T120000-owner01"
 ```
 
 4. Cleanup the same run:
@@ -543,7 +543,7 @@ curl -sS "http://localhost:3000/api/admin/setup-wizard?action=test-runs&testRunI
 ```bash
 curl -sS -X POST "http://localhost:3000/api/admin/setup-wizard?action=cleanup" \
 	-H "content-type: application/json" \
-	-d '{"testRunId":"sandbox-20260519T120000-owner01"}'
+	-d '{"testRunId":"dcrtest-sbx-20260519T120000-owner01"}'
 ```
 
 Expected report steps for v1 scenario:
@@ -615,7 +615,7 @@ Current verification state:
 - Customer portal login no longer relies on browser-side Supabase signup creation: `/api/portal/auth` now provisions a confirmed auth user for known customer emails first, and `portal.js` requests the magic link with `shouldCreateUser: false`.
 - The hosted Supabase Auth URL Configuration is still an external dependency: generated signup links currently fall back to `redirect_to=www.dirtcatrecords.com`, so the hosted `Site URL` must be corrected to `https://www.dirtcatrecords.com` before considering confirmation-link flows fixed end to end.
 - The portal auth preparation logic was folded into `api/portal/actions.js?action=auth` instead of a new standalone function so preview deployments stay under the Vercel Hobby 12-function cap.
-- Local `v1-usability` sandbox run passed with `testRunId=sandbox-20260519T113900-stage7c` and cleanup also passed.
+- Local `v1-usability` sandbox run passed with a `dcrtest-sbx` Stage 7 run id and cleanup also passed.
 - Vercel production env parity is now present for the documented runtime requirements.
 - Preview env coverage is still incomplete and is missing at least `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, PayPal vars, and likely should use `PAYPAL_ENV=sandbox` for safe preview testing.
 - Production-safe runtime smoke now passes on `https://www.dirtcatrecords.com`: `portal.html` and `admin.html` return `200`, `GET /api/checkout-config` returns valid public config JSON, and `GET /api/admin/setup-wizard?action=setup` returns `401` without admin auth as expected.
