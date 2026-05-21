@@ -2,6 +2,39 @@
 
 This file is append-only. Add one entry per implementation step.
 
+## Step 50 - README Reader-Oriented Front Door
+
+Date/Time: 2026-05-21
+Owner: GitHub Copilot + Josh
+Roadmap link: `docs/roadmap.md` Stage 7 launch hardening documentation hygiene
+
+### Will Be Done
+
+- Refine the newly concise README so it reads as a front door for a new developer or operator rather than a compressed internal handoff.
+
+### Context Check (Before)
+
+- Plan docs reviewed: `README.md`, `docs/operator-guide.md`, `docs/roadmap.md`, `docs/agent-handoff.md`, `docs/execution-log.md`
+- Codebase state: `main...origin/main`, HEAD `e02f224`, clean worktree before edits
+- Reader feedback: make the intro plain-English, split features by audience, add prerequisites, env profile summary, command table, architecture flow, deployment summary, and grouped documentation links.
+
+### Done
+
+- Reworked `README.md` around reader questions: what the app is, status, customer/admin/automation features, stack, architecture flow, prerequisites, local startup, env profiles, common commands, verification, deployment, repo map, docs, and safety notes.
+- Kept screenshots out of this pass because no screenshot assets are currently committed and adding binary assets needs a separate capture/placement decision.
+- Updated `docs/roadmap.md` and `docs/agent-handoff.md` to record that README is now the reader-oriented front door while `docs/operator-guide.md` owns deeper operator instructions.
+
+### Context Check (After)
+
+- Validation run: `git diff --check`; no whitespace errors.
+- Editor diagnostics for edited markdown files: no errors.
+- README section check confirmed the requested reader-oriented structure is present: Status, Features, Architecture Overview, Prerequisites, Environment Profiles, Common Commands, Deployment, and grouped Documentation.
+- Scope remains documentation-only; no app code changed.
+
+### Needs To Be Done Next
+
+- Review and commit the documentation-only README polish when ready.
+
 ## Step 49 - README Reset And Operator Guide Split
 
 Date/Time: 2026-05-21

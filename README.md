@@ -1,25 +1,40 @@
 # Dirt Cat Records
 
-Dirt Cat Records is a V1 launch-candidate studio operations site for taking paid mix/mastering work from checkout through final approval.
+Dirt Cat Records is a web app for selling and managing mix/mastering services. It supports public service pages, PayPal checkout, customer project portals, owner admin tools, file delivery, revision handling, and automated email/payment workflows.
 
-The repo contains the public marketing site, PayPal checkout, customer portal, paid-customer support flow, private owner admin dashboard, and the serverless automation that ties PayPal, Supabase, Google Drive, and Resend together.
+## Status
 
-## What It Does
+V1 launch candidate. Core checkout, portal, admin, payment, email, Google Drive automation, support, and follow-up flows are implemented. Remaining work is primarily production launch discipline, preview protection, and monitoring the first real customer workflow.
 
-- Presents Dirt Cat Records services and the free mix-review intake.
-- Creates Checkout Payments through PayPal and turns paid work into tracked Projects.
-- Gives customers a portal for upload links, revision requests, Quote acceptance, Balance Payments, and Final Delivery approval.
-- Gives the owner an admin dashboard for project status, quotes, final delivery, notes, setup checks, sandbox proof runs, and cleanup tools.
-- Automates Google Drive project folders, transactional email, payment-state transitions, Delivery Lock behavior, and stale-project follow-ups.
-- Stays deployable on the Vercel Hobby plan by keeping the API surface within the 12-function limit.
+See [docs/agent-handoff.md](docs/agent-handoff.md) for the current next action and [docs/roadmap.md](docs/roadmap.md) for the staged launch checklist.
 
-## Current Status
+## Features
 
-The current web app is in V1 launch-candidate state. Stages 0 through 6 are implemented, Stage 7 launch hardening has passed local preflight, and owner manual testing has passed for the website, checkout, portal, support, and provider workflow.
+### Customer-Facing
 
-The remaining launch work is operational discipline: keep V1 behavior frozen unless a real blocker appears, deploy production only from committed and pushed code, confirm preview protection after webhook testing, and monitor the first real customer workflow across PayPal, Supabase, Google Drive, Resend, the portal, and admin.
+- Public service pages and free mix-review intake.
+- PayPal checkout for direct paid services.
+- Post-payment success flow with portal and support next steps.
+- Customer portal access through Supabase magic links.
+- Portal actions for file links, revision requests, Quote acceptance, Balance Payments, and Final Delivery approval.
+- Dedicated paid-customer support form.
 
-For exact current state and next action, read [docs/agent-handoff.md](docs/agent-handoff.md). For the staged checklist, read [docs/roadmap.md](docs/roadmap.md).
+### Owner/Admin
+
+- Private admin dashboard for studio operations.
+- Project queue, project detail, status updates, admin notes, final delivery controls, and extra revision actions.
+- Quote creation and send workflow for custom work and free-review conversions.
+- Setup checks, sandbox proof runs, owner-proof preview cards, and cleanup tools.
+
+### Automation And Integrations
+
+- PayPal order creation, capture handling, and webhook confirmation.
+- Supabase-backed customer auth and studio records.
+- Google Drive project folder creation and upload-folder sharing.
+- Resend transactional email for intake, upload instructions, quotes, delivery, support, and follow-ups.
+- Delivery Lock behavior for Projects with outstanding balances.
+- Protected follow-up cron for stale missing-file, pending-quote, balance-due, and final-approval states.
+- Vercel Hobby function-limit guardrails to keep the API surface deployable.
 
 ## Tech Stack
 
@@ -31,15 +46,30 @@ For exact current state and next action, read [docs/agent-handoff.md](docs/agent
 - Resend for transactional studio email.
 - Node's built-in test runner plus syntax and deployment preflight scripts.
 
-## Repo Map
+## Architecture Overview
 
-- `index.html`, `checkout.html`, `success.html`, `portal.html`, `support.html`, `admin.html`: primary browser surfaces.
-- `style.css`, `nav.js`, `spells.js`, `checkout.js`, `success.js`, `portal.js`, `portal-view.js`, `support.js`, `admin.js`: shared styling and page behavior.
-- `api/`: Vercel Functions for public, portal, admin, cron, and webhook routes.
-- `lib/`: PayPal, Supabase, Google Drive, Resend, auth, portal policy, checkout pricing, and automation modules.
-- `supabase/schema.sql`: database schema and service-role model.
-- `test/`: automated coverage for checkout, portal, admin, automation, PayPal, Supabase, and page behavior.
-- `docs/`: operator workflow, roadmap, handoff, deployment, architecture, execution history, and planning docs.
+```text
+Customer
+  -> Public site, checkout, portal, or support page
+  -> Vercel Functions
+       -> PayPal checkout, capture, and webhooks
+       -> Supabase auth and studio records
+       -> Google Drive project folders
+       -> Resend transactional email
+  -> Customer portal and owner admin dashboard
+```
+
+The central domain objects are Projects, Quotes, Checkout Payments, Quote Payments, Balance Payments, Delivery Lock, Final Delivery, and Portal Actions. The canonical language lives in [CONTEXT.md](CONTEXT.md).
+
+## Prerequisites
+
+- Node.js 18+ or a current Node LTS release. The repo does not currently pin an exact Node version.
+- npm.
+- Vercel account and project access. The documented CLI path uses `npx vercel`, so a global Vercel install is optional.
+- Supabase project with the schema from [supabase/schema.sql](supabase/schema.sql).
+- PayPal REST app credentials and webhook IDs for sandbox/preview and live/production.
+- Google Cloud OAuth credentials with Drive API access and a refresh token.
+- Resend API key and a verified sender domain.
 
 ## Quick Start
 
@@ -70,6 +100,34 @@ npm run dev:vercel
 
 Use Vercel's local runtime instead of a static file server because checkout, portal, admin, cron, and webhook flows depend on Vercel Functions.
 
+## Environment Profiles
+
+Start from `.env.example`. Real secrets belong only in ignored local env files and Vercel environment variables.
+
+- `.env.local.preview`: local preview-style secrets, typically PayPal sandbox values.
+- `.env.local.production`: local production-style secrets, typically PayPal live values.
+- `.env.local`: active runtime file loaded by the app.
+
+Use `npm run env:use:preview` or `npm run env:use:production` to copy one stored profile into `.env.local`, then restart the local runtime so the app reads the active profile.
+
+The full credential checklist lives in [docs/operator-guide.md](docs/operator-guide.md).
+
+## Common Commands
+
+| Command                            | Purpose                                                                 |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| `npm install`                      | Install dependencies.                                                   |
+| `npm run dev:vercel`               | Start the Vercel local runtime.                                         |
+| `npm run dev:stack`                | Start local Supabase, then Vercel dev runtime.                          |
+| `npm run env:status`               | Show the current local env profile state.                               |
+| `npm run env:use:preview`          | Activate the preview-style local env profile.                           |
+| `npm run env:use:production`       | Activate the production-style local env profile.                        |
+| `npm test`                         | Run automated tests.                                                    |
+| `npm run check:js`                 | Check JavaScript syntax across browser, API, library, and script files. |
+| `npm run deploy:preflight`         | Run the full deployment gate.                                           |
+| `npm run google:refresh-token`     | Generate a Google OAuth refresh token for Drive automation.             |
+| `npm run record:deployment -- ...` | Record shared preview or production deployment provenance.              |
+
 ## Verification
 
 Run the normal local checks:
@@ -85,26 +143,64 @@ Run the deployment gate before any shared preview or production release:
 npm run deploy:preflight
 ```
 
-`deploy:preflight` checks the Vercel function count, the full test suite, JavaScript syntax, and diff whitespace.
+`deploy:preflight` checks the Vercel function count, the full test suite, JavaScript syntax, and diff whitespace. The same gate runs through Husky before push.
+
+## Deployment
+
+The app is designed for Vercel. Shared preview and production deployments should come only from committed and pushed code.
+
+Before a shared preview or production release:
+
+1. Confirm the worktree contains only intentional release changes.
+2. Run `npm run deploy:preflight`.
+3. Deploy from a pushed commit.
+4. Record the deployment in [docs/deployment-ledger.md](docs/deployment-ledger.md).
+5. Follow the preview alias and retest rules in [docs/workflow.md](docs/workflow.md).
+
+The app is currently designed to stay within the Vercel Hobby limit of 12 Serverless Functions. Treat the repo as operating at that cap unless a fresh function-count check proves otherwise.
+
+## Repo Map
+
+- `index.html`, `checkout.html`, `success.html`, `portal.html`, `support.html`, `admin.html`: primary browser surfaces.
+- `style.css`, `nav.js`, `spells.js`, `checkout.js`, `success.js`, `portal.js`, `portal-view.js`, `support.js`, `admin.js`: shared styling and page behavior.
+- `api/`: Vercel Functions for public, portal, admin, cron, and webhook routes.
+- `lib/`: PayPal, Supabase, Google Drive, Resend, auth, portal policy, checkout pricing, and automation modules.
+- `supabase/schema.sql`: database schema and service-role model.
+- `test/`: automated coverage for checkout, portal, admin, automation, PayPal, Supabase, and page behavior.
+- `docs/`: operator workflow, roadmap, handoff, deployment, architecture, execution history, and planning docs.
 
 ## Documentation
 
 Use the smallest doc that owns the fact you need.
 
+### Start Here
+
 - [docs/operator-guide.md](docs/operator-guide.md): detailed setup, environment, runtime, credential, launch, and owner-proof instructions.
+- [docs/agent-handoff.md](docs/agent-handoff.md): current repo state and next-session guidance.
+- [docs/roadmap.md](docs/roadmap.md): staged checklist and active launch-hardening status.
+
+### Launch And Deployment
+
 - [docs/workflow.md](docs/workflow.md): branch discipline, preview classes, alias rules, and deployment provenance.
 - [docs/deployment-preflight.md](docs/deployment-preflight.md): Vercel Hobby function-limit guardrail and deployment triage.
-- [docs/roadmap.md](docs/roadmap.md): staged checklist and active launch-hardening status.
-- [docs/agent-handoff.md](docs/agent-handoff.md): current repo state and next-session guidance.
+- [docs/deployment-ledger.md](docs/deployment-ledger.md): append-only shared preview and production deployment records.
+
+### Planning And History
+
 - [docs/execution-trail.md](docs/execution-trail.md): required implementation logging process.
 - [docs/execution-log.md](docs/execution-log.md): append-only history and validation evidence.
-- [CONTEXT.md](CONTEXT.md): canonical domain language for Project, Quote, Checkout Payment, Quote Payment, Balance Payment, Delivery Lock, Final Delivery, and Portal Action.
+- [docs/superpowers/](docs/superpowers): plans, specs, and future-product exploration.
+
+### Architecture
+
+- [CONTEXT.md](CONTEXT.md): canonical domain language.
 - [docs/adr/](docs/adr): accepted architectural decisions.
 
 ## Safety Notes
 
 - Never commit real secrets. Start from `.env.example` and keep live values in local ignored env files and Vercel environment variables.
 - Preview and development should use PayPal sandbox credentials; production should use PayPal live credentials.
+- `PAYPAL_WEBHOOK_ID` is environment-specific and must match the PayPal app and environment currently in use.
 - `GOOGLE_DRIVE_PROJECTS_FOLDER_ID` must be the raw folder id, not a full Google Drive URL.
-- Treat the app as operating at the Vercel Hobby function cap unless a fresh function-count check proves otherwise.
-- Shared preview and production deployments must come from committed and pushed code and be recorded in [docs/deployment-ledger.md](docs/deployment-ledger.md).
+- `RESEND_FROM_EMAIL` must use a verified sender domain, not a public inbox domain.
+- Shared preview aliases and production deployments must be tied to pushed commits and recorded in [docs/deployment-ledger.md](docs/deployment-ledger.md).

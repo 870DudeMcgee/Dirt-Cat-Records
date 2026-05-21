@@ -45,7 +45,7 @@ Process details: [`docs/execution-trail.md`](execution-trail.md).
 
 Goal: make the repo clean, understandable, and hard to misuse.
 
-- [x] Expand setup documentation in `docs/operator-guide.md` while keeping `README.md` concise.
+- [x] Expand setup documentation in `docs/operator-guide.md` while keeping `README.md` as a reader-oriented project front door.
 - [x] Expand `.env.example` so it matches the app's real runtime requirements.
 - [x] Expand `.gitignore` for local, OS, and dependency noise.
 - [x] Decide how to handle the large audio assets currently committed under `assets/`: keep the current WAV files for now, then replace the site previews with MP3 versions later.
