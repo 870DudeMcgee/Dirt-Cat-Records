@@ -65,6 +65,7 @@ test("buildNoChargeCheckoutPayment preserves catalog value and forces zero due",
   assert.equal(payment.orderSummary.noChargeCheckout, true);
   assert.equal(payment.orderSummary.noChargeReason, "friends_free_code");
   assert.equal(payment.orderSummary.noChargeLabel, "Friends comp");
+  assert.equal(payment.orderSummary.unlimitedRevisions, true);
   assert.equal(payment.orderSummary.originalTotalCents, 43320);
   assert.equal(payment.orderSummary.totalCents, 43320);
   assert.equal(payment.orderSummary.amountDueNowCents, 0);

@@ -93,6 +93,9 @@ The target end product is a reliable studio operations system for Dirt Cat Recor
 - The preview webhook parser now accepts the PayPal events the sandbox flow actually emits: `CHECKOUT.ORDER.APPROVED` and `PAYMENT.CAPTURE.COMPLETED`, including capture payloads that omit buyer email and require a related-order lookup.
 - Preview browser validation now reaches sandbox PayPal from the deployed checkout flow and reaches `success.html` on the active diagnostic deployment.
 - The portal magic-link UI now prevents duplicate sends in the same tab and applies a one-minute resend cooldown with a clearer message when Supabase OTP throttling is hit.
+- Customer portal actions now keep confirmation visible after login, including revision-request success, file-link success, quote/balance checkout starts, and final approval feedback.
+- Friends free-code checkout projects now carry unlimited revision access into the customer portal, and paid projects show a compact upsell panel for extra revisions, new checkout work, and custom add-ons.
+- Shared form styling now keeps checkout, portal, and support inputs/buttons contained inside their glass panels, including add-on quantity fields and discount-code rows.
 - Paid customers now have a dedicated `support.html` support flow backed by `api/public/project-support.js`, so the success page no longer routes them into the homepage or free-review funnel when they need help.
 - Historical `vercel.app` URLs still present in append-only logs and older plan docs are historical records, not active runtime configuration.
 - A single preview deployment on 2026-05-20 failed after `vercel build` completed, but the immediately following preview deployment reached `Ready`; treat that one failure as transient unless the same deployment-stage error starts repeating.
@@ -194,8 +197,8 @@ Architecture source-of-truth docs:
 - `index.html`, `style.css`, and `spells.js` render the public marketing site and free mix review form.
 - `checkout.html` and `checkout.js` build PayPal checkout orders through Vercel Functions.
 - `success.html` and `success.js` show the post-payment order summary and portal/support next steps.
-- `support.html` and `support.js` provide a paid-customer project support form that pre-fills recent checkout context when available.
-- `portal.html` and `portal.js` provide Supabase magic-link customer access, including quote cards, quote checkout, and balance payment start actions.
+- `support.html` and `support.js` provide a paid-customer project support form that pre-fills recent checkout or portal upsell context when available.
+- `portal.html`, `portal.js`, and `portal-view.js` provide Supabase magic-link customer access, visible action confirmations, unlimited free-code revision display, quote cards, quote checkout, balance payment start actions, and paid-project upsell links.
 - `lib/portal/action-policy.js` owns Portal Action eligibility, visibility, denial reasons, and payment amount decisions shared by browser visibility rules and server-side authority checks.
 - `admin.html` and `admin.js` provide the owner operations dashboard, priority queue, project detail with status updates, private admin notes, final delivery controls, and extra revision actions, plus setup checks, sandbox test runs, and cleanup tools.
 - `api/admin/quotes.js` provides protected admin quote draft and send actions.
@@ -305,7 +308,7 @@ Use this checklist any time you set up `.env.local`, update Vercel environment v
 9. Fill Google Drive automation credentials:
    `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`, `GOOGLE_DRIVE_PROJECTS_FOLDER_ID`.
 10. Fill Resend credentials:
-   `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and optionally `RESEND_REPLY_TO_EMAIL`.
+    `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and optionally `RESEND_REPLY_TO_EMAIL`.
 11. Set `TEST_CUSTOMER_EMAIL` and `TEST_EMAIL_RECIPIENT` to your own inbox while running sandbox/provider tests so test traffic stays contained.
 12. Re-check the active `.env.local` and the target Vercel env vars against `.env.example` whenever a provider test fails unexpectedly.
 

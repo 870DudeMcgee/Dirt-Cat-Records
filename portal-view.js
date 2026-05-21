@@ -7,6 +7,8 @@
 })(
   typeof globalThis !== "undefined" ? globalThis : this,
   function (actionRules) {
+    const UNLIMITED_REVISION_COUNT = 1000000;
+
     const STATUS_CONTENT = {
       awaiting_files: {
         label: "Waiting For Files",
@@ -72,13 +74,21 @@
         Number(project.included_revisions || 0) +
         Number(project.extra_revisions_allowed || 0);
       const usedRevisions = Number(project.used_revisions || 0);
-      const revisionsRemaining = Math.max(0, revisionLimit - usedRevisions);
+      const unlimitedRevisions =
+        Number(project.included_revisions || 0) >= UNLIMITED_REVISION_COUNT;
+      const revisionsRemaining = unlimitedRevisions
+        ? Infinity
+        : Math.max(0, revisionLimit - usedRevisions);
       const finalDeliveryUrl = safeHttpUrl(project.final_delivery_url);
       const uploadFolderUrl = safeHttpUrl(project.drive_upload_folder_url);
       const finalUnlocked = Boolean(
         finalDeliveryUrl && project.final_delivery_locked === false
       );
       const activeQuote = normalizeActiveQuote(project.active_quote);
+      const revisionStatusActive = [
+        "revision_requested",
+        "revision_in_progress",
+      ].includes(project.status);
 
       return {
         id: String(project.id || ""),
@@ -88,6 +98,7 @@
           project.project_code ||
           "Untitled Project",
         projectCode: project.project_code || "",
+        projectType: project.project_type || "",
         status: project.status || "",
         statusLabel: statusContent.label,
         nextStep: statusContent.nextStep,
@@ -98,18 +109,19 @@
         balanceDue,
         balanceDueLabel: formatDollars(balanceDue),
         revisionsRemaining,
-        revisionLabel: getRevisionLabel(revisionsRemaining),
+        unlimitedRevisions,
+        revisionLabel: getRevisionLabel(revisionsRemaining, unlimitedRevisions),
+        stateNote: getProjectStateNote(project.status),
         canSubmitFiles: [
           "awaiting_files",
           "files_submitted",
           "reviewing",
           "paid",
           "mixing",
-          "revision_requested",
-          "revision_in_progress",
         ].includes(project.status),
         canRequestRevision:
-          revisionsRemaining > 0 &&
+          (unlimitedRevisions || revisionsRemaining > 0) &&
+          !revisionStatusActive &&
           !["approved", "completed", "closed"].includes(project.status),
         canApproveFinal: resolveCanApproveFinal(project, finalDeliveryUrl),
         canAcceptQuote: Boolean(
@@ -117,6 +129,7 @@
           ["draft", "sent", "viewed"].includes(activeQuote.status)
         ),
         canPayBalance: resolveCanPayBalance(project),
+        canShowUpsells: project.project_type === "paid",
       };
     }
 
@@ -173,6 +186,7 @@
         <p class="portal-next-step">${escapeHtml(project.nextStep)}</p>
         ${project.activeQuote ? renderQuoteCard(project) : ""}
         <p class="portal-revision-count">${escapeHtml(project.revisionLabel)}</p>
+        ${project.stateNote ? renderProjectStateNote(project.stateNote) : ""}
         <div class="portal-actions">
           ${project.uploadFolderUrl ? `<a class="btn" href="${escapeHtml(project.uploadFolderUrl)}" target="_blank" rel="noreferrer">Open Upload Folder</a>` : ""}
           ${project.finalUnlocked && project.finalDeliveryUrl ? `<a class="btn" href="${escapeHtml(project.finalDeliveryUrl)}" target="_blank" rel="noreferrer">Open Final Files</a>` : ""}
@@ -181,6 +195,7 @@
         </div>
         ${project.canSubmitFiles ? renderFileLinkForm() : ""}
         ${project.canRequestRevision ? renderRevisionForm() : ""}
+        ${project.canShowUpsells ? renderPortalUpsells(project) : ""}
       </article>
     `;
     }
@@ -198,6 +213,25 @@
     `;
     }
 
+    function renderProjectStateNote(message) {
+      return `
+      <section class="portal-state-note">
+        <strong>All Set</strong>
+        <p>${escapeHtml(message)}</p>
+      </section>
+    `;
+    }
+
+    function getProjectStateNote(status) {
+      if (status === "revision_requested") {
+        return "Your revision request is in Josh's hands. Watch this portal and your email for the next update.";
+      }
+      if (status === "revision_in_progress") {
+        return "Josh is working through the revision pass now. The next update will appear here when it is ready.";
+      }
+      return "";
+    }
+
     function renderFileLinkForm() {
       return `
       <form class="portal-link-form">
@@ -213,13 +247,64 @@
     function renderRevisionForm() {
       return `
       <form class="portal-revision-form">
+        <p class="portal-form-help" id="portal-revision-help">Send one clear pass of notes. Time stamps, reference moments, and the feeling you want all help the revision land faster.</p>
         <label>
           <span>Revision Notes</span>
-          <textarea name="notes" placeholder="What should change in the mix?" required></textarea>
+          <textarea name="notes" placeholder="What should change in the mix?" aria-describedby="portal-revision-help" required></textarea>
         </label>
         <button class="btn" type="submit">Request Revision</button>
       </form>
     `;
+    }
+
+    function renderPortalUpsells(project) {
+      return `
+      <section class="portal-upsell-panel" aria-label="Project upgrades">
+        <div>
+          <p class="portal-upsell-kicker">Keep Building</p>
+          <h3>Need More From This Project?</h3>
+        </div>
+        <div class="portal-upsell-grid">
+          ${renderRevisionUpsell(project)}
+          <a class="portal-upsell-card" href="checkout.html">
+            <strong>Start Another Service</strong>
+            <span>Book a mix, master, mix + master, rush delivery, exports, or a new custom deposit.</span>
+          </a>
+          <a class="portal-upsell-card" href="${escapeHtml(buildSupportHref(project, "project_status", "I want to add another service or custom upgrade to this project."))}">
+            <strong>Ask For A Custom Add-On</strong>
+            <span>Need production help, edits, stems, or something that does not fit the standard checkout?</span>
+          </a>
+        </div>
+      </section>
+    `;
+    }
+
+    function renderRevisionUpsell(project) {
+      if (project.unlimitedRevisions) {
+        return `
+        <div class="portal-upsell-card is-included">
+          <strong>Unlimited Revisions Active</strong>
+          <span>This friends comp project already includes unlimited revision requests.</span>
+        </div>
+      `;
+      }
+
+      return `
+      <a class="portal-upsell-card" href="${escapeHtml(buildSupportHref(project, "project_status", "I want to purchase an extra revision for this project."))}">
+        <strong>Buy Another Revision</strong>
+        <span>Request a paid extra pass when the included revision count is used up.</span>
+      </a>
+    `;
+    }
+
+    function buildSupportHref(project, issueType, message) {
+      const params = new URLSearchParams({
+        issueType,
+        projectName: project.title,
+        message,
+      });
+      if (project.projectCode) params.set("projectCode", project.projectCode);
+      return `support.html?${params.toString()}`;
     }
 
     function renderEmptyProjects() {
@@ -231,7 +316,8 @@
     `;
     }
 
-    function getRevisionLabel(revisionsRemaining) {
+    function getRevisionLabel(revisionsRemaining, unlimitedRevisions = false) {
+      if (unlimitedRevisions) return "Unlimited revisions included";
       if (revisionsRemaining === 1) return "1 revision remaining";
       if (revisionsRemaining > 1)
         return `${revisionsRemaining} revisions remaining`;

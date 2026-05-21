@@ -55,6 +55,35 @@ function setValue(id, value) {
   element.value = value || "";
 }
 
+function readSupportQueryContext() {
+  const params = new URLSearchParams(window.location.search || "");
+  const projectCode = params.get("projectCode") || "";
+  const message = params.get("message") || "";
+
+  return {
+    issueType: params.get("issueType") || "",
+    projectName: params.get("projectName") || "",
+    message: projectCode ? `${message}\n\nProject: ${projectCode}` : message,
+  };
+}
+
+function applySupportQueryContext(context) {
+  if (!context) return;
+  if (context.projectName)
+    setValue("support-project-name", context.projectName);
+  if (context.message) setValue("support-message", context.message);
+  setValueIfOptionExists("support-issue-type", context.issueType);
+}
+
+function setValueIfOptionExists(id, value) {
+  const element = document.getElementById(id);
+  if (!element || !value) return;
+  const hasOption = Array.from(element.options || []).some(
+    (option) => option.value === value
+  );
+  if (hasOption) element.value = value;
+}
+
 function renderSupportContext(context) {
   const container = document.getElementById("support-context-summary");
   if (!container) return;
@@ -124,6 +153,7 @@ function initProjectSupportForm() {
   const submitButton = form.querySelector('button[type="submit"]');
   const supportContext = readPaidOrderContext();
   applySupportContext(supportContext);
+  applySupportQueryContext(readSupportQueryContext());
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();

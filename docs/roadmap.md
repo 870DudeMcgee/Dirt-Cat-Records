@@ -72,6 +72,9 @@ Goal: customers should see clear next steps and only the actions that apply to t
 - [x] Show balance due and delivery-lock state.
 - [x] Add a useful empty state when no projects are found.
 - [x] Improve portal action error handling.
+- [x] Keep portal action confirmations visible after login and refresh project cards after customer submissions.
+- [x] Show unlimited revision access for friends free-code projects and add paid-project upsell links for extra revisions, new services, and custom add-ons.
+- [x] Normalize form control sizing so checkout, portal, and support inputs/buttons stay contained inside their panels.
 
 ## Stage 3: Build Josh's Operational Admin Dashboard
 

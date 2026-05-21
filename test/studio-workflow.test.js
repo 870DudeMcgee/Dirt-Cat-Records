@@ -335,6 +335,7 @@ test("createPaidProjectWorkflow creates paid no-charge project with zero balance
       total_amount: input.totalAmount,
       amount_paid: input.amountPaid,
       balance_due: input.balanceDue,
+      included_revisions: input.includedRevisions,
       final_delivery_locked: input.finalDeliveryLocked,
       project_code: "DCR-000124",
     };
@@ -388,6 +389,7 @@ test("createPaidProjectWorkflow creates paid no-charge project with zero balance
   assert.equal(result.project.total_amount, 433.2);
   assert.equal(result.project.amount_paid, 0);
   assert.equal(result.project.balance_due, 0);
+  assert.equal(result.project.included_revisions, 1000000);
   assert.equal(result.project.final_delivery_locked, false);
   assert.ok(calls.some((call) => call.type === "drive.create"));
   assert.ok(calls.some((call) => call.type === "email.customer"));

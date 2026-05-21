@@ -1,12 +1,17 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { readFileSync } = require("node:fs");
+const { join } = require("node:path");
 const {
   formatMagicLinkRateLimitMessage,
+  getPortalActionSuccessMessage,
   getMagicLinkCooldownRemainingMs,
   getStoredMagicLinkCooldownRemainingMs,
   isMagicLinkRateLimitMessage,
   readMagicLinkCooldownUntil,
 } = require("../portal");
+
+const root = join(__dirname, "..");
 
 test("portal magic-link helpers detect provider rate-limit messages", () => {
   assert.equal(isMagicLinkRateLimitMessage("email rate limit exceeded"), true);
@@ -42,4 +47,27 @@ test("portal magic-link helpers clear expired cooldown storage", () => {
   assert.equal(readMagicLinkCooldownUntil(storage), 1000);
   assert.equal(getStoredMagicLinkCooldownRemainingMs(2_000, storage), 0);
   assert.equal(typeof removedKey, "string");
+});
+
+test("portal status remains visible after the login panel is hidden", () => {
+  const html = readFileSync(join(root, "portal.html"), "utf8");
+  const loginIndex = html.indexOf('id="portal-login"');
+  const loginCloseIndex = html.indexOf("</section>", loginIndex);
+  const statusIndex = html.indexOf('id="portal-status"');
+  const projectsIndex = html.indexOf('id="portal-projects"');
+
+  assert.ok(statusIndex > loginCloseIndex);
+  assert.ok(statusIndex < projectsIndex);
+  assert.match(html, /portal-status-message/);
+});
+
+test("portal action helpers use customer-facing success language", () => {
+  assert.equal(
+    getPortalActionSuccessMessage("revision"),
+    "Revision request received. Josh has your notes and this project is queued for a revision pass."
+  );
+  assert.equal(
+    getPortalActionSuccessMessage("approval"),
+    "Final approved. Josh can close this project out now."
+  );
 });

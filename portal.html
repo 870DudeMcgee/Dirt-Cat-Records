@@ -14,8 +14,14 @@
           <input type="email" name="email" placeholder="Email" required />
           <button class="btn" type="submit">Send Magic Link</button>
         </form>
-        <p id="portal-status" role="status" aria-live="polite"></p>
       </section>
+      <p
+        class="portal-status-message"
+        id="portal-status"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></p>
       <section class="portal-projects" id="portal-projects" hidden></section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

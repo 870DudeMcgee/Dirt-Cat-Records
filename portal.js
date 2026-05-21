@@ -6,6 +6,15 @@ let magicLinkCooldownTimer = null;
 const MAGIC_LINK_COOLDOWN_MS = 60 * 1000;
 const MAGIC_LINK_STORAGE_KEY = "dcr_portal_magic_link_cooldown_until";
 const MAGIC_LINK_DEFAULT_LABEL = "Send Magic Link";
+const PORTAL_ACTION_SUCCESS_MESSAGES = {
+  fileLink:
+    "File link received. Josh has the upload link and will review the files next.",
+  revision:
+    "Revision request received. Josh has your notes and this project is queued for a revision pass.",
+  approval: "Final approved. Josh can close this project out now.",
+  balance: "Balance checkout opened in a new tab.",
+  quote: "Quote checkout opened in a new tab.",
+};
 
 async function initPortal() {
   const configResponse = await fetch("/api/checkout-config");
@@ -42,7 +51,7 @@ async function initPortal() {
       .toLowerCase();
     magicLinkRequestInFlight = true;
     refreshMagicLinkButtonState(form);
-    setPortalStatus("Preparing your portal access...");
+    setPortalStatus("Preparing your portal access...", "pending");
 
     try {
       const prepareResponse = await fetch("/api/portal/actions?action=auth", {
@@ -53,7 +62,8 @@ async function initPortal() {
       const prepareBody = await prepareResponse.json();
       if (!prepareResponse.ok) {
         setPortalStatus(
-          prepareBody.error || "Unable to prepare your portal access."
+          prepareBody.error || "Unable to prepare your portal access.",
+          "error"
         );
         return;
       }
@@ -72,17 +82,21 @@ async function initPortal() {
           setPortalStatus(
             formatMagicLinkRateLimitMessage(
               getStoredMagicLinkCooldownRemainingMs()
-            )
+            ),
+            "error"
           );
           return;
         }
 
-        setPortalStatus(error.message || "Unable to send the magic link.");
+        setPortalStatus(
+          error.message || "Unable to send the magic link.",
+          "error"
+        );
         return;
       }
 
       startMagicLinkCooldown(form);
-      setPortalStatus("Check your email for the magic link.");
+      setPortalStatus("Check your email for the magic link.", "success");
     } finally {
       magicLinkRequestInFlight = false;
       refreshMagicLinkButtonState(form);
@@ -103,7 +117,7 @@ async function renderProjects(accessToken) {
   });
   const body = await response.json();
   if (!response.ok) {
-    setPortalStatus(body.error || "Unable to load projects.");
+    setPortalStatus(body.error || "Unable to load projects.", "error");
     return;
   }
   document.getElementById("portal-login").hidden = true;
@@ -118,7 +132,10 @@ async function renderProjects(accessToken) {
         )
         .join("")
     : portalView.renderEmptyProjects();
-  bindProjectActions(container);
+  if (container.dataset.portalActionsBound !== "true") {
+    bindProjectActions(container);
+    container.dataset.portalActionsBound = "true";
+  }
 }
 
 function bindProjectActions(container) {
@@ -131,29 +148,43 @@ function bindProjectActions(container) {
     if (event.target.classList.contains("portal-link-form")) {
       const url = new FormData(event.target).get("url");
       try {
-        await postPortalAction("/api/portal/actions?action=file-links", {
-          projectId,
-          url,
+        await withPortalSubmitState(event.target, "Submitting...", async () => {
+          await postPortalAction("/api/portal/actions?action=file-links", {
+            projectId,
+            url,
+          });
+          event.target.reset();
+          setPortalStatus(getPortalActionSuccessMessage("fileLink"), "success");
+          await renderProjects(currentAccessToken);
         });
-        event.target.reset();
-        setPortalStatus("File link submitted.");
       } catch (error) {
-        setPortalStatus(error.message || "Unable to submit file link.");
+        setPortalStatus(
+          error.message || "Unable to submit file link.",
+          "error"
+        );
       }
+      return;
     }
 
     if (event.target.classList.contains("portal-revision-form")) {
       const notes = new FormData(event.target).get("notes");
       try {
-        await postPortalAction("/api/portal/actions?action=revisions", {
-          projectId,
-          notes,
+        await withPortalSubmitState(event.target, "Submitting...", async () => {
+          await postPortalAction("/api/portal/actions?action=revisions", {
+            projectId,
+            notes,
+          });
+          event.target.reset();
+          setPortalStatus(getPortalActionSuccessMessage("revision"), "success");
+          await renderProjects(currentAccessToken);
         });
-        event.target.reset();
-        setPortalStatus("Revision request submitted.");
       } catch (error) {
-        setPortalStatus(error.message || "Unable to submit revision request.");
+        setPortalStatus(
+          error.message || "Unable to submit revision request.",
+          "error"
+        );
       }
+      return;
     }
   });
 
@@ -162,6 +193,7 @@ function bindProjectActions(container) {
       const projectCard = event.target.closest(".portal-project");
       const projectId = projectCard?.dataset.projectId;
       if (!projectId) return;
+      const originalLabel = setPortalButtonPending(event.target, "Opening...");
       try {
         const result = await postPortalAction(
           "/api/portal/actions?action=pay-balance",
@@ -171,12 +203,17 @@ function bindProjectActions(container) {
         );
         if (result.approvalUrl) {
           window.open(result.approvalUrl, "_blank", "noopener,noreferrer");
-          setPortalStatus("Balance checkout opened in a new tab.");
+          setPortalStatus(getPortalActionSuccessMessage("balance"), "success");
         } else {
-          setPortalStatus("Balance checkout started.");
+          setPortalStatus("Balance checkout started.", "success");
         }
       } catch (error) {
-        setPortalStatus(error.message || "Unable to start balance checkout.");
+        setPortalStatus(
+          error.message || "Unable to start balance checkout.",
+          "error"
+        );
+      } finally {
+        restorePortalButton(event.target, originalLabel);
       }
       return;
     }
@@ -186,6 +223,7 @@ function bindProjectActions(container) {
       const projectId = projectCard?.dataset.projectId;
       const quoteId = event.target.getAttribute("data-quote-id");
       if (!projectId || !quoteId) return;
+      const originalLabel = setPortalButtonPending(event.target, "Opening...");
       try {
         const result = await postPortalAction(
           "/api/portal/actions?action=accept-quote",
@@ -196,12 +234,17 @@ function bindProjectActions(container) {
         );
         if (result.approvalUrl) {
           window.open(result.approvalUrl, "_blank", "noopener,noreferrer");
-          setPortalStatus("Quote checkout opened in a new tab.");
+          setPortalStatus(getPortalActionSuccessMessage("quote"), "success");
         } else {
-          setPortalStatus("Quote checkout started.");
+          setPortalStatus("Quote checkout started.", "success");
         }
       } catch (error) {
-        setPortalStatus(error.message || "Unable to start quote checkout.");
+        setPortalStatus(
+          error.message || "Unable to start quote checkout.",
+          "error"
+        );
+      } finally {
+        restorePortalButton(event.target, originalLabel);
       }
       return;
     }
@@ -210,13 +253,20 @@ function bindProjectActions(container) {
     const projectCard = event.target.closest(".portal-project");
     const projectId = projectCard?.dataset.projectId;
     if (!projectId) return;
+    const originalLabel = setPortalButtonPending(event.target, "Approving...");
     try {
       await postPortalAction("/api/portal/actions?action=approvals", {
         projectId,
       });
-      setPortalStatus("Final approved.");
+      setPortalStatus(getPortalActionSuccessMessage("approval"), "success");
+      await renderProjects(currentAccessToken);
     } catch (error) {
-      setPortalStatus(error.message || "Unable to approve final delivery.");
+      setPortalStatus(
+        error.message || "Unable to approve final delivery.",
+        "error"
+      );
+    } finally {
+      restorePortalButton(event.target, originalLabel);
     }
   });
 }
@@ -235,8 +285,40 @@ async function postPortalAction(path, payload) {
   return body;
 }
 
-function setPortalStatus(message) {
-  document.getElementById("portal-status").textContent = message;
+function getPortalActionSuccessMessage(action) {
+  return PORTAL_ACTION_SUCCESS_MESSAGES[action] || "Project action completed.";
+}
+
+async function withPortalSubmitState(form, pendingLabel, callback) {
+  const submitButton = form.querySelector('button[type="submit"]');
+  const originalLabel = setPortalButtonPending(submitButton, pendingLabel);
+  try {
+    return await callback();
+  } finally {
+    restorePortalButton(submitButton, originalLabel);
+  }
+}
+
+function setPortalButtonPending(button, pendingLabel) {
+  if (!button) return "";
+  const originalLabel = button.textContent;
+  button.disabled = true;
+  button.textContent = pendingLabel;
+  return originalLabel;
+}
+
+function restorePortalButton(button, originalLabel) {
+  if (!button) return;
+  button.disabled = false;
+  if (originalLabel) button.textContent = originalLabel;
+}
+
+function setPortalStatus(message, tone = "info") {
+  const status = document.getElementById("portal-status");
+  if (!status) return;
+  status.textContent = message;
+  status.dataset.tone = tone;
+  status.hidden = !message;
 }
 
 function isMagicLinkRateLimitMessage(message) {
@@ -356,6 +438,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
 if (typeof module !== "undefined") {
   module.exports = {
     formatMagicLinkRateLimitMessage,
+    getPortalActionSuccessMessage,
     getMagicLinkCooldownRemainingMs,
     isMagicLinkRateLimitMessage,
     readMagicLinkCooldownUntil,

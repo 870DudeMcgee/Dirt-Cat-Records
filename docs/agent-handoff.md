@@ -52,6 +52,9 @@ Current constraints that matter before new feature work:
 - PayPal runtime lifecycle is now code-backed by `lib/env/runtime-environment.js`; PayPal readiness fails when production is wired to sandbox or preview/development are wired to live.
 - Customer portal magic-link requests now go through `api/portal/actions.js?action=auth`, which provisions confirmed auth users only for known customer emails before the browser sends `signInWithOtp(... shouldCreateUser: false)`.
 - `portal.js` now also prevents duplicate sends in the same tab and applies a one-minute resend cooldown when Supabase returns an OTP rate-limit error.
+- Portal action feedback is now shell-level instead of inside the hidden login panel, so revision requests, file-link submissions, quote/balance checkout starts, and final approvals give customers visible confirmation after login.
+- Friends free-code checkout projects now persist a high included-revision count and render as unlimited revisions in the customer portal. Paid project cards now include a small upsell panel for extra revision requests, another checkout service, or a custom add-on request through the support form.
+- Shared form CSS now uses border-box sizing and shrink-safe grid controls so checkout, portal, and support inputs/buttons do not overflow their glass panels.
 - That auth preparation path was merged into the existing portal function specifically to stay under the Vercel Hobby 12-function deployment cap.
 - The shared preview alias now points at a clean preview deployment published from pushed `ae958f9`; still confirm alias mapping and the latest ledger row from Vercel before the next external test.
 

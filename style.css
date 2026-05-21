@@ -9,12 +9,19 @@
 
 html {
   scroll-behavior: smooth;
+  box-sizing: border-box;
 }
 
 /* 
   1. UNIVERSAL FONT SYNC 
   Forces all elements (buttons, inputs, links, body) to use exact same font. 
 */
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
 * {
   font-family: "Inter", sans-serif;
 }
@@ -446,14 +453,23 @@ form {
 input,
 textarea,
 select {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   font-size: 1rem;
+  line-height: 1.35;
   background: rgba(0, 0, 0, 0.4);
   color: white;
   backdrop-filter: blur(8px);
+}
+
+textarea {
+  min-height: 128px;
+  resize: vertical;
 }
 input:focus,
 textarea:focus,
@@ -472,6 +488,7 @@ textarea::placeholder {
 .btn-primary,
 .contact-phone a {
   display: inline-block;
+  max-width: 100%;
   padding: 0.75rem 1.25rem;
   font-size: 1.1rem;
   font-weight: 800;
@@ -2228,6 +2245,8 @@ footer {
 .checkout-panel,
 .checkout-summary {
   position: relative;
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
   background:
     radial-gradient(
@@ -2252,6 +2271,7 @@ footer {
 }
 
 .checkout-panel {
+  margin: 0;
   padding: 1.35rem;
 }
 
@@ -2330,6 +2350,21 @@ footer {
   width: auto;
 }
 
+.checkout-panel > input,
+.checkout-panel > textarea,
+.checkout-panel > select,
+.support-field input,
+.support-field textarea,
+.support-field select {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+#song-count {
+  max-width: 160px;
+}
+
 .choice-card-label,
 .addon-row strong {
   color: #ffffff;
@@ -2376,9 +2411,10 @@ footer {
 
 .addon-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 78px;
+  grid-template-columns: minmax(0, 1fr) minmax(72px, 92px);
   gap: 0.8rem;
   align-items: center;
+  min-width: 0;
   padding: 0.9rem;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 16px;
@@ -2400,6 +2436,7 @@ footer {
   grid-template-columns: 24px minmax(0, 1fr);
   gap: 0.75rem;
   align-items: start;
+  min-width: 0;
   cursor: pointer;
 }
 
@@ -2417,9 +2454,11 @@ footer {
 }
 
 .addon-quantity {
-  width: 100%;
+  width: 92px;
+  max-width: 100%;
   padding: 0.7rem 0.45rem;
   text-align: center;
+  justify-self: end;
 }
 
 .terms-row {
@@ -2534,13 +2573,23 @@ footer {
 
 .discount-code-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(88px, auto);
   gap: 0.75rem;
-  align-items: end;
+  align-items: stretch;
+}
+
+.discount-code-row input {
+  min-width: 0;
 }
 
 .discount-code-row .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
   min-height: 44px;
+  padding-inline: 1rem;
+  white-space: nowrap;
 }
 
 #discount-code-status {
@@ -2643,7 +2692,12 @@ footer {
   }
 
   .addon-quantity {
-    max-width: 120px;
+    width: 120px;
+    justify-self: start;
+  }
+
+  .discount-code-row {
+    grid-template-columns: 1fr;
   }
 
   .checkout-panel,
@@ -2722,8 +2776,46 @@ footer {
   gap: 1rem;
 }
 
+.portal-status-message {
+  max-width: 960px;
+  margin: 0 auto 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(107, 217, 255, 0.26);
+  border-radius: 14px;
+  color: rgba(238, 244, 255, 0.9);
+  font-weight: 900;
+  line-height: 1.45;
+  text-align: center;
+  text-shadow: none;
+  background: rgba(107, 217, 255, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.36);
+}
+
+.portal-status-message[hidden] {
+  display: none;
+}
+
+.portal-status-message[data-tone="success"] {
+  border-color: rgba(108, 255, 190, 0.38);
+  color: #c9ffe8;
+  background: rgba(30, 172, 116, 0.16);
+}
+
+.portal-status-message[data-tone="error"] {
+  border-color: rgba(255, 113, 113, 0.42);
+  color: #ffd7d7;
+  background: rgba(255, 80, 80, 0.14);
+}
+
+.portal-status-message[data-tone="pending"] {
+  border-color: rgba(255, 207, 77, 0.36);
+  color: #ffe8a0;
+  background: rgba(255, 207, 77, 0.12);
+}
+
 .portal-project,
 .portal-empty-state {
+  min-width: 0;
   padding: 1.35rem;
 }
 
@@ -2783,6 +2875,31 @@ footer {
   border: 1px solid rgba(107, 217, 255, 0.22);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.03);
+}
+
+.portal-state-note {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(108, 255, 190, 0.28);
+  border-radius: 12px;
+  background: rgba(30, 172, 116, 0.12);
+}
+
+.portal-state-note strong {
+  display: block;
+  color: #c9ffe8;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.portal-state-note p {
+  margin: 0.35rem 0 0;
+  color: rgba(238, 244, 255, 0.82);
+  font-weight: 700;
+  line-height: 1.55;
+  text-shadow: none;
 }
 
 .portal-quote-card h3 {
@@ -2845,10 +2962,101 @@ footer {
   margin: 1rem 0;
 }
 
+.portal-upsell-panel {
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(107, 217, 255, 0.16);
+}
+
+.portal-upsell-panel h3 {
+  margin: 0.25rem 0 0;
+  color: #fff;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  text-shadow: none;
+}
+
+.portal-upsell-kicker {
+  margin: 0;
+  color: rgba(107, 217, 255, 0.86);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: none;
+}
+
+.portal-upsell-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+.portal-upsell-card {
+  display: block;
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid rgba(107, 217, 255, 0.2);
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.portal-upsell-card:hover,
+.portal-upsell-card:focus-visible {
+  border-color: rgba(107, 217, 255, 0.44);
+  background: rgba(107, 217, 255, 0.09);
+}
+
+.portal-upsell-card.is-included {
+  border-color: rgba(108, 255, 190, 0.3);
+  background: rgba(30, 172, 116, 0.12);
+}
+
+.portal-upsell-card strong,
+.portal-upsell-card span {
+  display: block;
+  text-shadow: none;
+}
+
+.portal-upsell-card strong {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.portal-upsell-card span {
+  margin-top: 0.35rem;
+  color: rgba(238, 244, 255, 0.72);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .portal-link-form,
 .portal-revision-form {
   max-width: none;
   margin-top: 0.9rem;
+}
+
+.portal-link-form label,
+.portal-revision-form label,
+.portal-link-form input,
+.portal-revision-form textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.portal-form-help {
+  margin: 0 0 0.65rem;
+  color: rgba(238, 244, 255, 0.72);
+  font-size: 0.94rem;
+  font-weight: 700;
+  line-height: 1.55;
+  text-shadow: none;
 }
 
 @media (max-width: 680px) {
@@ -2863,5 +3071,9 @@ footer {
   .portal-balance {
     width: 100%;
     text-align: left;
+  }
+
+  .portal-upsell-grid {
+    grid-template-columns: 1fr;
   }
 }

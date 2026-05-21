@@ -14,3 +14,23 @@ test("project support page provides a dedicated paid-customer support form", () 
   assert.match(html, /support\.js/);
   assert.equal(html.includes("free mix review"), false);
 });
+
+test("shared form styling keeps checkout and support fields inside panels", () => {
+  const css = readFileSync(join(root, "style.css"), "utf8");
+
+  assert.match(
+    css,
+    /input,\s*\ntextarea,\s*\nselect\s*{[\s\S]*max-width: 100%;/
+  );
+  assert.match(css, /input,\s*\ntextarea,\s*\nselect\s*{[\s\S]*min-width: 0;/);
+  assert.match(
+    css,
+    /\.checkout-panel,\s*\n\.checkout-summary\s*{[\s\S]*min-width: 0;/
+  );
+  assert.match(
+    css,
+    /\.discount-code-row\s*{[\s\S]*minmax\(0, 1fr\) minmax\(88px, auto\)/
+  );
+  assert.match(css, /\.addon-quantity\s*{[\s\S]*width: 92px;/);
+  assert.match(css, /#song-count\s*{\s*max-width: 160px;/);
+});

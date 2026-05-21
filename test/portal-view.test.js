@@ -1,10 +1,14 @@
 const assert = require("node:assert/strict");
+const { readFileSync } = require("node:fs");
+const { join } = require("node:path");
 const test = require("node:test");
 const {
   buildPortalProjectView,
   renderEmptyProjects,
   renderProjectCard,
 } = require("../portal-view");
+
+const root = join(__dirname, "..");
 
 test("portal project card shows upload next step and hides final approval while awaiting files", () => {
   const project = buildPortalProjectView({
@@ -22,6 +26,27 @@ test("portal project card shows upload next step and hides final approval while 
   assert.match(html, /Open Upload Folder/);
   assert.match(html, /2 revisions remaining/);
   assert.equal(html.includes("portal-approve-button"), false);
+});
+
+test("portal project card shows unlimited revisions for friends comp projects", () => {
+  const project = buildPortalProjectView({
+    id: "project-free-code",
+    project_type: "paid",
+    project_title: "Friends Comp Song",
+    status: "delivered",
+    included_revisions: 1000000,
+    used_revisions: 42,
+    final_delivery_locked: false,
+    final_delivery_url: "https://drive.google.com/finals",
+  });
+  const html = renderProjectCard(project);
+
+  assert.equal(project.unlimitedRevisions, true);
+  assert.equal(project.revisionLabel, "Unlimited revisions included");
+  assert.equal(project.canRequestRevision, true);
+  assert.match(html, /Unlimited revisions included/);
+  assert.match(html, /Unlimited Revisions Active/);
+  assert.equal(html.includes("Buy Another Revision"), false);
 });
 
 test("portal project card shows balance lock and suppresses delivery actions when balance remains", () => {
@@ -65,6 +90,8 @@ test("portal project card shows final delivery and approval only when unlocked",
   assert.match(html, /portal-approve-button/);
   assert.match(html, /1 revision remaining/);
   assert.match(html, /portal-revision-form/);
+  assert.match(html, /Send one clear pass of notes/);
+  assert.match(html, /aria-describedby="portal-revision-help"/);
   assert.equal(html.includes("portal-link-form"), false);
 });
 
@@ -113,4 +140,56 @@ test("portal project card shows balance payment action when balance is due", () 
 
   assert.match(html, /Balance Due/);
   assert.match(html, /Pay Remaining Balance/);
+});
+
+test("portal project card offers paid upsells for paid projects", () => {
+  const project = buildPortalProjectView({
+    id: "project-upsell",
+    project_type: "paid",
+    project_code: "DCR-000777",
+    project_title: "Upsell Song",
+    status: "delivered",
+    included_revisions: 1,
+    used_revisions: 1,
+  });
+  const html = renderProjectCard(project);
+
+  assert.match(html, /Keep Building/);
+  assert.match(html, /Buy Another Revision/);
+  assert.match(html, /Start Another Service/);
+  assert.match(html, /support\.html\?issueType=project_status/);
+  assert.match(html, /projectCode=DCR-000777/);
+});
+
+test("portal project card treats requested revisions as a customer confirmation state", () => {
+  const project = buildPortalProjectView({
+    id: "project-6",
+    project_title: "Revision Song",
+    status: "revision_requested",
+    drive_upload_folder_url: "https://drive.google.com/upload",
+    included_revisions: 1,
+    used_revisions: 1,
+  });
+  const html = renderProjectCard(project);
+
+  assert.equal(project.canSubmitFiles, false);
+  assert.match(html, /Your revision request is in Josh&#039;s hands/);
+  assert.match(html, /Open Upload Folder/);
+  assert.equal(html.includes("portal-link-form"), false);
+  assert.equal(html.includes("portal-revision-form"), false);
+});
+
+test("portal form controls keep padded inputs inside project cards", () => {
+  const css = readFileSync(join(root, "style.css"), "utf8");
+
+  assert.match(css, /html\s*{[\s\S]*box-sizing: border-box;/);
+  assert.match(
+    css,
+    /\*,\s*\n\*::before,\s*\n\*::after\s*{\s*box-sizing: inherit;/
+  );
+  assert.match(
+    css,
+    /\.portal-link-form input,\s*\n\.portal-revision-form textarea/
+  );
+  assert.match(css, /max-width: 100%/);
 });
