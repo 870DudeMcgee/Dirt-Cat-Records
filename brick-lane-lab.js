@@ -80,6 +80,40 @@
     return lines.join("\n");
   }
 
+  async function copyRecallText(text, environment = globalScope) {
+    const navigatorRef = environment.navigator;
+    const documentRef = environment.document;
+
+    try {
+      if (navigatorRef && navigatorRef.clipboard) {
+        await navigatorRef.clipboard.writeText(text);
+        return true;
+      }
+    } catch (_error) {
+      // Fall through when the browser denies Clipboard API access.
+    }
+
+    if (!documentRef || typeof documentRef.execCommand !== "function") {
+      return false;
+    }
+
+    const textarea = documentRef.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    documentRef.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+      return documentRef.execCommand("copy");
+    } catch (_error) {
+      return false;
+    } finally {
+      textarea.remove();
+    }
+  }
+
   function renderPrintSheet(preset) {
     const parameterCards = preset.parameterOrder
       .map((parameterId) => renderParameterCard(preset.parameters[parameterId]))
@@ -342,8 +376,8 @@
     nodes.copy.addEventListener("click", async () => {
       const preset = data.getGeneratedPreset(state);
       const text = createCopyText(preset);
-      if (navigator.clipboard) await navigator.clipboard.writeText(text);
-      nodes.copy.textContent = "Copied";
+      const copied = await copyRecallText(text);
+      nodes.copy.textContent = copied ? "Copied" : "Copy unavailable";
       window.setTimeout(() => {
         nodes.copy.textContent = "Copy Recall";
       }, 1400);
@@ -365,6 +399,7 @@
     renderParameterCard,
     renderPresetSummary,
     createCopyText,
+    copyRecallText,
     renderPrintSheet,
     renderFaceplate,
     renderControls,

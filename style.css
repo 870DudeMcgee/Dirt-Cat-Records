@@ -4258,6 +4258,7 @@ footer {
 
   .brick-lane-topbar {
     display: grid;
+    padding-top: 3.65rem;
   }
 
   .brick-lane-actions {

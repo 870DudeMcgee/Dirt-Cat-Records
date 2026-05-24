@@ -5,6 +5,7 @@ const {
   renderParameterCard,
   renderPresetSummary,
   createCopyText,
+  copyRecallText,
   renderPrintSheet,
 } = require("../brick-lane-lab");
 const { ENIGMA_PARAMETERS, getGeneratedPreset } = require("../brick-lane-data");
@@ -79,6 +80,20 @@ test("createCopyText contains full parameter names and selected rung labels", ()
   assert.match(text, /Sidechain High Frequency Emphasis\/De-emphasis/);
   assert.match(text, /Enigma Left/);
   assert.match(text, /2, 3, 4, 5, 6, 8, 10, 12, 15/);
+});
+
+test("copyRecallText handles denied clipboard permission without throwing", async () => {
+  const result = await copyRecallText("Brick Lane recall", {
+    navigator: {
+      clipboard: {
+        writeText: async () => {
+          throw new Error("denied");
+        },
+      },
+    },
+  });
+
+  assert.equal(result, false);
 });
 
 test("renderPrintSheet includes all Enigma parameters with exact ladders", () => {
