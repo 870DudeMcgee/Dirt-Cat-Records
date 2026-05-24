@@ -26,6 +26,7 @@ test("primary pages expose visible portal and support navigation links", () => {
     "success.html",
     "support.html",
     "admin.html",
+    "studio-tools.html",
   ];
 
   pageNames.forEach((pageName) => {
@@ -33,6 +34,7 @@ test("primary pages expose visible portal and support navigation links", () => {
 
     assert.match(html, /href="support\.html"/);
     assert.match(html, /href="portal\.html"/);
+    assert.match(html, /href="studio-tools\.html"/);
   });
 });
 
@@ -44,6 +46,7 @@ test("primary pages load the shared responsive navigation script", () => {
     "success.html",
     "support.html",
     "admin.html",
+    "studio-tools.html",
   ];
 
   pageNames.forEach((pageName) => {
@@ -51,6 +54,25 @@ test("primary pages load the shared responsive navigation script", () => {
 
     assert.match(html, /<script src="nav\.js"><\/script>/);
   });
+});
+
+test("studio tools page hosts the Brick Lane lab and future tool slots", () => {
+  const html = readFileSync(join(root, "studio-tools.html"), "utf8");
+
+  assert.match(html, /<title>Studio Tools \| Dirt Cat Records<\/title>/);
+  assert.match(html, /<h1>Studio Tools<\/h1>/);
+  assert.match(html, /Brick Lane Sonic Lab/);
+  assert.match(html, /Drum Alignment/);
+  assert.match(html, /Logic Auto Bounce/);
+  assert.match(html, /brick-lane-data\.js/);
+  assert.match(html, /brick-lane-lab\.js/);
+});
+
+test("legacy Brick Lane lab URL points to Studio Tools", () => {
+  const html = readFileSync(join(root, "brick-lane-lab.html"), "utf8");
+
+  assert.match(html, /url=studio-tools\.html#brick-lane-sonic-lab/);
+  assert.match(html, /href="studio-tools\.html#brick-lane-sonic-lab"/);
 });
 
 test("responsive navigation styling supports a hamburger menu", () => {

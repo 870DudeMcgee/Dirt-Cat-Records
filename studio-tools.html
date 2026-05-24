@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Studio Tools | Dirt Cat Records</title>
+    <meta
+      name="description"
+      content="Dirt Cat Records studio utilities for analog recall, drum alignment, and Logic Pro workflow tools."
+    />
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
+    <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
+    <link rel="stylesheet" href="style.css?v=4" />
+  </head>
+  <body class="brick-lane-lab-page studio-tools-page">
+    <nav id="main-nav">
+      <ul>
+        <li><a href="index.html#hero-container">Home</a></li>
+        <li><a href="index.html#services">Offers</a></li>
+        <li><a href="index.html#listen">Listen</a></li>
+        <li><a href="studio-tools.html">Studio Tools</a></li>
+        <li><a href="checkout.html">Checkout</a></li>
+        <li><a href="portal.html">Portal</a></li>
+        <li><a href="support.html">Support</a></li>
+        <li><a href="index.html#fat-footer">Contact</a></li>
+      </ul>
+    </nav>
+
+    <main class="brick-lane-shell studio-tools-shell" aria-label="Studio Tools">
+      <header class="brick-lane-topbar studio-tools-topbar">
+        <div>
+          <p class="brick-lane-kicker">Dirt Cat Records</p>
+          <h1>Studio Tools</h1>
+          <p class="brick-lane-subhead">
+            Recall sheets, alignment helpers, and workflow utilities built for
+            real studio decisions.
+          </p>
+        </div>
+        <div class="brick-lane-actions">
+          <button type="button" id="brick-lane-copy">Copy Recall</button>
+          <button
+            type="button"
+            id="brick-lane-print"
+            class="brick-lane-primary"
+          >
+            Cheat Sheet
+          </button>
+        </div>
+      </header>
+
+      <section class="studio-tools-rack" aria-label="Available studio tools">
+        <article class="studio-tool-card is-active">
+          <p>Available Now</p>
+          <h2>Brick Lane Sonic Lab</h2>
+          <span>Interactive Enigma recall generator</span>
+        </article>
+        <article class="studio-tool-card is-queued">
+          <p>Coming Next</p>
+          <h2>Drum Alignment</h2>
+          <span>Phase and transient alignment workflow</span>
+        </article>
+        <article class="studio-tool-card is-queued">
+          <p>Coming Next</p>
+          <h2>Logic Auto Bounce</h2>
+          <span>Repeatable bounce prep for Logic Pro</span>
+        </article>
+      </section>
+
+      <section
+        id="brick-lane-sonic-lab"
+        class="studio-tools-active-tool"
+        aria-label="Brick Lane Sonic Lab"
+      >
+        <div class="studio-tools-tool-heading">
+          <p class="brick-lane-kicker">Active Tool</p>
+          <h2>Brick Lane Sonic Lab</h2>
+          <p>
+            Generate exact Brick Lane 500 recall from source context and sonic
+            compromises.
+          </p>
+        </div>
+
+        <section class="brick-lane-grid">
+          <aside class="brick-lane-panel brick-lane-browser">
+            <h2>Use Case</h2>
+            <div id="brick-lane-use-cases"></div>
+            <h2>Archetype</h2>
+            <div id="brick-lane-archetypes"></div>
+            <h2>Source</h2>
+            <div id="brick-lane-context"></div>
+          </aside>
+
+          <section
+            class="brick-lane-panel brick-lane-faceplate"
+            aria-label="Generated hardware recall"
+          >
+            <div id="brick-lane-faceplate"></div>
+            <div id="brick-lane-controls" class="brick-lane-controls"></div>
+          </section>
+
+          <aside class="brick-lane-panel brick-lane-recall">
+            <div id="brick-lane-preset-summary"></div>
+            <div id="brick-lane-parameters"></div>
+          </aside>
+        </section>
+      </section>
+
+      <section
+        id="brick-lane-print-sheet"
+        class="brick-lane-print-sheet"
+        hidden
+      ></section>
+    </main>
+
+    <script src="nav.js"></script>
+    <script src="brick-lane-data.js"></script>
+    <script src="brick-lane-lab.js"></script>
+  </body>
+</html>
