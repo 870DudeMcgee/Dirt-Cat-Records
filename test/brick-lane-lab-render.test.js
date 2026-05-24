@@ -5,6 +5,7 @@ const {
   renderParameterCard,
   renderPresetSummary,
   createCopyText,
+  renderPrintSheet,
 } = require("../brick-lane-lab");
 const { ENIGMA_PARAMETERS, getGeneratedPreset } = require("../brick-lane-data");
 
@@ -78,4 +79,20 @@ test("createCopyText contains full parameter names and selected rung labels", ()
   assert.match(text, /Sidechain High Frequency Emphasis\/De-emphasis/);
   assert.match(text, /Enigma Left/);
   assert.match(text, /2, 3, 4, 5, 6, 8, 10, 12, 15/);
+});
+
+test("renderPrintSheet includes all Enigma parameters with exact ladders", () => {
+  const preset = getGeneratedPreset();
+  const html = renderPrintSheet(preset);
+
+  for (const parameter of Object.values(preset.parameters)) {
+    const escapedLabel = parameter.label.replace(/&/g, "&amp;");
+    assert.match(
+      html,
+      new RegExp(escapedLabel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    );
+  }
+  assert.equal((html.match(/class="brick-lane-rung/g) || []).length, 14 * 12);
+  assert.match(html, /Brick Lane 500 - Generated Preset Cheat Sheet/);
+  assert.match(html, /Front-panel starting points/);
 });

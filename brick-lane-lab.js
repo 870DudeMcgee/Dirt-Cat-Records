@@ -80,6 +80,47 @@
     return lines.join("\n");
   }
 
+  function renderPrintSheet(preset) {
+    const parameterCards = preset.parameterOrder
+      .map((parameterId) => renderParameterCard(preset.parameters[parameterId]))
+      .join("");
+    const whyItems = Array.isArray(preset.why)
+      ? preset.why.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")
+      : "";
+
+    return `<article class="brick-lane-print-document">
+      <header class="brick-lane-print-header">
+        <div>
+          <h2>Brick Lane 500 - Generated Preset Cheat Sheet</h2>
+          <p>${escapeHtml(preset.mode)}: ${escapeHtml(preset.label)}</p>
+        </div>
+        <div class="brick-lane-print-meta">
+          <strong>Target GR:</strong> ${escapeHtml(preset.targetGainReduction)}<br>
+          <strong>Use:</strong> ${escapeHtml(preset.useCaseId)}
+        </div>
+      </header>
+      <section class="brick-lane-print-front-panel">
+        <h3>Front-panel starting points</h3>
+        <dl>
+          <div><dt>Input</dt><dd>${escapeHtml(preset.frontPanel.input)}</dd></div>
+          <div><dt>Threshold</dt><dd>${escapeHtml(preset.frontPanel.threshold)}</dd></div>
+          <div><dt>Attack</dt><dd>${escapeHtml(preset.frontPanel.attack)}</dd></div>
+          <div><dt>Release</dt><dd>${escapeHtml(preset.frontPanel.release)}</dd></div>
+          <div><dt>Output</dt><dd>${escapeHtml(preset.frontPanel.output)}</dd></div>
+          <div><dt>STRESS</dt><dd>${escapeHtml(preset.frontPanel.stress)}</dd></div>
+          <div><dt>SCF</dt><dd>${escapeHtml(preset.frontPanel.scf)}</dd></div>
+        </dl>
+      </section>
+      <section class="brick-lane-print-parameters">
+        ${parameterCards}
+      </section>
+      <section class="brick-lane-print-notes">
+        <h3>Why</h3>
+        <ul>${whyItems}</ul>
+      </section>
+    </article>`;
+  }
+
   function renderUseCases(state) {
     return data.USE_CASES.map((useCase) => {
       const activeClass = useCase.id === state.useCaseId ? " is-active" : "";
@@ -246,6 +287,8 @@
       summary: document.getElementById("brick-lane-preset-summary"),
       parameters: document.getElementById("brick-lane-parameters"),
       copy: document.getElementById("brick-lane-copy"),
+      print: document.getElementById("brick-lane-print"),
+      printSheet: document.getElementById("brick-lane-print-sheet"),
     };
 
     let state = cloneDefaultState();
@@ -306,6 +349,13 @@
       }, 1400);
     });
 
+    nodes.print.addEventListener("click", () => {
+      const preset = data.getGeneratedPreset(state);
+      nodes.printSheet.innerHTML = renderPrintSheet(preset);
+      nodes.printSheet.hidden = false;
+      window.requestAnimationFrame(() => window.print());
+    });
+
     render();
   }
 
@@ -315,6 +365,7 @@
     renderParameterCard,
     renderPresetSummary,
     createCopyText,
+    renderPrintSheet,
     renderFaceplate,
     renderControls,
     initDom,

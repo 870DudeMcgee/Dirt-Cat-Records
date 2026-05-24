@@ -4134,6 +4134,106 @@ footer {
   margin-top: 1rem;
 }
 
+.brick-lane-print-document {
+  padding: 1.5rem;
+  border: 1px solid #222;
+  background: #fff;
+  color: #111;
+  text-shadow: none;
+}
+
+.brick-lane-print-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  border-bottom: 2px solid #222;
+  padding-bottom: 0.75rem;
+}
+
+.brick-lane-print-header h2 {
+  margin: 0;
+  color: #111;
+  font-size: 1.25rem;
+  text-shadow: none;
+}
+
+.brick-lane-print-header p,
+.brick-lane-print-meta,
+.brick-lane-print-front-panel,
+.brick-lane-print-notes {
+  color: #111;
+  text-shadow: none;
+}
+
+.brick-lane-print-front-panel h3,
+.brick-lane-print-notes h3 {
+  margin: 0 0 0.5rem;
+  color: #356ec7;
+  font-size: 1rem;
+  text-shadow: none;
+}
+
+.brick-lane-print-front-panel {
+  margin-top: 0.85rem;
+}
+
+.brick-lane-print-front-panel dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.brick-lane-print-front-panel div {
+  border: 1px solid #d4d4d4;
+  padding: 0.4rem;
+}
+
+.brick-lane-print-front-panel dt {
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.brick-lane-print-front-panel dd {
+  margin: 0.12rem 0 0;
+  font-weight: 800;
+}
+
+.brick-lane-print-parameters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+}
+
+.brick-lane-print-parameters .brick-lane-parameter-card {
+  min-height: 226px;
+  border-color: #222;
+  background: #fff;
+  color: #111;
+}
+
+.brick-lane-print-parameters .brick-lane-parameter-card h3 {
+  color: #356ec7;
+}
+
+.brick-lane-print-parameters .brick-lane-parameter-card p {
+  color: #111;
+}
+
+.brick-lane-print-notes {
+  margin-top: 0.9rem;
+  border-top: 1px solid #d4d4d4;
+  padding-top: 0.7rem;
+}
+
+.brick-lane-print-notes ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
 @media (max-width: 1180px) {
   .brick-lane-grid {
     grid-template-columns: 1fr;
@@ -4198,5 +4298,18 @@ footer {
 
   .brick-lane-print-sheet:not([hidden]) {
     display: block !important;
+  }
+
+  .brick-lane-print-document {
+    border: 0;
+    padding: 0;
+  }
+
+  .brick-lane-print-parameters {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .brick-lane-print-front-panel dl {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
