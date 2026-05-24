@@ -3,8 +3,10 @@ const assert = require("node:assert/strict");
 const {
   renderExactLedLadder,
   renderParameterCard,
+  renderPresetSummary,
+  createCopyText,
 } = require("../brick-lane-lab");
-const { ENIGMA_PARAMETERS } = require("../brick-lane-data");
+const { ENIGMA_PARAMETERS, getGeneratedPreset } = require("../brick-lane-data");
 
 test("renderExactLedLadder renders every exact rung label in order", () => {
   const html = renderExactLedLadder({
@@ -56,4 +58,24 @@ test("renderParameterCard keeps full recall-critical parameter names", () => {
   assert.match(html, /Sidechain High Frequency Emphasis\/De-emphasis/);
   assert.match(html, /Enigma Left/);
   assert.doesNotMatch(html, />HF</);
+});
+
+test("renderPresetSummary includes mode, target gain reduction, and front-panel recall", () => {
+  const preset = getGeneratedPreset();
+  const html = renderPresetSummary(preset);
+
+  assert.match(html, /Tame: Safe Vocal Catcher/);
+  assert.match(html, /3-6 dB/);
+  assert.match(html, /Attack/);
+  assert.match(html, /Release/);
+  assert.match(html, /STRESS/);
+});
+
+test("createCopyText contains full parameter names and selected rung labels", () => {
+  const preset = getGeneratedPreset();
+  const text = createCopyText(preset);
+
+  assert.match(text, /Sidechain High Frequency Emphasis\/De-emphasis/);
+  assert.match(text, /Enigma Left/);
+  assert.match(text, /2, 3, 4, 5, 6, 8, 10, 12, 15/);
 });
