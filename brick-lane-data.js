@@ -1,0 +1,654 @@
+(function initBrickLaneData(globalScope) {
+  const COMMON_LED_SCALE = [
+    "0.5",
+    "1.0",
+    "1.5",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "8",
+    "10",
+    "12",
+    "15",
+  ];
+
+  const BRICK_LANE_COLORS = {
+    red: "#ff3a3a",
+    yellow: "#ffd549",
+    magenta: "#f52ee6",
+    cyan: "#5ee7ff",
+    white: "#ffffff",
+    blue: "#5073ff",
+    green: "#31dc78",
+  };
+
+  const CONTROL_DEFINITIONS = [
+    {
+      id: "punchSmooth",
+      label: "Punch",
+      oppositeLabel: "Smoothness",
+      color: "yellow",
+      defaultValue: 58,
+    },
+    {
+      id: "cleanColor",
+      label: "Clean",
+      oppositeLabel: "Colored",
+      color: "red",
+      defaultValue: 32,
+    },
+    {
+      id: "controlOpen",
+      label: "Control",
+      oppositeLabel: "Openness",
+      color: "cyan",
+      defaultValue: 76,
+    },
+    {
+      id: "safeExciting",
+      label: "Safe Tracking",
+      oppositeLabel: "Exciting Tracking",
+      color: "white",
+      defaultValue: 64,
+    },
+    {
+      id: "glueLoud",
+      label: "Glue",
+      oppositeLabel: "Loudness",
+      color: "blue",
+      defaultValue: 44,
+    },
+    {
+      id: "stableWide",
+      label: "Stable Stereo",
+      oppositeLabel: "Wide Movement",
+      color: "magenta",
+      defaultValue: 38,
+    },
+  ];
+
+  function parameter({
+    id,
+    label,
+    side,
+    color,
+    description,
+    scale = COMMON_LED_SCALE,
+  }) {
+    return { id, label, side, color, scale, description };
+  }
+
+  const ENIGMA_PARAMETERS = {
+    stressTypeDiodeClipping: parameter({
+      id: "stressTypeDiodeClipping",
+      label: "Stress Type / Diode Clipping",
+      side: "Enigma Left",
+      color: "red",
+      description: "Sets the stress circuit clipping behavior.",
+    }),
+    diodeHardness: parameter({
+      id: "diodeHardness",
+      label: "Diode Hardness",
+      side: "Enigma Left",
+      color: "yellow",
+      description: "Sets how hard the diode behavior feels.",
+    }),
+    sidechainHighFrequencyEmphasis: parameter({
+      id: "sidechainHighFrequencyEmphasis",
+      label: "Sidechain High Frequency Emphasis/De-emphasis",
+      side: "Enigma Left",
+      color: "magenta",
+      description: "High frequencies will be compressed less.",
+    }),
+    detector: parameter({
+      id: "detector",
+      label: "Detector",
+      side: "Enigma Left",
+      color: "cyan",
+      description: "Blends Peak, RMS, and Slow RMS detector behavior.",
+    }),
+    stereoMonoSidechainLinking: parameter({
+      id: "stereoMonoSidechainLinking",
+      label: "Stereo/Mono Sidechain Linking",
+      side: "Enigma Left",
+      color: "white",
+      description: "Sets the stereo sidechain linking behavior.",
+    }),
+    stressCrossoverPhase: parameter({
+      id: "stressCrossoverPhase",
+      label: "Stress Crossover & Phase",
+      side: "Enigma Left",
+      color: "blue",
+      description: "Sets stress circuit crossover and phase behavior.",
+    }),
+    crestFactorShaping: parameter({
+      id: "crestFactorShaping",
+      label: "Crest Factor Shaping",
+      side: "Enigma Left",
+      color: "green",
+      description: "Shapes density by controlling crest factor behavior.",
+    }),
+    ratio: parameter({
+      id: "ratio",
+      label: "Ratio",
+      side: "Enigma Right",
+      color: "blue",
+      description: "Sets compression ratio behavior.",
+    }),
+    knee: parameter({
+      id: "knee",
+      label: "Knee",
+      side: "Enigma Right",
+      color: "cyan",
+      description: "Sets how gradually compression begins.",
+    }),
+    attackWeighting: parameter({
+      id: "attackWeighting",
+      label: "Attack Weighting",
+      side: "Enigma Right",
+      color: "red",
+      description: "Sets the detector attack emphasis.",
+    }),
+    releaseWeighting: parameter({
+      id: "releaseWeighting",
+      label: "Release Weighting",
+      side: "Enigma Right",
+      color: "white",
+      description: "Sets the detector release emphasis.",
+    }),
+    hold: parameter({
+      id: "hold",
+      label: "Hold",
+      side: "Enigma Right",
+      color: "green",
+      description: "Sets hold behavior before release movement.",
+    }),
+    lookahead: parameter({
+      id: "lookahead",
+      label: "Lookahead",
+      side: "Enigma Right",
+      color: "yellow",
+      description: "Adds safety by allowing the compressor to react early.",
+    }),
+    ledBrightness: parameter({
+      id: "ledBrightness",
+      label: "LED Brightness",
+      side: "Enigma Right",
+      color: "magenta",
+      description: "Sets front-panel LED brightness.",
+    }),
+  };
+
+  const PARAMETER_ORDER = [
+    "stressTypeDiodeClipping",
+    "diodeHardness",
+    "sidechainHighFrequencyEmphasis",
+    "detector",
+    "stereoMonoSidechainLinking",
+    "stressCrossoverPhase",
+    "crestFactorShaping",
+    "ratio",
+    "knee",
+    "attackWeighting",
+    "releaseWeighting",
+    "hold",
+    "lookahead",
+    "ledBrightness",
+  ];
+
+  const USE_CASES = [
+    {
+      id: "tracking-vocal",
+      label: "Tracking Vocal",
+      description:
+        "Generate capture-safe or characterful vocal tracking starts.",
+    },
+    {
+      id: "mix-bus",
+      label: "Mix Bus",
+      description:
+        "Generate stereo bus glue, punch, control, or finishing starts.",
+    },
+  ];
+
+  const ARCHETYPES = [
+    {
+      id: "safe-vocal-catcher",
+      useCaseId: "tracking-vocal",
+      label: "Safe Vocal Catcher",
+      mode: "Tame",
+      targetGainReduction: "3-6 dB",
+      summary:
+        "Clean peak control with enough RMS leveling to keep the phrase stable while tracking.",
+      why: [
+        "Peak catches sudden vocal blasts.",
+        "RMS follows the body of the voice.",
+        "Slow RMS keeps phrase-level movement stable.",
+        "HF sidechain de-emphasis keeps sibilance from pulling the whole vocal down.",
+      ],
+      selected: {
+        stressTypeDiodeClipping: ["0.5", "1.0"],
+        diodeHardness: ["1.0", "1.5", "2"],
+        sidechainHighFrequencyEmphasis: [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "8",
+          "10",
+          "12",
+          "15",
+        ],
+        detector: ["0.5", "1.0", "1.5"],
+        stereoMonoSidechainLinking: ["0.5", "1.0"],
+        stressCrossoverPhase: ["1.0", "1.5"],
+        crestFactorShaping: ["1.0"],
+        ratio: ["1.5", "2", "3"],
+        knee: ["1.0", "1.5"],
+        attackWeighting: ["1.5", "2"],
+        releaseWeighting: ["1.5", "2", "3"],
+        hold: ["1.0"],
+        lookahead: ["1.0", "1.5"],
+        ledBrightness: ["3", "4"],
+      },
+      frontPanel: {
+        input: "0 dB",
+        threshold: "Set for 3-6 dB GR on peaks",
+        attack: "10-11 o'clock",
+        release: "12 o'clock",
+        output: "Unity",
+        stress: "1-2 LEDs",
+        scf: "100 Hz",
+      },
+    },
+    {
+      id: "smooth-expensive-vocal",
+      useCaseId: "tracking-vocal",
+      label: "Smooth Expensive Vocal",
+      mode: "Velvet",
+      targetGainReduction: "3-6 dB",
+      summary:
+        "Softer knee, slower movement, and gentle color for a polished vocal print.",
+      why: [
+        "Velvet favors a smoother feel.",
+        "Softer knee keeps the compression less obvious.",
+        "Moderate stress adds tone without turning the track gritty.",
+      ],
+      selected: {
+        stressTypeDiodeClipping: ["1.0", "1.5"],
+        diodeHardness: ["0.5", "1.0"],
+        sidechainHighFrequencyEmphasis: ["1.5", "2", "3", "4", "5", "6"],
+        detector: ["1.0", "1.5", "2"],
+        stereoMonoSidechainLinking: ["0.5", "1.0"],
+        stressCrossoverPhase: ["1.0", "1.5", "2"],
+        crestFactorShaping: ["1.0", "1.5"],
+        ratio: ["1.0", "1.5", "2"],
+        knee: ["1.5", "2", "3"],
+        attackWeighting: ["2", "3"],
+        releaseWeighting: ["2", "3", "4"],
+        hold: ["1.0"],
+        lookahead: ["0.5", "1.0"],
+        ledBrightness: ["3", "4"],
+      },
+      frontPanel: {
+        input: "0 dB",
+        threshold: "Set for 3-6 dB GR",
+        attack: "11-12 o'clock",
+        release: "12-1 o'clock",
+        output: "Unity",
+        stress: "2-3 LEDs",
+        scf: "60 Hz or 100 Hz",
+      },
+    },
+    {
+      id: "modern-controlled-vocal",
+      useCaseId: "tracking-vocal",
+      label: "Modern Controlled Vocal",
+      mode: "Tame",
+      targetGainReduction: "4-7 dB",
+      summary:
+        "Peak-aware vocal control for uneven modern performances without losing intelligibility.",
+      why: [
+        "Higher control and lookahead keep loud syllables contained.",
+        "HF de-emphasis prevents sibilance from dominating gain reduction.",
+        "Moderate ratio keeps the print controlled but still workable.",
+      ],
+      selected: {
+        stressTypeDiodeClipping: ["0.5", "1.0"],
+        diodeHardness: ["1.0", "1.5"],
+        sidechainHighFrequencyEmphasis: [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "8",
+          "10",
+          "12",
+        ],
+        detector: ["0.5", "1.0", "1.5"],
+        stereoMonoSidechainLinking: ["0.5", "1.0"],
+        stressCrossoverPhase: ["1.0"],
+        crestFactorShaping: ["1.0", "1.5"],
+        ratio: ["2", "3", "4"],
+        knee: ["1.0", "1.5"],
+        attackWeighting: ["1.0", "1.5", "2"],
+        releaseWeighting: ["1.5", "2", "3"],
+        hold: ["1.0", "1.5"],
+        lookahead: ["1.5", "2", "3"],
+        ledBrightness: ["3", "4"],
+      },
+      frontPanel: {
+        input: "0 dB",
+        threshold: "Set for 4-7 dB GR on loud phrases",
+        attack: "10 o'clock",
+        release: "12 o'clock",
+        output: "Unity",
+        stress: "1 LED",
+        scf: "100 Hz",
+      },
+    },
+    {
+      id: "character-vocal-print",
+      useCaseId: "tracking-vocal",
+      label: "Character Vocal Print",
+      mode: "Float",
+      targetGainReduction: "3-6 dB",
+      summary:
+        "A more committed vocal print with audible tone, weight, and movement.",
+      why: [
+        "Float keeps the vocal energetic.",
+        "Higher stress and harder diode behavior print more color.",
+        "Moderate lookahead keeps the tone useful while tracking.",
+      ],
+      selected: {
+        stressTypeDiodeClipping: ["1.5", "2", "3"],
+        diodeHardness: ["2", "3", "4"],
+        sidechainHighFrequencyEmphasis: ["1.5", "2", "3", "4"],
+        detector: ["0.5", "1.0"],
+        stereoMonoSidechainLinking: ["0.5"],
+        stressCrossoverPhase: ["1.5", "2", "3"],
+        crestFactorShaping: ["1.5", "2"],
+        ratio: ["1.5", "2", "3"],
+        knee: ["1.0", "1.5"],
+        attackWeighting: ["1.0", "1.5"],
+        releaseWeighting: ["1.5", "2"],
+        hold: ["1.0"],
+        lookahead: ["0.5", "1.0"],
+        ledBrightness: ["3", "4"],
+      },
+      frontPanel: {
+        input: "0 dB",
+        threshold: "Set for 3-6 dB GR",
+        attack: "10-11 o'clock",
+        release: "11-12 o'clock",
+        output: "Unity",
+        stress: "3-5 LEDs",
+        scf: "60 Hz",
+      },
+    },
+    {
+      id: "invisible-mix-glue",
+      useCaseId: "mix-bus",
+      label: "Invisible Mix Glue",
+      mode: "Glue",
+      targetGainReduction: "0.5-2 dB",
+      summary: "Stable stereo bus control with soft glue and low coloration.",
+      why: [
+        "Glue mode keeps the stereo bus cohesive.",
+        "Low stress avoids obvious tone shift.",
+        "Conservative ratio and knee preserve mix movement.",
+      ],
+      selected: {
+        stressTypeDiodeClipping: ["0.5"],
+        diodeHardness: ["0.5", "1.0"],
+        sidechainHighFrequencyEmphasis: ["0.5"],
+        detector: ["1.0", "1.5"],
+        stereoMonoSidechainLinking: ["0.5", "1.0", "1.5"],
+        stressCrossoverPhase: ["1.0"],
+        crestFactorShaping: ["0.5", "1.0"],
+        ratio: ["0.5", "1.0", "1.5"],
+        knee: ["1.0", "1.5", "2"],
+        attackWeighting: ["2", "3"],
+        releaseWeighting: ["2", "3", "4"],
+        hold: ["1.0"],
+        lookahead: ["0.5"],
+        ledBrightness: ["3", "4"],
+      },
+      frontPanel: {
+        input: "0 dB",
+        threshold: "Set for 0.5-2 dB GR",
+        attack: "11-1 o'clock",
+        release: "12-2 o'clock",
+        output: "Unity",
+        stress: "Off to 1 LED",
+        scf: "100 Hz or 200 Hz",
+      },
+    },
+    {
+      id: "thick-analog-bus",
+      useCaseId: "mix-bus",
+      label: "Thick Analog Bus",
+      mode: "Velvet",
+      targetGainReduction: "1-2 dB",
+      summary:
+        "A warmer bus start with more density and a little transformer/tube-like attitude.",
+      why: [
+        "Velvet leans into smoother color.",
+        "Moderate stress adds thickness.",
+        "Slower movement preserves groove.",
+      ],
+      selected: {
+        stressTypeDiodeClipping: ["1.0", "1.5", "2"],
+        diodeHardness: ["1.0", "1.5"],
+        sidechainHighFrequencyEmphasis: ["0.5", "1.0"],
+        detector: ["1.0", "1.5", "2"],
+        stereoMonoSidechainLinking: ["0.5", "1.0"],
+        stressCrossoverPhase: ["1.5", "2"],
+        crestFactorShaping: ["1.0", "1.5", "2"],
+        ratio: ["1.0", "1.5", "2"],
+        knee: ["1.5", "2", "3"],
+        attackWeighting: ["2", "3", "4"],
+        releaseWeighting: ["2", "3", "4"],
+        hold: ["1.0"],
+        lookahead: ["0.5"],
+        ledBrightness: ["3", "4"],
+      },
+      frontPanel: {
+        input: "0 dB",
+        threshold: "Set for 1-2 dB GR",
+        attack: "12 o'clock",
+        release: "12-1 o'clock",
+        output: "Unity",
+        stress: "2-4 LEDs",
+        scf: "100 Hz",
+      },
+    },
+    {
+      id: "punch-preserving-bus",
+      useCaseId: "mix-bus",
+      label: "Punch-Preserving Bus",
+      mode: "Glue",
+      targetGainReduction: "1-2 dB",
+      summary:
+        "Bus glue that lets drums and transients stay forward instead of folding down.",
+      why: [
+        "Slower attack weighting leaves transient shape intact.",
+        "Sidechain filtering keeps low-end hits from over-driving the detector.",
+        "Moderate crest shaping adds control without flattening punch.",
+      ],
+      selected: {
+        stressTypeDiodeClipping: ["0.5", "1.0"],
+        diodeHardness: ["1.0"],
+        sidechainHighFrequencyEmphasis: ["0.5", "1.0"],
+        detector: ["1.0", "1.5"],
+        stereoMonoSidechainLinking: ["0.5", "1.0", "1.5"],
+        stressCrossoverPhase: ["1.0", "1.5"],
+        crestFactorShaping: ["1.0", "1.5"],
+        ratio: ["1.0", "1.5", "2"],
+        knee: ["1.0", "1.5"],
+        attackWeighting: ["3", "4", "5"],
+        releaseWeighting: ["2", "3"],
+        hold: ["1.0", "1.5"],
+        lookahead: ["0.5"],
+        ledBrightness: ["3", "4"],
+      },
+      frontPanel: {
+        input: "0 dB",
+        threshold: "Set for 1-2 dB GR",
+        attack: "1-2 o'clock",
+        release: "11-1 o'clock",
+        output: "Unity",
+        stress: "1-2 LEDs",
+        scf: "100 Hz or 200 Hz",
+      },
+    },
+    {
+      id: "modern-finished-bus",
+      useCaseId: "mix-bus",
+      label: "Modern Finished Bus",
+      mode: "Polish Blue",
+      targetGainReduction: "0.5-1.5 dB",
+      summary:
+        "A light finishing start for loudness-ready mixes without heavy bus movement.",
+      why: [
+        "Polish Blue keeps the compressor in a peak-finishing role.",
+        "Lookahead adds clean control.",
+        "Low stress keeps the mix from changing tone too much.",
+      ],
+      selected: {
+        stressTypeDiodeClipping: ["0.5"],
+        diodeHardness: ["0.5", "1.0"],
+        sidechainHighFrequencyEmphasis: ["0.5"],
+        detector: ["0.5", "1.0"],
+        stereoMonoSidechainLinking: ["0.5", "1.0", "1.5"],
+        stressCrossoverPhase: ["0.5", "1.0"],
+        crestFactorShaping: ["0.5", "1.0"],
+        ratio: ["1.5", "2", "3"],
+        knee: ["1.0", "1.5", "2"],
+        attackWeighting: ["1.0", "1.5"],
+        releaseWeighting: ["1.5", "2", "3"],
+        hold: ["1.0"],
+        lookahead: ["2", "3", "4"],
+        ledBrightness: ["3", "4"],
+      },
+      frontPanel: {
+        input: "0 dB",
+        threshold: "Set for 0.5-1.5 dB GR",
+        attack: "10-11 o'clock",
+        release: "12 o'clock",
+        output: "Unity",
+        stress: "Off to 1 LED",
+        scf: "100 Hz",
+      },
+    },
+    {
+      id: "aggressive-energy-bus",
+      useCaseId: "mix-bus",
+      label: "Aggressive Energy Bus",
+      mode: "Smash",
+      targetGainReduction: "2-4 dB",
+      summary:
+        "A character bus start for obvious energy, movement, and attitude.",
+      why: [
+        "Smash mode makes the compression part of the sound.",
+        "Higher stress and firmer diode behavior add attitude.",
+        "Peak-aware settings keep impact controlled.",
+      ],
+      selected: {
+        stressTypeDiodeClipping: ["1.5", "2", "3", "4"],
+        diodeHardness: ["2", "3", "4", "5"],
+        sidechainHighFrequencyEmphasis: ["0.5", "1.0"],
+        detector: ["0.5", "1.0"],
+        stereoMonoSidechainLinking: ["0.5", "1.0"],
+        stressCrossoverPhase: ["2", "3", "4"],
+        crestFactorShaping: ["2", "3", "4"],
+        ratio: ["2", "3", "4", "5"],
+        knee: ["0.5", "1.0"],
+        attackWeighting: ["1.0", "1.5", "2"],
+        releaseWeighting: ["1.0", "1.5", "2"],
+        hold: ["1.0", "1.5"],
+        lookahead: ["0.5", "1.0"],
+        ledBrightness: ["3", "4"],
+      },
+      frontPanel: {
+        input: "0 dB",
+        threshold: "Set for 2-4 dB GR",
+        attack: "10-11 o'clock",
+        release: "10-12 o'clock",
+        output: "Unity",
+        stress: "4-7 LEDs",
+        scf: "100 Hz",
+      },
+    },
+  ];
+
+  const DEFAULT_STATE = {
+    useCaseId: "tracking-vocal",
+    archetypeId: "safe-vocal-catcher",
+    controls: Object.fromEntries(
+      CONTROL_DEFINITIONS.map((control) => [control.id, control.defaultValue])
+    ),
+    context: {
+      vocalStyle: "rap-singing",
+      brightness: "sibilant",
+      dynamics: "uneven",
+      targetGainReduction: "3-6 dB",
+    },
+  };
+
+  function cloneParameterWithSelection(parameterDefinition, selected) {
+    return {
+      ...parameterDefinition,
+      selected: Array.isArray(selected) ? [...selected] : [],
+    };
+  }
+
+  function getArchetypesForUseCase(useCaseId) {
+    return ARCHETYPES.filter((archetype) => archetype.useCaseId === useCaseId);
+  }
+
+  function getGeneratedPreset(state = DEFAULT_STATE) {
+    const requestedUseCaseId = state.useCaseId || DEFAULT_STATE.useCaseId;
+    const archetype =
+      ARCHETYPES.find((candidate) => candidate.id === state.archetypeId) ||
+      ARCHETYPES.find(
+        (candidate) => candidate.useCaseId === requestedUseCaseId
+      ) ||
+      ARCHETYPES[0];
+
+    const parameters = Object.fromEntries(
+      Object.entries(ENIGMA_PARAMETERS).map(([id, definition]) => [
+        id,
+        cloneParameterWithSelection(definition, archetype.selected[id]),
+      ])
+    );
+
+    return {
+      ...archetype,
+      controls: { ...DEFAULT_STATE.controls, ...(state.controls || {}) },
+      context: { ...DEFAULT_STATE.context, ...(state.context || {}) },
+      parameters,
+      parameterOrder: [...PARAMETER_ORDER],
+    };
+  }
+
+  const api = {
+    COMMON_LED_SCALE,
+    BRICK_LANE_COLORS,
+    CONTROL_DEFINITIONS,
+    ENIGMA_PARAMETERS,
+    PARAMETER_ORDER,
+    USE_CASES,
+    ARCHETYPES,
+    DEFAULT_STATE,
+    getArchetypesForUseCase,
+    getGeneratedPreset,
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  globalScope.BrickLaneData = api;
+})(typeof globalThis !== "undefined" ? globalThis : window);
