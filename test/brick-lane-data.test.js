@@ -93,7 +93,9 @@ test("generated preset returns exact selected rung labels", () => {
   assert.deepEqual(preset.parameters.sidechainHighFrequencyEmphasis.selected, [
     "15",
   ]);
-  assert.deepEqual(preset.parameters.detector.selected, ["0.5", "1.5", "3"]);
+  assert.deepEqual(preset.parameters.detector.selection, {
+    settingId: "peak-rms-slow",
+  });
   assert.equal(preset.parameters.ratio.side, "Enigma Right");
 });
 
@@ -111,13 +113,10 @@ test("existing business config imports still work beside the new root module", (
 test("front panel reference captures physical Brick Lane 500 anatomy", () => {
   const { FRONT_PANEL_REFERENCE } = require("../brick-lane-data");
 
-  assert.deepEqual(FRONT_PANEL_REFERENCE.mainKnobs.map((knob) => knob.id), [
-    "input",
-    "threshold",
-    "attack",
-    "release",
-    "output",
-  ]);
+  assert.deepEqual(
+    FRONT_PANEL_REFERENCE.mainKnobs.map((knob) => knob.id),
+    ["input", "threshold", "attack", "release", "output"]
+  );
   assert.equal(FRONT_PANEL_REFERENCE.stressKnob.id, "stress");
   assert.deepEqual(FRONT_PANEL_REFERENCE.modeLabels, [
     "VELVET",
@@ -221,4 +220,57 @@ test("Enigma demystifier hardware labels stay aligned with canonical parameters"
       ENIGMA_PARAMETERS[id].label
     );
   }
+});
+
+test("Enigma parameters declare manual-backed behavior types and evidence", () => {
+  const { ENIGMA_PARAMETERS, PARAMETER_ORDER } = require("../brick-lane-data");
+
+  for (const id of PARAMETER_ORDER) {
+    const parameter = ENIGMA_PARAMETERS[id];
+    assert.ok(parameter.behavior, `${id} missing behavior`);
+    assert.ok(
+      ["pattern-settings", "stepped-scale"].includes(parameter.behavior),
+      `${id} has unsupported behavior ${parameter.behavior}`
+    );
+    assert.ok(
+      Array.isArray(parameter.evidence),
+      `${id} missing evidence array`
+    );
+    assert.ok(parameter.evidence.length > 0, `${id} missing evidence entries`);
+  }
+});
+
+test("Detector is modeled as settings with LED patterns, not twelve named rungs", () => {
+  const { ENIGMA_PARAMETERS } = require("../brick-lane-data");
+  const detector = ENIGMA_PARAMETERS.detector;
+
+  assert.equal(detector.behavior, "pattern-settings");
+  assert.ok(detector.settings.length < detector.displayScale.length);
+  assert.deepEqual(
+    detector.settings.find((setting) => setting.id === "peak-rms-slow")
+      .ledPattern,
+    ["0.5", "1.5", "3"]
+  );
+});
+
+test("LED Brightness remains a simple stepped scale", () => {
+  const { ENIGMA_PARAMETERS } = require("../brick-lane-data");
+  const brightness = ENIGMA_PARAMETERS.ledBrightness;
+
+  assert.equal(brightness.behavior, "stepped-scale");
+  assert.equal(brightness.settings, undefined);
+  assert.deepEqual(brightness.displayScale || brightness.scale, [
+    "0.5",
+    "1.0",
+    "1.5",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "8",
+    "10",
+    "12",
+    "15",
+  ]);
 });

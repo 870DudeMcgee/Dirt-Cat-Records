@@ -27,10 +27,23 @@
   const FRONT_PANEL_REFERENCE = {
     mainKnobs: [
       { id: "input", label: "INPUT", unit: "dB", low: "-20", high: "20" },
-      { id: "threshold", label: "THRESHOLD", unit: "", low: "MIN", high: "MAX" },
+      {
+        id: "threshold",
+        label: "THRESHOLD",
+        unit: "",
+        low: "MIN",
+        high: "MAX",
+      },
       { id: "attack", label: "ATTACK", unit: "", low: "SLOW", high: "FAST" },
       { id: "release", label: "RELEASE", unit: "", low: "SLOW", high: "FAST" },
-      { id: "output", label: "OUTPUT", unit: "dB", center: "0", low: "-20", high: "20" },
+      {
+        id: "output",
+        label: "OUTPUT",
+        unit: "dB",
+        center: "0",
+        low: "-20",
+        high: "20",
+      },
     ],
     stressKnob: { id: "stress", label: "STRESS", low: "OFF", high: "MAX" },
     meters: {
@@ -38,13 +51,38 @@
         id: "sig",
         label: "SIG",
         color: "magenta",
-        scale: ["24", "21", "18", "15", "12", "6", "0", "-6", "-12", "-18", "-24"],
+        scale: [
+          "24",
+          "21",
+          "18",
+          "15",
+          "12",
+          "6",
+          "0",
+          "-6",
+          "-12",
+          "-18",
+          "-24",
+        ],
       },
       gr: {
         id: "gr",
         label: "GR",
         color: "cyan",
-        scale: ["0.5", "1.0", "1.5", "2", "3", "4", "5", "6", "8", "10", "12", "15"],
+        scale: [
+          "0.5",
+          "1.0",
+          "1.5",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "8",
+          "10",
+          "12",
+          "15",
+        ],
       },
     },
     modeLabels: ["VELVET", "FLOAT", "SMASH", "TAME", "GLUE", "POLISH"],
@@ -171,7 +209,8 @@
       hold: {
         hardwareLabel: "Hold Timing",
         userLabel: "Gain-reduction hold",
-        plainMeaning: "Keeps compression engaged briefly before release begins.",
+        plainMeaning:
+          "Keeps compression engaged briefly before release begins.",
       },
       lookahead: {
         hardwareLabel: "Lookahead Time",
@@ -232,16 +271,47 @@
     },
   ];
 
+  function evidence({ source = "manual", type, reference, note }) {
+    return { source, type, reference, note };
+  }
+
   function parameter({
     id,
     label,
     side,
     color,
     description,
-    scale = COMMON_LED_SCALE,
+    behavior = "stepped-scale",
+    displayScale = COMMON_LED_SCALE,
+    scale,
+    settings,
+    evidence: evidenceEntries = [],
   }) {
-    return { id, label, side, color, scale, description };
+    const resolvedScale = displayScale || scale || COMMON_LED_SCALE;
+    const result = {
+      id,
+      label,
+      side,
+      color,
+      scale: resolvedScale,
+      displayScale: resolvedScale,
+      behavior,
+      description,
+      evidence: evidenceEntries,
+    };
+    if (settings) result.settings = settings;
+    return result;
   }
+
+  const MANUAL_REFERENCES = {
+    enigmaOverview: "Brick Lane 500 user guide, Enigma overview",
+    enigmaLeft: "Brick Lane 500 user guide, Enigma Left parameter section",
+    enigmaRight: "Brick Lane 500 user guide, Enigma Right parameter section",
+    detector: "Brick Lane 500 user guide, Detector Mode Selection section",
+    attackRelease:
+      "Brick Lane 500 user guide, Attack and Release weighting tables",
+    ledBrightness: "Brick Lane 500 user guide, LED Brightness Level section",
+  };
 
   const ENIGMA_PARAMETERS = {
     stressTypeDiodeClipping: parameter({
@@ -249,98 +319,496 @@
       label: "Stress Character / Diode Clipping",
       side: "Enigma Left",
       color: "red",
-      description: "Changes character of the saturation (Velvet, Float, Smash, Tame, Glue, Polish clippers, or Series clippers).",
+      behavior: "pattern-settings",
+      description:
+        "Changes character of the saturation (Velvet, Float, Smash, Tame, Glue, Polish clippers, or Series clippers).",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.enigmaLeft,
+          note: "Manual describes stress/diode clipping behavior by mode or clipping family.",
+        }),
+      ],
+      settings: [
+        {
+          id: "velvet",
+          label: "Velvet (Vari-Mu)",
+          meaning: "Soft harmonic thickening.",
+          ledPattern: ["0.5"],
+        },
+        {
+          id: "float",
+          label: "Float (Optical)",
+          meaning: "Airy, low-grain color.",
+          ledPattern: ["1.0"],
+        },
+        {
+          id: "smash",
+          label: "Smash (FET)",
+          meaning: "Edgy, transient-forward drive.",
+          ledPattern: ["1.5"],
+        },
+        {
+          id: "tame",
+          label: "Tame (Clean/Transparent)",
+          meaning: "Least colored saturation path.",
+          ledPattern: ["2"],
+        },
+        {
+          id: "glue",
+          label: "Glue (VCA)",
+          meaning: "Cohesive, mix-bus density.",
+          ledPattern: ["3"],
+        },
+        {
+          id: "polish-white",
+          label: "Polish White (Limiter/Clipper)",
+          meaning: "Bright limiting / clipping style finish.",
+          ledPattern: ["4"],
+        },
+        {
+          id: "polish-blue",
+          label: "Polish Blue (Limiter/Clipper)",
+          meaning: "Alternative bright limiting / clipping style finish.",
+          ledPattern: ["5"],
+        },
+        {
+          id: "series-clip-1",
+          label: "Series Clip 1",
+          meaning: "First series clipper configuration.",
+          ledPattern: ["6"],
+        },
+        {
+          id: "series-clip-2",
+          label: "Series Clip 2",
+          meaning: "Second series clipper configuration.",
+          ledPattern: ["8"],
+        },
+        {
+          id: "series-clip-3",
+          label: "Series Clip 3",
+          meaning: "Third series clipper configuration.",
+          ledPattern: ["10"],
+        },
+        {
+          id: "series-clip-4",
+          label: "Series Clip 4",
+          meaning: "Fourth series clipper configuration.",
+          ledPattern: ["12"],
+        },
+        {
+          id: "series-clip-5",
+          label: "Series Clip 5",
+          meaning: "Fifth series clipper configuration.",
+          ledPattern: ["15"],
+        },
+      ],
     }),
     diodeHardness: parameter({
       id: "diodeHardness",
       label: "Diode Hardness",
       side: "Enigma Left",
       color: "yellow",
-      description: "Changes the hardness of the saturation diode clipping curve.",
+      behavior: "stepped-scale",
+      description:
+        "Changes the hardness of the saturation diode clipping curve.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.enigmaLeft,
+          note: "Manual describes diode hardness as a hardness amount.",
+        }),
+      ],
     }),
     stressCrossoverPhase: parameter({
       id: "stressCrossoverPhase",
       label: "Stress Crossover & Phase",
       side: "Enigma Left",
       color: "blue",
-      description: "Influences frequency-dependent phase changes when saturation is engaged; critical for parallel compression.",
+      behavior: "pattern-settings",
+      description:
+        "Influences frequency-dependent phase changes when saturation is engaged; critical for parallel compression.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.enigmaLeft,
+          note: "Manual describes crossover and phase behavior.",
+        }),
+      ],
+      settings: [
+        {
+          id: "linear-phase",
+          label: "Linear Phase",
+          meaning: "Linear phase parallel alignment.",
+          ledPattern: ["0.5"],
+        },
+        {
+          id: "linear-freq",
+          label: "Linear Freq",
+          meaning: "Linear frequency parallel alignment.",
+          ledPattern: ["1.0"],
+        },
+        {
+          id: "low-freq-par",
+          label: "Low-Freq Par",
+          meaning: "Low frequency parallel emphasis.",
+          ledPattern: ["1.5"],
+        },
+        {
+          id: "inverted-phase",
+          label: "Inverted Phase",
+          meaning: "Inverted phase parallel alignment.",
+          ledPattern: ["2"],
+        },
+        {
+          id: "crossover-a",
+          label: "Crossover A",
+          meaning: "Crossover option A.",
+          ledPattern: ["3"],
+        },
+        {
+          id: "crossover-b",
+          label: "Crossover B",
+          meaning: "Crossover option B.",
+          ledPattern: ["4"],
+        },
+        {
+          id: "crossover-c",
+          label: "Crossover C",
+          meaning: "Crossover option C.",
+          ledPattern: ["5"],
+        },
+        {
+          id: "crossover-d",
+          label: "Crossover D",
+          meaning: "Crossover option D.",
+          ledPattern: ["6"],
+        },
+        {
+          id: "phase-45",
+          label: "Phase 45°",
+          meaning: "Parallel phase offset 45 degrees.",
+          ledPattern: ["8"],
+        },
+        {
+          id: "phase-90",
+          label: "Phase 90°",
+          meaning: "Parallel phase offset 90 degrees.",
+          ledPattern: ["10"],
+        },
+        {
+          id: "phase-135",
+          label: "Phase 135°",
+          meaning: "Parallel phase offset 135 degrees.",
+          ledPattern: ["12"],
+        },
+        {
+          id: "phase-inverted",
+          label: "Phase Inverted",
+          meaning: "Fully inverted parallel phase offset.",
+          ledPattern: ["15"],
+        },
+      ],
     }),
     sidechainHighFrequencyEmphasis: parameter({
       id: "sidechainHighFrequencyEmphasis",
       label: "Sidechain High Frequency Emphasis/De-emphasis",
       side: "Enigma Left",
       color: "magenta",
-      description: "Adjusts high-frequency emphasis on the sidechain filter detector.",
+      behavior: "pattern-settings",
+      description:
+        "Adjusts high-frequency emphasis on the sidechain filter detector.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.enigmaLeft,
+          note: "Manual describes sidechain high-frequency emphasis/de-emphasis behavior.",
+        }),
+      ],
+      settings: [
+        {
+          id: "flat",
+          label: "Flat (Bypass)",
+          meaning: "No high frequency sidechain filter modification.",
+          ledPattern: ["0.5"],
+        },
+        {
+          id: "sc-de-emp-soft",
+          label: "SC De-emp Soft",
+          meaning: "Soft high frequency de-emphasis on sidechain.",
+          ledPattern: ["1.0"],
+        },
+        {
+          id: "sc-de-emp-mid",
+          label: "SC De-emp Mid",
+          meaning: "Medium high frequency de-emphasis on sidechain.",
+          ledPattern: ["1.5"],
+        },
+        {
+          id: "sc-de-emp-hard",
+          label: "SC De-emp Hard",
+          meaning: "Hard high frequency de-emphasis on sidechain.",
+          ledPattern: ["2"],
+        },
+        {
+          id: "sc-de-emp-ext",
+          label: "SC De-emp Ext",
+          meaning: "Extreme high frequency de-emphasis on sidechain.",
+          ledPattern: ["3"],
+        },
+        {
+          id: "sc-emp-soft",
+          label: "SC Emp Soft",
+          meaning: "Soft high frequency emphasis on sidechain.",
+          ledPattern: ["4"],
+        },
+        {
+          id: "sc-emp-mid",
+          label: "SC Emp Mid",
+          meaning: "Medium high frequency emphasis on sidechain.",
+          ledPattern: ["5"],
+        },
+        {
+          id: "sc-emp-hard",
+          label: "SC Emp Hard",
+          meaning: "Hard high frequency emphasis on sidechain.",
+          ledPattern: ["6"],
+        },
+        {
+          id: "sc-emp-ext",
+          label: "SC Emp Ext",
+          meaning: "Extreme high frequency emphasis on sidechain.",
+          ledPattern: ["8"],
+        },
+        {
+          id: "de-ess-soft",
+          label: "De-ess Soft",
+          meaning: "Soft sidechain de-essing filter behavior.",
+          ledPattern: ["10"],
+        },
+        {
+          id: "de-ess-mid",
+          label: "De-ess Mid",
+          meaning: "Medium sidechain de-essing filter behavior.",
+          ledPattern: ["12"],
+        },
+        {
+          id: "de-ess-hard",
+          label: "De-ess Hard",
+          meaning: "Hard sidechain de-essing filter behavior.",
+          ledPattern: ["15"],
+        },
+      ],
     }),
     detector: parameter({
       id: "detector",
       label: "Detector Mode Selection",
       side: "Enigma Left",
       color: "cyan",
-      description: "Selects single, dual, or triple detector modes (blending Peak, RMS, and Slow RMS configurations).",
+      behavior: "pattern-settings",
+      description:
+        "Selects detector behavior from Peak, RMS, Slow RMS, and supported combinations.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.detector,
+          note: "Manual identifies detector behavior as named detector modes/components rather than twelve independent rung names.",
+        }),
+        evidence({
+          type: "manual-derived",
+          reference: MANUAL_REFERENCES.detector,
+          note: "LED display communicates selected detector components as patterns across the shared 12-position display.",
+        }),
+      ],
+      settings: [
+        {
+          id: "peak",
+          label: "Peak",
+          meaning: "Fast peak-catching detector behavior.",
+          ledPattern: ["0.5"],
+        },
+        {
+          id: "rms",
+          label: "RMS",
+          meaning: "Leveling detector behavior that follows signal body.",
+          ledPattern: ["1.5"],
+        },
+        {
+          id: "slow-rms",
+          label: "Slow RMS",
+          meaning: "Slower detector behavior for phrase or program movement.",
+          ledPattern: ["3"],
+        },
+        {
+          id: "peak-rms",
+          label: "Peak + RMS",
+          meaning: "Combines fast peak capture with RMS body tracking.",
+          ledPattern: ["0.5", "1.5"],
+        },
+        {
+          id: "peak-slow-rms",
+          label: "Peak + Slow RMS",
+          meaning: "Combines peak catching with slower program movement.",
+          ledPattern: ["0.5", "3"],
+        },
+        {
+          id: "rms-slow-rms",
+          label: "RMS + Slow RMS",
+          meaning: "Combines body tracking with slower program movement.",
+          ledPattern: ["1.5", "3"],
+        },
+        {
+          id: "peak-rms-slow",
+          label: "Peak + RMS + Slow RMS",
+          meaning:
+            "Combines peak catching, body tracking, and slower program movement.",
+          ledPattern: ["0.5", "1.5", "3"],
+        },
+      ],
     }),
     crestFactorShaping: parameter({
       id: "crestFactorShaping",
       label: "Crest Factor Shaping",
       side: "Enigma Left",
       color: "green",
-      description: "Influences slower detectors in multi-detector modes, adjusting Peak-to-RMS compression thresholds.",
+      behavior: "stepped-scale",
+      description:
+        "Influences slower detectors in multi-detector modes, adjusting Peak-to-RMS compression thresholds.",
+      evidence: [
+        evidence({
+          type: "manual-derived",
+          reference: MANUAL_REFERENCES.enigmaLeft,
+          note: "Manual describes crest-factor shaping across detector behavior.",
+        }),
+      ],
     }),
     stereoMonoSidechainLinking: parameter({
       id: "stereoMonoSidechainLinking",
       label: "Stereo/Mono Sidechain Linking",
       side: "Enigma Left",
       color: "white",
-      description: "Sets the parent-to-child sidechain linking percentage or dual mono isolation.",
+      behavior: "stepped-scale",
+      description:
+        "Sets the parent-to-child sidechain linking percentage or dual mono isolation.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.enigmaLeft,
+          note: "Manual describes stereo/mono sidechain linking percentage or behavior.",
+        }),
+      ],
     }),
     ratio: parameter({
       id: "ratio",
       label: "Ratio Setting Curve",
       side: "Enigma Right",
       color: "blue",
-      description: "Sets advanced analogue compression curves and ratio options up to brickwall limiting.",
+      behavior: "stepped-scale",
+      description:
+        "Sets advanced analogue compression curves and ratio options up to brickwall limiting.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.enigmaRight,
+          note: "Manual describes ratio curve behavior.",
+        }),
+      ],
     }),
     knee: parameter({
       id: "knee",
       label: "Knee Width",
       side: "Enigma Right",
       color: "cyan",
-      description: "Selects hardness of the compression threshold transition (Hardest to Softest knee).",
+      behavior: "stepped-scale",
+      description:
+        "Selects hardness of the compression threshold transition (Hardest to Softest knee).",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.enigmaRight,
+          note: "Manual describes knee width.",
+        }),
+      ],
     }),
     attackWeighting: parameter({
       id: "attackWeighting",
       label: "Attack Weighting Shape",
       side: "Enigma Right",
       color: "red",
-      description: "Modifies attack timing reactions based on threshold overshoot or multi-stage detector speeds.",
+      behavior: "stepped-scale",
+      description:
+        "Modifies attack timing reactions based on threshold overshoot or multi-stage detector speeds.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.attackRelease,
+          note: "Manual includes attack weighting table/examples.",
+        }),
+      ],
     }),
     releaseWeighting: parameter({
       id: "releaseWeighting",
       label: "Release Weighting Behavior",
       side: "Enigma Right",
       color: "white",
-      description: "Modifies adaptive envelope recovery speed and program-dependent release timing.",
+      behavior: "stepped-scale",
+      description:
+        "Modifies adaptive envelope recovery speed and program-dependent release timing.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.attackRelease,
+          note: "Manual includes release weighting table/examples.",
+        }),
+      ],
     }),
     hold: parameter({
       id: "hold",
       label: "Hold Timing",
       side: "Enigma Right",
       color: "green",
-      description: "Sets duration the gain reduction is held (in ms) before release to prevent low-frequency wave distortion.",
+      behavior: "stepped-scale",
+      description:
+        "Sets duration the gain reduction is held (in ms) before release to prevent low-frequency wave distortion.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.enigmaRight,
+          note: "Manual describes hold timing.",
+        }),
+      ],
     }),
     lookahead: parameter({
       id: "lookahead",
       label: "Lookahead Time",
       side: "Enigma Right",
       color: "yellow",
-      description: "Buffers sidechain timing with negative group delay filter arrays to preemptively clamp fast transients.",
+      behavior: "stepped-scale",
+      description:
+        "Buffers sidechain timing with negative group delay filter arrays to preemptively clamp fast transients.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.enigmaRight,
+          note: "Manual describes lookahead time.",
+        }),
+      ],
     }),
     ledBrightness: parameter({
       id: "ledBrightness",
       label: "LED Brightness Level",
       side: "Enigma Right",
       color: "magenta",
-      description: "Calibrates the brightness settings for all front-panel LEDs.",
+      behavior: "stepped-scale",
+      description:
+        "Calibrates the brightness settings for all front-panel LEDs.",
+      evidence: [
+        evidence({
+          type: "manual-stated",
+          reference: MANUAL_REFERENCES.ledBrightness,
+          note: "Manual describes LED brightness as a direct display brightness level; no extra translation is needed.",
+        }),
+      ],
     }),
   };
 
@@ -395,7 +863,7 @@
         stressTypeDiodeClipping: ["1.0"],
         diodeHardness: ["2"],
         sidechainHighFrequencyEmphasis: ["15"],
-        detector: ["0.5", "1.5", "3"],
+        detector: { settingId: "peak-rms-slow" },
         stereoMonoSidechainLinking: ["1.0"],
         stressCrossoverPhase: ["1.5"],
         crestFactorShaping: ["1.0"],
@@ -405,7 +873,7 @@
         releaseWeighting: ["3"],
         hold: ["1.0"],
         lookahead: ["1.5"],
-        ledBrightness: ["4"],
+        ledBrightness: { value: "4" },
       },
       frontPanelValues: {
         input: 50,
@@ -444,7 +912,7 @@
         stressTypeDiodeClipping: ["1.5"],
         diodeHardness: ["1.0"],
         sidechainHighFrequencyEmphasis: ["6"],
-        detector: ["0.5", "1.0"],
+        detector: { settingId: "peak-rms" },
         stereoMonoSidechainLinking: ["1.0"],
         stressCrossoverPhase: ["2"],
         crestFactorShaping: ["1.5"],
@@ -454,7 +922,7 @@
         releaseWeighting: ["4"],
         hold: ["1.0"],
         lookahead: ["1.0"],
-        ledBrightness: ["4"],
+        ledBrightness: { value: "4" },
       },
       frontPanelValues: {
         input: 50,
@@ -493,7 +961,7 @@
         stressTypeDiodeClipping: ["1.0"],
         diodeHardness: ["1.5"],
         sidechainHighFrequencyEmphasis: ["15"],
-        detector: ["1.5"],
+        detector: { settingId: "rms" },
         stereoMonoSidechainLinking: ["1.0"],
         stressCrossoverPhase: ["1.0"],
         crestFactorShaping: ["1.5"],
@@ -503,7 +971,7 @@
         releaseWeighting: ["3"],
         hold: ["1.5"],
         lookahead: ["3"],
-        ledBrightness: ["4"],
+        ledBrightness: { value: "4" },
       },
       frontPanelValues: {
         input: 50,
@@ -542,7 +1010,7 @@
         stressTypeDiodeClipping: ["3"],
         diodeHardness: ["4"],
         sidechainHighFrequencyEmphasis: ["4"],
-        detector: ["1.0"],
+        detector: { settingId: "rms" },
         stereoMonoSidechainLinking: ["0.5"],
         stressCrossoverPhase: ["3"],
         crestFactorShaping: ["2"],
@@ -552,7 +1020,7 @@
         releaseWeighting: ["2"],
         hold: ["1.0"],
         lookahead: ["1.0"],
-        ledBrightness: ["4"],
+        ledBrightness: { value: "4" },
       },
       frontPanelValues: {
         input: 50,
@@ -590,7 +1058,7 @@
         stressTypeDiodeClipping: ["0.5"],
         diodeHardness: ["1.0"],
         sidechainHighFrequencyEmphasis: ["0.5"],
-        detector: ["1.5"],
+        detector: { settingId: "rms" },
         stereoMonoSidechainLinking: ["1.5"],
         stressCrossoverPhase: ["1.0"],
         crestFactorShaping: ["1.0"],
@@ -600,7 +1068,7 @@
         releaseWeighting: ["4"],
         hold: ["1.0"],
         lookahead: ["0.5"],
-        ledBrightness: ["4"],
+        ledBrightness: { value: "4" },
       },
       frontPanelValues: {
         input: 50,
@@ -639,7 +1107,7 @@
         stressTypeDiodeClipping: ["2"],
         diodeHardness: ["1.5"],
         sidechainHighFrequencyEmphasis: ["1.0"],
-        detector: ["0.5", "1.0"],
+        detector: { settingId: "peak-rms" },
         stereoMonoSidechainLinking: ["1.0"],
         stressCrossoverPhase: ["2"],
         crestFactorShaping: ["2"],
@@ -649,7 +1117,7 @@
         releaseWeighting: ["4"],
         hold: ["1.0"],
         lookahead: ["0.5"],
-        ledBrightness: ["4"],
+        ledBrightness: { value: "4" },
       },
       frontPanelValues: {
         input: 50,
@@ -688,7 +1156,7 @@
         stressTypeDiodeClipping: ["1.0"],
         diodeHardness: ["1.0"],
         sidechainHighFrequencyEmphasis: ["1.0"],
-        detector: ["1.5"],
+        detector: { settingId: "rms" },
         stereoMonoSidechainLinking: ["1.5"],
         stressCrossoverPhase: ["1.5"],
         crestFactorShaping: ["1.5"],
@@ -698,7 +1166,7 @@
         releaseWeighting: ["3"],
         hold: ["1.5"],
         lookahead: ["0.5"],
-        ledBrightness: ["4"],
+        ledBrightness: { value: "4" },
       },
       frontPanelValues: {
         input: 50,
@@ -737,7 +1205,7 @@
         stressTypeDiodeClipping: ["0.5"],
         diodeHardness: ["1.0"],
         sidechainHighFrequencyEmphasis: ["0.5"],
-        detector: ["1.0"],
+        detector: { settingId: "rms" },
         stereoMonoSidechainLinking: ["1.5"],
         stressCrossoverPhase: ["1.0"],
         crestFactorShaping: ["1.0"],
@@ -747,7 +1215,7 @@
         releaseWeighting: ["3"],
         hold: ["1.0"],
         lookahead: ["4"],
-        ledBrightness: ["4"],
+        ledBrightness: { value: "4" },
       },
       frontPanelValues: {
         input: 50,
@@ -786,7 +1254,7 @@
         stressTypeDiodeClipping: ["4"],
         diodeHardness: ["5"],
         sidechainHighFrequencyEmphasis: ["1.0"],
-        detector: ["1.0"],
+        detector: { settingId: "rms" },
         stereoMonoSidechainLinking: ["1.0"],
         stressCrossoverPhase: ["4"],
         crestFactorShaping: ["4"],
@@ -796,7 +1264,7 @@
         releaseWeighting: ["2"],
         hold: ["1.5"],
         lookahead: ["1.0"],
-        ledBrightness: ["4"],
+        ledBrightness: { value: "4" },
       },
       frontPanelValues: {
         input: 50,
@@ -835,8 +1303,16 @@
   };
 
   function cloneParameterWithSelection(parameterDefinition, selected) {
+    const selection =
+      selected && typeof selected === "object" && !Array.isArray(selected)
+        ? { ...selected }
+        : Array.isArray(selected)
+          ? { legacyValues: [...selected.map(String)] }
+          : {};
+
     return {
       ...parameterDefinition,
+      selection,
       selected: Array.isArray(selected) ? [...selected] : [],
     };
   }
