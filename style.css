@@ -4173,8 +4173,8 @@ footer {
 }
 
 #brick-lane-parameters {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0.6rem;
 }
 
@@ -4353,8 +4353,8 @@ footer {
   }
 
   .brick-lane-controls,
-  #brick-lane-parameters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .brick-lane-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .brick-lane-front-panel {
