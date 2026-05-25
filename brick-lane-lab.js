@@ -42,13 +42,213 @@
     }
   }
 
-  function renderExactLedLadder({ color, scale, selected }) {
+  const RUNG_LABELS = {
+    stressTypeDiodeClipping: {
+      "0.5": "Velvet",
+      "1.0": "Float",
+      "1.5": "Smash",
+      "2": "Tame",
+      "3": "Glue",
+      "4": "Polish White",
+      "5": "Polish Blue",
+      "6": "Series Clip 1",
+      "8": "Series Clip 2",
+      "10": "Series Clip 3",
+      "12": "Series Clip 4",
+      "15": "Series Clip 5"
+    },
+    diodeHardness: {
+      "0.5": "Ultra Soft",
+      "1.0": "Very Soft",
+      "1.5": "Soft",
+      "2": "Med-Soft",
+      "3": "Medium",
+      "4": "Med-Hard",
+      "5": "Hard",
+      "6": "Very Hard",
+      "8": "Ultra Hard",
+      "10": "Extreme",
+      "12": "Brutal",
+      "15": "Hardest"
+    },
+    stressCrossoverPhase: {
+      "0.5": "Linear Phase",
+      "1.0": "Linear Freq",
+      "1.5": "Low-Freq Par",
+      "2": "Inverted Phase",
+      "3": "Crossover A",
+      "4": "Crossover B",
+      "5": "Crossover C",
+      "6": "Crossover D",
+      "8": "Phase 45°",
+      "10": "Phase 90°",
+      "12": "Phase 135°",
+      "15": "Phase Inverted"
+    },
+    sidechainHighFrequencyEmphasis: {
+      "0.5": "Flat (Bypass)",
+      "1.0": "SC De-emp Soft",
+      "1.5": "SC De-emp Mid",
+      "2": "SC De-emp Hard",
+      "3": "SC De-emp Ext",
+      "4": "SC Emp Soft",
+      "5": "SC Emp Mid",
+      "6": "SC Emp Hard",
+      "8": "SC Emp Ext",
+      "10": "De-ess Soft",
+      "12": "De-ess Mid",
+      "15": "De-ess Hard"
+    },
+    detector: {
+      "0.5": "Peak",
+      "1.0": "RMS Fixed",
+      "1.5": "RMS Variable",
+      "2": "Peak+RMS Fixed",
+      "3": "Slow RMS",
+      "4": "Peak+Slow RMS",
+      "5": "RMS+Slow RMS",
+      "6": "Peak+RMS+Slow",
+      "8": "Peak+RMS Var",
+      "10": "Triple Var",
+      "12": "Dual RMS Hybrid",
+      "15": "Triple RMS Hyb"
+    },
+    crestFactorShaping: {
+      "0.5": "Peak Dominant",
+      "1.0": "Peak Favored",
+      "1.5": "Peak Heavy",
+      "2": "Equal Balance",
+      "3": "RMS Heavy",
+      "4": "RMS Favored",
+      "5": "RMS Dominant",
+      "6": "Slow RMS Fav",
+      "8": "Slow RMS Dom",
+      "10": "Auto Crest Sft",
+      "12": "Auto Crest Med",
+      "15": "Auto Crest Hrd"
+    },
+    stereoMonoSidechainLinking: {
+      "0.5": "Dual Mono (0%)",
+      "1.0": "Linked 10%",
+      "1.5": "Linked 20%",
+      "2": "Linked 30%",
+      "3": "Linked 40%",
+      "4": "Linked 50%",
+      "5": "Linked 60%",
+      "6": "Linked 70%",
+      "8": "Linked 80%",
+      "10": "Linked 90%",
+      "12": "Stereo (100%)",
+      "15": "Hybrid Linking"
+    },
+    ratio: {
+      "0.5": "1.5:1",
+      "1.0": "2:1",
+      "1.5": "3:1",
+      "2": "4:1",
+      "3": "6:1",
+      "4": "8:1",
+      "5": "10:1",
+      "6": "12:1",
+      "8": "20:1",
+      "10": "50:1",
+      "12": "100:1 (Limit)",
+      "15": "Brickwall (∞:1)"
+    },
+    knee: {
+      "0.5": "Hardest (0dB)",
+      "1.0": "Very Hard (2dB)",
+      "1.5": "Hard (4dB)",
+      "2": "Med-Hard (6dB)",
+      "3": "Medium (9dB)",
+      "4": "Med-Soft (12dB)",
+      "5": "Soft (15dB)",
+      "6": "Very Soft (18dB)",
+      "8": "Softest (24dB)",
+      "10": "Over-Knee Prog",
+      "12": "Dual Knee Soft",
+      "15": "Hybrid Prog"
+    },
+    attackWeighting: {
+      "0.5": "4.0x / 300x",
+      "1.0": "2.0x / 200x",
+      "1.5": "1.0x / 150x",
+      "2": "0.66x / 120x",
+      "3": "0.56x / 100x",
+      "4": "0.31x / 75x",
+      "5": "0.17x / 50x",
+      "6": "0.09x / 40x",
+      "8": "0.05x / 30x",
+      "10": "0.03x / 25x",
+      "12": "0.01x / 20x",
+      "15": "0.009x / 15x"
+    },
+    releaseWeighting: {
+      "0.5": "4.0x / 5.0x",
+      "1.0": "2.0x / 4.6x",
+      "1.5": "1.0x / 4.2x",
+      "2": "0.66x / 3.9x",
+      "3": "0.56x / 3.5x",
+      "4": "0.31x / 3.1x",
+      "5": "0.17x / 2.8x",
+      "6": "0.09x / 2.4x",
+      "8": "0.05x / 2.0x",
+      "10": "0.03x / 1.7x",
+      "12": "0.01x / 1.3x",
+      "15": "0.009x / 1.0x"
+    },
+    hold: {
+      "0.5": "Bypass (0ms)",
+      "1.0": "Hold 2ms",
+      "1.5": "Hold 5ms",
+      "2": "Hold 10ms",
+      "3": "Hold 20ms",
+      "4": "Hold 35ms",
+      "5": "Hold 50ms",
+      "6": "Hold 75ms",
+      "8": "Hold 100ms",
+      "10": "Hold 150ms",
+      "12": "Hold 200ms",
+      "15": "Hold 300ms"
+    },
+    lookahead: {
+      "0.5": "Bypass (0ms)",
+      "1.0": "Look 0.25ms",
+      "1.5": "Look 0.50ms",
+      "2": "Look 0.75ms",
+      "3": "Look 1.0ms",
+      "4": "Look 1.25ms",
+      "5": "Look 1.5ms",
+      "6": "Look 1.75ms",
+      "8": "Look 2.0ms",
+      "10": "Look 2.5ms",
+      "12": "Look 3.0ms",
+      "15": "Look 4.0ms"
+    },
+    ledBrightness: {
+      "0.5": "Brightness 5%",
+      "1.0": "Brightness 10%",
+      "1.5": "Brightness 20%",
+      "2": "Brightness 30%",
+      "3": "Brightness 40%",
+      "4": "Brightness 50%",
+      "5": "Brightness 60%",
+      "6": "Brightness 70%",
+      "8": "Brightness 80%",
+      "10": "Brightness 90%",
+      "12": "Brightness 95%",
+      "15": "Brightness 100%"
+    }
+  };
+
+  function renderExactLedLadder({ color, scale, selected, id }) {
     const selectedSet = new Set(selected || []);
     const ledColor = data.BRICK_LANE_COLORS[color] || color;
     const rungs = scale
       .map((label) => {
         const isOn = selectedSet.has(label) ? " is-on" : "";
-        return `<span class="brick-lane-rung${isOn}" data-val="${escapeHtml(label)}" aria-hidden="true"></span><span class="brick-lane-led-label">${escapeHtml(label)}</span>`;
+        const descText = (RUNG_LABELS[id] && RUNG_LABELS[id][label]) ? ` <span class="brick-lane-led-desc">— ${escapeHtml(RUNG_LABELS[id][label])}</span>` : "";
+        return `<span class="brick-lane-rung${isOn}" data-val="${escapeHtml(label)}" aria-hidden="true"></span><span class="brick-lane-led-label">${escapeHtml(label)}${descText}</span>`;
       })
       .join("");
 
