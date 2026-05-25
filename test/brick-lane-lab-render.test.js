@@ -7,6 +7,8 @@ const {
   createCopyText,
   copyRecallText,
   renderPrintSheet,
+  renderHardwareFaceplate,
+  renderRecallCards,
 } = require("../brick-lane-lab");
 const { ENIGMA_PARAMETERS, getGeneratedPreset } = require("../brick-lane-data");
 
@@ -114,7 +116,6 @@ test("renderPrintSheet includes all Enigma parameters with exact ladders", () =>
 });
 
 test("renderHardwareFaceplate matches physical front-panel anatomy", () => {
-  const { renderHardwareFaceplate } = require("../brick-lane-lab");
   const { getGeneratedPreset } = require("../brick-lane-data");
   const preset = getGeneratedPreset();
   const html = renderHardwareFaceplate(preset, {
@@ -135,7 +136,6 @@ test("renderHardwareFaceplate matches physical front-panel anatomy", () => {
 });
 
 test("physical faceplate does not contain UI-only controls", () => {
-  const { renderHardwareFaceplate } = require("../brick-lane-lab");
   const { getGeneratedPreset } = require("../brick-lane-data");
   const html = renderHardwareFaceplate(getGeneratedPreset(), {});
 
@@ -143,4 +143,42 @@ test("physical faceplate does not contain UI-only controls", () => {
   assert.doesNotMatch(html, /Monitor:/);
   assert.doesNotMatch(html, /Generated Preset/);
   assert.doesNotMatch(html, /brick-lane-tab-btn/);
+});
+
+test("physical faceplate stays SIG/GR-only for non-VU monitor selection", () => {
+  const preset = getGeneratedPreset();
+  const vuHtml = renderHardwareFaceplate(preset, { monitorParam: "VU" });
+  const enigmaHtml = renderHardwareFaceplate(preset, {
+    monitorParam: "attackWeighting",
+  });
+
+  assert.equal(enigmaHtml, vuHtml);
+  assert.match(enigmaHtml, /data-meter-id="sig"/);
+  assert.match(enigmaHtml, /data-meter-id="gr"/);
+});
+
+test("recall cards mark the selected non-faceplate monitor parameter", () => {
+  const preset = getGeneratedPreset();
+  const html = renderRecallCards(preset, {
+    activeTab: "primary",
+    monitorParam: "attackWeighting",
+  });
+
+  assert.match(html, /id="brick-lane-monitor-select"/);
+  assert.match(html, /value="attackWeighting" selected/);
+  assert.match(
+    html,
+    /brick-lane-parameter-card is-monitored"[^>]*data-parameter-id="attackWeighting"/
+  );
+});
+
+test("simulation meter animation is not gated by monitor selection", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "brick-lane-lab.js"),
+    "utf8"
+  );
+
+  assert.doesNotMatch(source, /state\.monitorParam\s*===\s*"VU"/);
 });

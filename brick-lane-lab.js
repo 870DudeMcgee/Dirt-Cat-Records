@@ -273,9 +273,10 @@
     return `<div class="brick-lane-led-housing" style="--brick-lane-led:${escapeHtml(ledColor)}"><div class="brick-lane-led-ladder">${rungs}<span class="brick-lane-gr-tag">GR</span><span></span></div></div>`;
   }
 
-  function renderParameterCard(parameter) {
+  function renderParameterCard(parameter, options = {}) {
     const ledColor = data.BRICK_LANE_COLORS[parameter.color] || parameter.color;
-    return `<article class="brick-lane-parameter-card" style="--brick-lane-led:${escapeHtml(ledColor)}">
+    const monitoredClass = options.isMonitored ? " is-monitored" : "";
+    return `<article class="brick-lane-parameter-card${monitoredClass}" data-parameter-id="${escapeHtml(parameter.id)}" style="--brick-lane-led:${escapeHtml(ledColor)}">
       <h3>${escapeHtml(parameter.label)}</h3>
       <p>${escapeHtml(parameter.side)}. ${escapeHtml(parameter.description || "")}</p>
       ${renderExactLedLadder(parameter)}
@@ -637,6 +638,7 @@
   // Upgraded Tabbed Recall Card category filtering
   function renderRecallCards(preset, state) {
     const activeTab = state.activeTab || "primary";
+    const monitorParam = state.monitorParam || "VU";
 
     const tabsHtml = `
       <nav class="brick-lane-tabs">
@@ -676,7 +678,13 @@
     }
 
     const cardsHtml = `<div class="brick-lane-cards-grid ${activeTab === "all" ? "is-dense" : ""}">
-      ${parameterIds.map(id => renderParameterCard(preset.parameters[id])).join("")}
+      ${parameterIds
+        .map((id) =>
+          renderParameterCard(preset.parameters[id], {
+            isMonitored: monitorParam !== "VU" && monitorParam === id,
+          })
+        )
+        .join("")}
     </div>`;
 
     return renderMonitorSelect(state) + tabsHtml + cardsHtml;
@@ -1043,10 +1051,7 @@
         }
         ctx.stroke();
         
-        // Render faceplate Enigma VU meters only if monitorParam is VU
-        if (state.monitorParam === "VU") {
-          animatePanelMetersRealtime(simulatedGainReductionLeft, simulatedGainReductionRight);
-        }
+        animatePanelMetersRealtime(simulatedGainReductionLeft, simulatedGainReductionRight);
         
         phase += 0.25;
         animationFrameId = requestAnimationFrame(renderScope);
