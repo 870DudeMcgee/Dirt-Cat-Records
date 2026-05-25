@@ -369,3 +369,25 @@ test("render module does not own Enigma rung labels", () => {
   assert.doesNotMatch(source, /const RUNG_LABELS/);
   assert.doesNotMatch(source, /Triple RMS Hyb|Dual RMS Hybrid|Brutal|Hardest/);
 });
+
+test("copy text uses resolved detector setting label instead of raw rungs", () => {
+  const preset = getGeneratedPreset();
+  const text = createCopyText(preset);
+
+  assert.match(
+    text,
+    /Detector Mode Selection \/ Detector blend .*Peak \+ RMS \+ Slow RMS/
+  );
+  assert.doesNotMatch(
+    text,
+    /Detector Mode Selection \/ Detector blend \(Enigma Left, cyan\): 0\.5, 1\.5, 3$/m
+  );
+});
+
+test("print sheet uses resolved detector setting label", () => {
+  const preset = getGeneratedPreset();
+  const html = renderPrintSheet(preset);
+
+  assert.match(html, /Peak \+ RMS \+ Slow RMS/);
+  assert.doesNotMatch(html, /Triple RMS Hyb|Dual RMS Hybrid/);
+});

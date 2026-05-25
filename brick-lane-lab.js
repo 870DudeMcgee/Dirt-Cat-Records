@@ -203,6 +203,19 @@
     </section>`;
   }
 
+  function getResolvedParameter(parameter) {
+    try {
+      return resolver
+        ? resolver.resolveParameterSelection(
+            parameter,
+            parameter.selection || parameter.selected
+          )
+        : null;
+    } catch (_error) {
+      return null;
+    }
+  }
+
   function createCopyText(preset) {
     const saturation = data.ENIGMA_DEMYSTIFIER.saturation;
     const lines = [
@@ -226,8 +239,19 @@
       const label = guide
         ? `${parameter.label} / ${guide.userLabel}`
         : parameter.label;
+
+      const resolved = getResolvedParameter(parameter);
+      const settingLabel = resolved
+        ? resolved.label
+        : Array.isArray(parameter.selected)
+          ? parameter.selected.join(", ")
+          : "Setting unavailable";
+      const ledValues = resolved?.activeLedValues?.length
+        ? ` [LED: ${resolved.activeLedValues.join(", ")}]`
+        : "";
+
       lines.push(
-        `${label} (${parameter.side}, ${parameter.color}): ${parameter.selected.join(", ")}`
+        `${label} (${parameter.side}, ${parameter.color}): ${settingLabel}${ledValues}`
       );
     }
 
