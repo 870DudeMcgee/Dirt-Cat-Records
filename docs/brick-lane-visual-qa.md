@@ -35,3 +35,9 @@ Date: 2026-05-25
 
 - Shipped faceplate is code-drawn, not the official Cranborne photo, to avoid shipping product imagery without explicit permission.
 - Internal Enigma rung behavior remains a data verification task against the official guide.
+
+## Manual Accuracy Follow-Up
+
+- Detector Mode Selection now renders valid detector settings with LED patterns rather than twelve invented rung names.
+- Recall panel text is driven by canonical Brick Lane data and resolver output.
+- Front-panel hardware remains SIG/GR-only and does not show Enigma parameter monitors as physical meters.

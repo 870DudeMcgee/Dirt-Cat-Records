@@ -3165,3 +3165,49 @@ Roadmap link: `docs/roadmap.md` (Stage 2: mobile homepage hero polish after iPho
 ### Needs To Be Done Next
 
 - Review on a physical iPhone after the next push/deploy and tune by eye if Safari chrome leaves less lower breathing room than the Playwright visual viewport.
+
+---
+
+## Step 57 - Brick Lane Lab Enigma Manual Accuracy
+
+Date/Time: 2026-05-25
+Owner: Antigravity
+Roadmap link: `docs/roadmap.md` (Brick Lane manual accuracy implementation)
+
+### Will Be Done
+
+- Align the Brick Lane Sonic Lab's Enigma data structures, state machine selections, copy/print routines, and front-panel parameters strictly with the Cranborne Brick Lane hardware manual.
+- Move setting definitions and plain-language meanings from hardcoded arrays to the canonical data module (`brick-lane-data.js`).
+- Resolve all Enigma preset selections (both pattern-settings and stepped-scale) cleanly through the central `BrickLaneResolver` library (`lib/lab/brick-lane-resolver.js`).
+
+### Context Check (Before)
+
+- Plan docs reviewed: `docs/superpowers/plans/2026-05-25-brick-lane-manual-accuracy-implementation.md`, `docs/brick-lane-manual-audit.md`
+- Codebase state: active feature worktree on branch `brick-lane-manual-accuracy`
+- Test suite: 369 passing tests as baseline.
+
+### Done
+
+- Created the manual audit artifact `docs/brick-lane-manual-audit.md` mapping parameters to manual specifications and YouTube references.
+- Implemented pure resolver helpers in `lib/lab/brick-lane-resolver.js` along with contract tests.
+- Migrated `brick-lane-data.js` Enigma parameters to declare behavior type (`pattern-settings` or `stepped-scale`), evidence, and explicit settings patterns.
+- Removed `RUNG_LABELS` completely from the renderer and populated setting details/meanings dynamically via resolved data.
+- Migrated state machine selections and reducer to support `SET_PARAMETER_SELECTION` for object payloads immutably.
+- Updated user copy-to-clipboard formatting and cheat sheet rendering to fetch settings dynamically through the resolver.
+- Converted all 9 archetype preset selection arrays to canonical object shapes.
+- Added visual regression tests utilizing Playwright to check that the resolved Detector text behaves as intended.
+
+### Context Check (After)
+
+- Validation run:
+  - `npm test` (pass, 373 tests)
+  - `npm run test:brick-lane-visual` (pass)
+  - `npm run check:js` (pass)
+- Codebase delta summary:
+  - Updated `brick-lane-data.js`, `brick-lane-lab.js`, `lib/lab/state-machine.js`, `style.css`
+  - Updated `test/brick-lane-data.test.js`, `test/brick-lane-lab-render.test.js`, `test/lab-state-machine.test.js`, `test/brick-lane-visual-regression.test.js`
+  - Hardened Enigma parameters against legacy string-only array fallbacks.
+
+### Needs To Be Done Next
+
+- Perform the preflight check, finalize branch review, and integrate the manual-accuracy work back to main.

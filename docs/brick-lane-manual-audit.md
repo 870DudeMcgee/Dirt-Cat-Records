@@ -3,6 +3,14 @@
 Date: 2026-05-25
 Scope: Brick Lane Sonic Lab front-panel and Enigma LED behavior
 
+## Implementation Status
+
+- Canonical Enigma data now declares behavior type, evidence, and setting/scalar rules.
+- Pattern-based parameters render valid settings as LED patterns.
+- Stepped-scale parameters render direct scalar values without unnecessary translation.
+- Presets now reference canonical setting IDs or scalar values.
+- User-facing UI remains free of source badges and confidence labels.
+
 ## Source Priority
 
 1. Official Cranborne Brick Lane 500 user guide.
