@@ -165,3 +165,46 @@ test("front panel reference captures physical Brick Lane 500 anatomy", () => {
     "in",
   ]);
 });
+
+test("Enigma demystifier maps hardware mode names to familiar compressor families", () => {
+  const { ENIGMA_DEMYSTIFIER } = require("../brick-lane-data");
+
+  assert.equal(ENIGMA_DEMYSTIFIER.modes.VELVET.family, "Vari-Mu");
+  assert.equal(ENIGMA_DEMYSTIFIER.modes.FLOAT.family, "Optical");
+  assert.equal(ENIGMA_DEMYSTIFIER.modes.SMASH.family, "FET");
+  assert.equal(ENIGMA_DEMYSTIFIER.modes.TAME.family, "Clean/Transparent");
+  assert.equal(ENIGMA_DEMYSTIFIER.modes.GLUE.family, "VCA");
+  assert.equal(ENIGMA_DEMYSTIFIER.modes.POLISH.family, "Limiter/Clipper");
+});
+
+test("Enigma demystifier presents Stress as Saturation outside the faceplate", () => {
+  const { ENIGMA_DEMYSTIFIER } = require("../brick-lane-data");
+
+  assert.equal(ENIGMA_DEMYSTIFIER.saturation.hardwareLabel, "STRESS");
+  assert.equal(ENIGMA_DEMYSTIFIER.saturation.userLabel, "Saturation");
+  assert.match(
+    ENIGMA_DEMYSTIFIER.parameters.stressTypeDiodeClipping.userLabel,
+    /Saturation character/
+  );
+  assert.match(
+    ENIGMA_DEMYSTIFIER.parameters.diodeHardness.userLabel,
+    /Saturation hardness/
+  );
+});
+
+test("Enigma demystifier keeps recall-critical hardware labels available", () => {
+  const { ENIGMA_DEMYSTIFIER } = require("../brick-lane-data");
+
+  assert.equal(
+    ENIGMA_DEMYSTIFIER.parameters.sidechainHighFrequencyEmphasis.hardwareLabel,
+    "Sidechain High Frequency Emphasis/De-emphasis"
+  );
+  assert.equal(
+    ENIGMA_DEMYSTIFIER.parameters.ratio.userLabel,
+    "Compression ratio"
+  );
+  assert.equal(
+    ENIGMA_DEMYSTIFIER.parameters.detector.userLabel,
+    "Detector blend"
+  );
+});

@@ -52,6 +52,141 @@
     lowerSections: ["scf", "mode", "optosync", "in"],
   };
 
+  const ENIGMA_DEMYSTIFIER = {
+    modes: {
+      VELVET: {
+        hardwareLabel: "VELVET",
+        family: "Vari-Mu",
+        summary:
+          "Rounded, weighty compression that feels slow, forgiving, and tube-like.",
+        saturation: "Soft harmonic thickening.",
+      },
+      FLOAT: {
+        hardwareLabel: "FLOAT",
+        family: "Optical",
+        summary: "Smooth leveling with gentle movement and less obvious grab.",
+        saturation: "Airy, low-grain color.",
+      },
+      SMASH: {
+        hardwareLabel: "SMASH",
+        family: "FET",
+        summary:
+          "Fast, forward compression for aggressive transient control and attitude.",
+        saturation: "Edgy, transient-forward drive.",
+      },
+      TAME: {
+        hardwareLabel: "TAME",
+        family: "Clean/Transparent",
+        summary: "Controlled dynamics with minimal obvious color.",
+        saturation: "Least colored saturation path.",
+      },
+      GLUE: {
+        hardwareLabel: "GLUE",
+        family: "VCA",
+        summary:
+          "Bus-style compression that pulls parts together and stabilizes movement.",
+        saturation: "Cohesive, mix-bus density.",
+      },
+      POLISH: {
+        hardwareLabel: "POLISH",
+        family: "Limiter/Clipper",
+        summary:
+          "Finishing compression for density, level, and controlled peak shape.",
+        saturation: "Bright limiting and clipping-style finish.",
+      },
+    },
+    saturation: {
+      hardwareLabel: "STRESS",
+      userLabel: "Saturation",
+      summary:
+        "The hardware calls this STRESS; the tool explains it as Saturation because it changes harmonic drive and clipping behavior inside each mode.",
+    },
+    parameters: {
+      stressTypeDiodeClipping: {
+        hardwareLabel: "Stress Character / Diode Clipping",
+        userLabel: "Saturation character",
+        plainMeaning:
+          "Chooses the flavor of drive or clipping that the Saturation control leans into.",
+      },
+      diodeHardness: {
+        hardwareLabel: "Diode Hardness",
+        userLabel: "Saturation hardness",
+        plainMeaning:
+          "Controls how soft or abrupt the saturation edge feels when driven.",
+      },
+      stressCrossoverPhase: {
+        hardwareLabel: "Stress Crossover & Phase",
+        userLabel: "Saturation crossover and phase",
+        plainMeaning:
+          "Changes where saturation energy shifts across the spectrum and how parallel paths line up.",
+      },
+      sidechainHighFrequencyEmphasis: {
+        hardwareLabel: "Sidechain High Frequency Emphasis/De-emphasis",
+        userLabel: "High-frequency sidechain response",
+        plainMeaning:
+          "Controls whether bright material makes the compressor react more or less.",
+      },
+      detector: {
+        hardwareLabel: "Detector Mode Selection",
+        userLabel: "Detector blend",
+        plainMeaning:
+          "Chooses whether the compressor reacts more like peak catching, RMS leveling, or a blend.",
+      },
+      crestFactorShaping: {
+        hardwareLabel: "Crest Factor Shaping",
+        userLabel: "Peak-to-body balance",
+        plainMeaning:
+          "Changes how much transient peaks matter compared with the body of the sound.",
+      },
+      stereoMonoSidechainLinking: {
+        hardwareLabel: "Stereo/Mono Sidechain Linking",
+        userLabel: "Stereo linking",
+        plainMeaning:
+          "Controls whether left and right channels compress together or independently.",
+      },
+      ratio: {
+        hardwareLabel: "Ratio Setting Curve",
+        userLabel: "Compression ratio",
+        plainMeaning:
+          "Sets how firmly the compressor pushes back once signal crosses the threshold.",
+      },
+      knee: {
+        hardwareLabel: "Knee Width",
+        userLabel: "Compression onset",
+        plainMeaning:
+          "Controls whether gain reduction starts abruptly or eases in smoothly.",
+      },
+      attackWeighting: {
+        hardwareLabel: "Attack Weighting Shape",
+        userLabel: "Attack behavior",
+        plainMeaning:
+          "Changes how quickly the compressor grabs transients and overshoots.",
+      },
+      releaseWeighting: {
+        hardwareLabel: "Release Weighting Behavior",
+        userLabel: "Release behavior",
+        plainMeaning:
+          "Changes how the compressor recovers after gain reduction.",
+      },
+      hold: {
+        hardwareLabel: "Hold Timing",
+        userLabel: "Gain-reduction hold",
+        plainMeaning: "Keeps compression engaged briefly before release begins.",
+      },
+      lookahead: {
+        hardwareLabel: "Lookahead Time",
+        userLabel: "Transient pre-catch",
+        plainMeaning: "Lets the detector react ahead of very fast peaks.",
+      },
+      ledBrightness: {
+        hardwareLabel: "LED Brightness Level",
+        userLabel: "LED brightness",
+        plainMeaning:
+          "Changes display brightness; it does not change compression tone.",
+      },
+    },
+  };
+
   const CONTROL_DEFINITIONS = [
     {
       id: "punchSmooth",
@@ -739,6 +874,7 @@
     COMMON_LED_SCALE,
     BRICK_LANE_COLORS,
     FRONT_PANEL_REFERENCE,
+    ENIGMA_DEMYSTIFIER,
     CONTROL_DEFINITIONS,
     ENIGMA_PARAMETERS,
     PARAMETER_ORDER,
