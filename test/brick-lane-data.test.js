@@ -106,3 +106,62 @@ test("existing business config imports still work beside the new root module", (
 
   assert.equal(redacted.businessName, "Dirt Cat Records");
 });
+
+test("front panel reference captures physical Brick Lane 500 anatomy", () => {
+  const { FRONT_PANEL_REFERENCE } = require("../brick-lane-data");
+
+  assert.deepEqual(FRONT_PANEL_REFERENCE.mainKnobs.map((knob) => knob.id), [
+    "input",
+    "threshold",
+    "attack",
+    "release",
+    "output",
+  ]);
+  assert.equal(FRONT_PANEL_REFERENCE.stressKnob.id, "stress");
+  assert.deepEqual(FRONT_PANEL_REFERENCE.modeLabels, [
+    "VELVET",
+    "FLOAT",
+    "SMASH",
+    "TAME",
+    "GLUE",
+    "POLISH",
+  ]);
+  assert.deepEqual(FRONT_PANEL_REFERENCE.meters.sig.scale, [
+    "24",
+    "21",
+    "18",
+    "15",
+    "12",
+    "6",
+    "0",
+    "-6",
+    "-12",
+    "-18",
+    "-24",
+  ]);
+  assert.deepEqual(FRONT_PANEL_REFERENCE.meters.gr.scale, [
+    "0.5",
+    "1.0",
+    "1.5",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "8",
+    "10",
+    "12",
+    "15",
+  ]);
+  assert.deepEqual(FRONT_PANEL_REFERENCE.scfFrequencies, [
+    "60Hz",
+    "100Hz",
+    "200Hz",
+  ]);
+  assert.deepEqual(FRONT_PANEL_REFERENCE.lowerSections, [
+    "scf",
+    "mode",
+    "optosync",
+    "in",
+  ]);
+});

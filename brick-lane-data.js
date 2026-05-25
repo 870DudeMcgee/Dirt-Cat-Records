@@ -24,6 +24,34 @@
     green: "#31dc78",
   };
 
+  const FRONT_PANEL_REFERENCE = {
+    mainKnobs: [
+      { id: "input", label: "INPUT", unit: "dB", low: "-20", high: "20" },
+      { id: "threshold", label: "THRESHOLD", unit: "", low: "MIN", high: "MAX" },
+      { id: "attack", label: "ATTACK", unit: "", low: "SLOW", high: "FAST" },
+      { id: "release", label: "RELEASE", unit: "", low: "SLOW", high: "FAST" },
+      { id: "output", label: "OUTPUT", unit: "dB", center: "0", low: "-20", high: "20" },
+    ],
+    stressKnob: { id: "stress", label: "STRESS", low: "OFF", high: "MAX" },
+    meters: {
+      sig: {
+        id: "sig",
+        label: "SIG",
+        color: "magenta",
+        scale: ["24", "21", "18", "15", "12", "6", "0", "-6", "-12", "-18", "-24"],
+      },
+      gr: {
+        id: "gr",
+        label: "GR",
+        color: "cyan",
+        scale: ["0.5", "1.0", "1.5", "2", "3", "4", "5", "6", "8", "10", "12", "15"],
+      },
+    },
+    modeLabels: ["VELVET", "FLOAT", "SMASH", "TAME", "GLUE", "POLISH"],
+    scfFrequencies: ["60Hz", "100Hz", "200Hz"],
+    lowerSections: ["scf", "mode", "optosync", "in"],
+  };
+
   const CONTROL_DEFINITIONS = [
     {
       id: "punchSmooth",
@@ -710,6 +738,7 @@
   const api = {
     COMMON_LED_SCALE,
     BRICK_LANE_COLORS,
+    FRONT_PANEL_REFERENCE,
     CONTROL_DEFINITIONS,
     ENIGMA_PARAMETERS,
     PARAMETER_ORDER,
