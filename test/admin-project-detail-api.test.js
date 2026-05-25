@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createAdminProjectsHandler } = require("../api/admin/projects");
+const { createAdminProjectsHandler } = require("../lib/api/admin/projects");
 const {
   addAdminProjectNote,
   buildAdminProjectDetail,

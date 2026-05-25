@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createFreeReviewHandler } = require('../api/public/free-review');
+const { createFreeReviewHandler } = require('../lib/api/public/free-review');
 
 test('free review endpoint validates and starts workflow', async () => {
   const handler = createFreeReviewHandler({

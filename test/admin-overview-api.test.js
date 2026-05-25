@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createAdminOverviewHandler } = require('../api/admin/overview');
+const { createAdminOverviewHandler } = require('../lib/api/admin/overview');
 const { buildAdminOverview, getAdminOverview } = require('../lib/db/studio-records');
 
 test('buildAdminOverview summarizes actionable studio work', () => {

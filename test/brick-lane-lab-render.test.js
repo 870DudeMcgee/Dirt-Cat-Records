@@ -225,6 +225,21 @@ test("recall cards include and mark an off-tab monitored parameter", () => {
   );
 });
 
+test("recall cards render state-owned rung selections exactly", () => {
+  const preset = getGeneratedPreset();
+  const html = renderRecallCards(preset, {
+    activeTab: "primary",
+    monitorParam: "VU",
+    parameterSelections: {
+      ratio: ["8"],
+    },
+  });
+
+  const ratioCard = html.match(/<article[^>]*data-parameter-id="ratio"[\s\S]*?<\/article>/)[0];
+  assert.equal((ratioCard.match(/brick-lane-rung is-on/g) || []).length, 1);
+  assert.match(ratioCard, /data-val="8" aria-hidden="true"><\/span><span class="brick-lane-led-label">8/);
+});
+
 test("simulation meter animation is not gated by monitor selection", () => {
   const fs = require("node:fs");
   const path = require("node:path");

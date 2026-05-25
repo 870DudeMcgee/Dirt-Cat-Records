@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createPortalActionsHandler } = require("../api/portal/actions");
+const { createPortalActionsHandler } = require("../lib/api/portal/actions");
 
 test("portal auth endpoint provisions auth for known customers", async () => {
   let provisionedEmail = null;

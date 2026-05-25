@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createAdminQuotesHandler } = require('../api/admin/quotes');
+const { createAdminQuotesHandler } = require('../lib/api/admin/quotes');
 
 test('admin quotes endpoint rejects non-admin users', async () => {
   const handler = createAdminQuotesHandler({

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createSetupWizardHandler } = require('../api/admin/setup-wizard');
+const { createSetupWizardHandler } = require('../lib/api/admin/setup-wizard');
 
 test('test-runs endpoint starts simulation runs for admin', async () => {
   const handler = createSetupWizardHandler({

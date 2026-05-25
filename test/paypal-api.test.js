@@ -1,8 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const createOrderRoute = require("../api/create-paypal-order");
-const captureRoute = require("../api/capture-paypal-order");
-const checkoutConfigRoute = require("../api/checkout-config");
+const createOrderRoute = require("../lib/api/create-paypal-order");
+const captureRoute = require("../lib/api/capture-paypal-order");
+const checkoutConfigRoute = require("../lib/api/checkout-config");
 const { calculateOrder } = require("../lib/checkout/pricing");
 
 const { createPaypalOrderHandler } = createOrderRoute;

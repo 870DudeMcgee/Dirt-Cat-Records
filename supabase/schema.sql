@@ -449,3 +449,196 @@ grant select, insert, update, delete on table public.admin_notes to service_role
 grant select, insert, update, delete on table public.email_events to service_role;
 grant all on public.automation_test_runs to service_role;
 grant select, insert, update, delete on table public.followup_jobs to service_role;
+
+grant select on public.customers to authenticated;
+grant select on public.projects to authenticated;
+grant update(status, used_revisions) on public.projects to authenticated;
+grant select, insert on public.project_files to authenticated;
+grant select on public.quotes to authenticated;
+grant update(viewed_at) on public.quotes to authenticated;
+grant select on public.quote_line_items to authenticated;
+grant select, insert on public.project_events to authenticated;
+grant select, insert on public.revision_requests to authenticated;
+
+drop policy if exists customers_select_own on public.customers;
+create policy customers_select_own
+  on public.customers
+  for select
+  to authenticated
+  using (auth.uid() = auth_user_id);
+
+drop policy if exists projects_select_own on public.projects;
+create policy projects_select_own
+  on public.projects
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.customers customer
+      where customer.id = projects.customer_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );
+
+drop policy if exists projects_update_own on public.projects;
+create policy projects_update_own
+  on public.projects
+  for update
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.customers customer
+      where customer.id = projects.customer_id
+        and customer.auth_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.customers customer
+      where customer.id = projects.customer_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );
+
+drop policy if exists project_files_select_own on public.project_files;
+create policy project_files_select_own
+  on public.project_files
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.projects project
+      join public.customers customer on customer.id = project.customer_id
+      where project.id = project_files.project_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );
+
+drop policy if exists project_files_insert_own on public.project_files;
+create policy project_files_insert_own
+  on public.project_files
+  for insert
+  to authenticated
+  with check (
+    project_id is not null
+    and exists (
+      select 1
+      from public.projects project
+      join public.customers customer on customer.id = project.customer_id
+      where project.id = project_files.project_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );
+
+drop policy if exists quotes_select_own on public.quotes;
+create policy quotes_select_own
+  on public.quotes
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.customers customer
+      where customer.id = quotes.customer_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );
+
+drop policy if exists quotes_update_own on public.quotes;
+create policy quotes_update_own
+  on public.quotes
+  for update
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.customers customer
+      where customer.id = quotes.customer_id
+        and customer.auth_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.customers customer
+      where customer.id = quotes.customer_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );
+
+drop policy if exists quote_line_items_select_own on public.quote_line_items;
+create policy quote_line_items_select_own
+  on public.quote_line_items
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.quotes quote
+      join public.customers customer on customer.id = quote.customer_id
+      where quote.id = quote_line_items.quote_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );
+
+drop policy if exists project_events_select_own on public.project_events;
+create policy project_events_select_own
+  on public.project_events
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.projects project
+      join public.customers customer on customer.id = project.customer_id
+      where project.id = project_events.project_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );
+
+drop policy if exists project_events_insert_own on public.project_events;
+create policy project_events_insert_own
+  on public.project_events
+  for insert
+  to authenticated
+  with check (
+    exists (
+      select 1
+      from public.projects project
+      join public.customers customer on customer.id = project.customer_id
+      where project.id = project_events.project_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );
+
+drop policy if exists revision_requests_select_own on public.revision_requests;
+create policy revision_requests_select_own
+  on public.revision_requests
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.customers customer
+      where customer.id = revision_requests.customer_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );
+
+drop policy if exists revision_requests_insert_own on public.revision_requests;
+create policy revision_requests_insert_own
+  on public.revision_requests
+  for insert
+  to authenticated
+  with check (
+    exists (
+      select 1
+      from public.customers customer
+      where customer.id = revision_requests.customer_id
+        and customer.auth_user_id = auth.uid()
+    )
+  );

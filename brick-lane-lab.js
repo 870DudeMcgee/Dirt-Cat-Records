@@ -3,6 +3,10 @@
     globalScope.BrickLaneData ||
     (typeof require === "function" ? require("./brick-lane-data") : null);
 
+  const stateMachine =
+    globalScope.BrickLaneLabStateMachine ||
+    (typeof require === "function" ? require("./lib/lab/state-machine") : null);
+
   let audioCtx = null;
 
   function escapeHtml(value) {
@@ -241,7 +245,7 @@
     }
   };
 
-  function renderExactLedLadder({ color, scale, selected, id, visualScale }) {
+  function renderExactLedLadder({ color, scale, selected, id, visualScale, exactSelected }) {
     const selectedSet = new Set(selected || []);
     const ledColor = data.BRICK_LANE_COLORS[color] || color;
 
@@ -254,7 +258,7 @@
     const rungs = scale
       .map((label, index) => {
         let isOn = "";
-        if (id === "detector") {
+        if (id === "detector" || exactSelected) {
           // Separated dot/hybrid display for the multi-detector parameter
           isOn = selectedSet.has(label) ? " is-on" : "";
         } else {
@@ -296,6 +300,7 @@
   function renderParameterCard(parameter, options = {}) {
     const ledColor = data.BRICK_LANE_COLORS[parameter.color] || parameter.color;
     const monitoredClass = options.isMonitored ? " is-monitored" : "";
+    const selected = options.selectedOverride || parameter.selected;
     const guide = getParameterGuide(parameter.id);
     const plainLabel = guide
       ? `<p class="brick-lane-plain-label">${escapeHtml(guide.userLabel)}</p>`
@@ -308,7 +313,7 @@
       ${plainLabel}
       <p>${escapeHtml(parameter.side)}. ${escapeHtml(parameter.description || "")}</p>
       ${plainMeaning}
-      ${renderExactLedLadder(parameter)}
+      ${renderExactLedLadder({ ...parameter, selected, exactSelected: Boolean(options.selectedOverride) })}
     </article>`;
   }
 
@@ -733,32 +738,13 @@
         .map((id) =>
           renderParameterCard(preset.parameters[id], {
             isMonitored: monitorParam !== "VU" && monitorParam === id,
+            selectedOverride: state.parameterSelections?.[id],
           })
         )
         .join("")}
     </div>`;
 
     return renderMonitorSelect(state) + tabsHtml + cardsHtml;
-  }
-
-  function cloneDefaultState() {
-    return {
-      ...data.DEFAULT_STATE,
-      controls: { ...data.DEFAULT_STATE.controls },
-      context: { ...data.DEFAULT_STATE.context },
-      frontPanelValues: {
-        input: 50,
-        threshold: 48,
-        attack: 42,
-        release: 52,
-        output: 50,
-        stress: 28,
-        scf: "100 Hz",
-        link: "STEREO"
-      },
-      activeTab: "primary",
-      monitorParam: "VU"
-    };
   }
 
   function initDom() {
@@ -778,18 +764,13 @@
       printSheet: document.getElementById("brick-lane-print-sheet"),
     };
 
-    let state = cloneDefaultState();
+    let state = stateMachine.getInitialState();
 
     function setUseCase(useCaseId) {
-      const firstArchetype = data.getArchetypesForUseCase(useCaseId)[0];
-      state = {
-        ...state,
-        useCaseId,
-        archetypeId: firstArchetype ? firstArchetype.id : state.archetypeId,
-      };
-      if (firstArchetype && firstArchetype.frontPanelValues) {
-        state.frontPanelValues = { ...firstArchetype.frontPanelValues };
-      }
+      state = stateMachine.labStateReducer(state, {
+        type: "SET_USE_CASE",
+        payload: { useCaseId }
+      });
       render();
     }
 
@@ -808,7 +789,10 @@
     nodes.parameters.addEventListener("click", (event) => {
       const tabBtn = event.target.closest(".brick-lane-tab-btn");
       if (tabBtn) {
-        state.activeTab = tabBtn.dataset.tab;
+        state = stateMachine.labStateReducer(state, {
+          type: "SET_ACTIVE_TAB",
+          payload: { tab: tabBtn.dataset.tab }
+        });
         render();
         playShortClick(700, 0.08);
         return;
@@ -816,14 +800,22 @@
 
       const rung = event.target.closest(".brick-lane-rung");
       if (!rung) return;
-      rung.classList.toggle("is-on");
+      const card = rung.closest(".brick-lane-parameter-card");
+      state = stateMachine.labStateReducer(state, {
+        type: "TOGGLE_PARAMETER_RUNG",
+        payload: { parameterId: card?.dataset.parameterId, value: rung.dataset.val }
+      });
+      render();
       playShortClick(400, 0.05);
     });
 
     nodes.parameters.addEventListener("change", (event) => {
       const select = event.target.closest("#brick-lane-monitor-select");
       if (!select) return;
-      state.monitorParam = select.value;
+      state = stateMachine.labStateReducer(state, {
+        type: "SET_MONITOR_PARAM",
+        payload: { param: select.value }
+      });
       render();
       playShortClick(800, 0.1);
     });
@@ -835,15 +827,21 @@
       
       const param = toggle.dataset.param;
       const isOn = toggle.classList.toggle("is-on");
-      
+
       playShortClick(180, 0.15);
       playShortClick(90, 0.08);
-      
+
+      let value;
       if (param === "scf") {
-        state.frontPanelValues.scf = isOn ? "120Hz" : "60Hz";
+        value = isOn ? "120Hz" : "60Hz";
       } else if (param === "link") {
-        state.frontPanelValues.link = isOn ? "MONO" : "STEREO";
+        value = isOn ? "MONO" : "STEREO";
       }
+
+      state = stateMachine.labStateReducer(state, {
+        type: "UPDATE_FRONT_PANEL",
+        payload: { param, value }
+      });
       render();
     });
 
@@ -906,7 +904,10 @@
         document.removeEventListener("touchmove", dragMoveKnob);
         document.removeEventListener("touchend", dragEndKnob);
         
-        state.frontPanelValues[param] = Number(knob.dataset.val);
+        state = stateMachine.labStateReducer(state, {
+          type: "UPDATE_FRONT_PANEL",
+          payload: { param, value: Number(knob.dataset.val) }
+        });
         render();
       }
       
@@ -954,7 +955,10 @@
         document.removeEventListener("touchmove", dragMoveDial);
         document.removeEventListener("touchend", dragEndDial);
         
-        state.controls[controlId] = Number(input.value);
+        state = stateMachine.labStateReducer(state, {
+          type: "UPDATE_CONTROL",
+          payload: { controlId, value: Number(input.value) }
+        });
         render();
       }
       
@@ -1138,26 +1142,20 @@
       const button = event.target.closest("[data-archetype-id]");
       if (!button) return;
       
-      const archetypeId = button.dataset.archetypeId;
-      const matchingArch = data.ARCHETYPES.find(arch => arch.id === archetypeId);
-      
-      state = { ...state, archetypeId };
-      if (matchingArch && matchingArch.frontPanelValues) {
-        state.frontPanelValues = { ...matchingArch.frontPanelValues };
-      }
+      state = stateMachine.labStateReducer(state, {
+        type: "SET_ARCHETYPE",
+        payload: { archetypeId: button.dataset.archetypeId }
+      });
       render();
     });
 
     nodes.controls.addEventListener("input", (event) => {
       const input = event.target.closest("[data-control-id]");
       if (!input) return;
-      state = {
-        ...state,
-        controls: {
-          ...state.controls,
-          [input.dataset.controlId]: Number(input.value),
-        },
-      };
+      state = stateMachine.labStateReducer(state, {
+        type: "UPDATE_CONTROL",
+        payload: { controlId: input.dataset.controlId, value: Number(input.value) }
+      });
       render();
     });
 

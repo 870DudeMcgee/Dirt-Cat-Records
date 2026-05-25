@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createPaypalWebhookHandler } = require("../api/webhooks/paypal");
+const { createPaypalWebhookHandler } = require("../lib/api/webhooks/paypal");
 
 test("paypal webhook route rejects invalid signatures", async () => {
   let workflowCalled = false;

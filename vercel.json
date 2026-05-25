@@ -1,3 +1,17 @@
 {
-  "version": 2
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/create-paypal-order", "destination": "/api/public?route=create-paypal-order" },
+    { "source": "/api/capture-paypal-order", "destination": "/api/public?route=capture-paypal-order" },
+    { "source": "/api/checkout-config", "destination": "/api/public?route=checkout-config" },
+    { "source": "/api/public/free-review", "destination": "/api/public?route=free-review" },
+    { "source": "/api/public/project-support", "destination": "/api/public?route=project-support" },
+    { "source": "/api/webhooks/paypal", "destination": "/api/public?route=paypal-webhook" },
+
+    { "source": "/api/portal/actions", "destination": "/api/studio?route=portal-actions" },
+    { "source": "/api/admin/overview", "destination": "/api/studio?route=admin-overview" },
+    { "source": "/api/admin/projects", "destination": "/api/studio?route=admin-projects" },
+    { "source": "/api/admin/quotes", "destination": "/api/studio?route=admin-quotes" },
+    { "source": "/api/admin/setup-wizard", "destination": "/api/studio?route=admin-setup-wizard" }
+  ]
 }

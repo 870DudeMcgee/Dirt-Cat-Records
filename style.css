@@ -3881,6 +3881,43 @@ footer {
     0 20px 44px rgba(0, 0, 0, 0.5);
 }
 
+.brick-lane-rack-ear {
+  position: relative;
+  height: 24px;
+  margin: -0.35rem -0.35rem 0.45rem;
+  border-radius: 10px 10px 4px 4px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.04) 48%, rgba(0, 0, 0, 0.32)),
+    #777b84;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.28);
+}
+
+.brick-lane-rack-ear::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(circle at 36% 32%, rgba(255, 255, 255, 0.42), transparent 24%),
+    radial-gradient(circle, #17191f 0 42%, #4f535c 46% 62%, #1a1c21 66% 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.85),
+    0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.brick-lane-rack-ear-bottom {
+  height: 18px;
+  margin: 0.45rem -0.35rem -0.28rem;
+  border-radius: 4px 4px 10px 10px;
+}
+
 .brick-lane-stripe {
   height: 14px;
   margin: -0.12rem -0.12rem 0.55rem;
@@ -3893,6 +3930,124 @@ footer {
     #101018 9px 12px
   );
   opacity: 0.86;
+}
+
+.brick-lane-faceplate-core {
+  position: relative;
+  min-height: 1000px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.brick-lane-brand-lockup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  gap: 0.65rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.brick-lane-model-label {
+  margin-top: 0.1rem;
+  color: var(--brick-lane-muted);
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: lowercase;
+}
+
+.brick-lane-panel-body {
+  display: grid;
+  grid-template-columns: 134px 166px;
+  justify-content: center;
+  align-items: start;
+  column-gap: 0.9rem;
+}
+
+.brick-lane-main-controls {
+  display: grid;
+  gap: 1.75rem;
+  justify-items: center;
+}
+
+.brick-lane-right-controls {
+  display: grid;
+  gap: 1.1rem;
+  justify-items: center;
+  align-content: start;
+}
+
+.brick-lane-meter-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 0.22rem;
+  width: 166px;
+}
+
+.brick-lane-hardware .brick-lane-knob-container {
+  width: 128px;
+}
+
+.brick-lane-hardware .brick-lane-stress-knob {
+  width: 116px;
+}
+
+.brick-lane-hardware .brick-lane-knob-header {
+  min-height: 1.05rem;
+  padding: 0;
+}
+
+.brick-lane-hardware .brick-lane-knob-name {
+  font-size: 0.58rem !important;
+}
+
+.brick-lane-hardware .brick-lane-knob-readout {
+  font-size: 0.56rem;
+}
+
+.brick-lane-hardware .brick-lane-scale-row {
+  width: 108px;
+  margin: 0.18rem auto 0;
+}
+
+.brick-lane-lower-hardware {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem 0.35rem;
+  width: 150px;
+  justify-items: center;
+}
+
+.brick-lane-lower-section {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  min-width: 62px;
+}
+
+.brick-lane-toggle-label {
+  color: var(--brick-lane-muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.48rem;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+}
+
+.brick-lane-lower-section:nth-child(3) .brick-lane-mini-title {
+  text-transform: none;
+}
+
+.brick-lane-footer-brand {
+  position: absolute;
+  right: 0;
+  bottom: 0.8rem;
+  left: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-align: center;
 }
 
 .brick-lane-brand-row,
@@ -4774,6 +4929,19 @@ footer {
   .brick-lane-cards-grid.is-dense {
     grid-template-columns: 1fr;
   }
+
+  .brick-lane-panel-body {
+    grid-template-columns: 116px 166px;
+    column-gap: 0.5rem;
+  }
+
+  .brick-lane-hardware .brick-lane-knob-container {
+    width: 116px;
+  }
+
+  .brick-lane-hardware .brick-lane-knob-readout {
+    font-size: 0.52rem;
+  }
 }
 
 
@@ -4808,14 +4976,17 @@ footer {
 }
 
 /* Perfectly Mirror the Left Meter on the Hardware Faceplate (SIG scale left of LEDs) */
+.brick-lane-meter-pair > .brick-lane-physical-meter:first-child .brick-lane-led-ladder,
 .brick-lane-hardware-ladders > div:first-child .brick-lane-led-ladder {
   grid-template-columns: 22px 34px !important;
 }
 
+.brick-lane-meter-pair > .brick-lane-physical-meter:first-child .brick-lane-rung,
 .brick-lane-hardware-ladders > div:first-child .brick-lane-rung {
   grid-column: 2 !important;
 }
 
+.brick-lane-meter-pair > .brick-lane-physical-meter:first-child .brick-lane-led-label,
 .brick-lane-hardware-ladders > div:first-child .brick-lane-led-label {
   grid-column: 1 !important;
   grid-row: auto !important;

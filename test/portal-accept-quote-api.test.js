@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createPortalActionsHandler } = require("../api/portal/actions");
+const { createPortalActionsHandler } = require("../lib/api/portal/actions");
 
 test("portal accept quote endpoint validates required input", async () => {
   const handler = createPortalActionsHandler({

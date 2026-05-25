@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createPortalActionsHandler } = require("../api/portal/actions");
+const { createPortalActionsHandler } = require("../lib/api/portal/actions");
 
 test("portal file link endpoint rejects unauthenticated requests", async () => {
   const handler = createPortalActionsHandler({
@@ -130,6 +130,42 @@ test("portal projects endpoint requests fields needed by the customer portal", a
   assert.match(projectSelect, /amount_paid/);
   assert.ok(calls.some((call) => call.path === "/quotes"));
   assert.ok(calls.some((call) => call.path === "/quote_line_items"));
+});
+
+test("portal projects endpoint uses authorized records by default", async () => {
+  const calls = [];
+  const handler = createPortalActionsHandler({
+    requireUserImpl: async () => ({ email: "buyer@example.com" }),
+    env: {
+      SUPABASE_URL: "https://scoped.supabase.co",
+      SUPABASE_PUBLIC_KEY: "public-key",
+    },
+    fetchImpl: async (url, options) => {
+      calls.push({ url: String(url), options });
+      if (String(url).includes("/customers")) {
+        return jsonResponse([{ id: "customer-1", email: "buyer@example.com" }]);
+      }
+      if (String(url).includes("/projects")) {
+        return jsonResponse([{ id: "project-1", active_quote_id: null }]);
+      }
+      return jsonResponse([]);
+    },
+  });
+
+  const res = response();
+  await handler(
+    {
+      method: "GET",
+      headers: { authorization: "Bearer customer-jwt" },
+      url: "/api/portal/actions?action=projects",
+    },
+    res
+  );
+
+  assert.equal(res.statusCode, 200);
+  assert.ok(calls.every((call) => call.url.startsWith("https://scoped.supabase.co/rest/v1/")));
+  assert.ok(calls.every((call) => call.options.headers.apikey === "public-key"));
+  assert.ok(calls.every((call) => call.options.headers.Authorization === "Bearer customer-jwt"));
 });
 
 test("revision endpoint sends and logs admin notification", async () => {
@@ -289,5 +325,12 @@ function response() {
       this.body = body;
       return this;
     },
+  };
+}
+
+function jsonResponse(body) {
+  return {
+    ok: true,
+    text: async () => JSON.stringify(body),
   };
 }

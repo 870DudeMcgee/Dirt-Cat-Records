@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   createProjectSupportHandler,
-} = require("../api/public/project-support");
+} = require("../lib/api/public/project-support");
 
 test("project support endpoint validates and emails admin with payment context", async () => {
   let sentMessage = null;
