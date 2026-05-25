@@ -38,5 +38,5 @@ Date: 2026-05-25
 
 ## Known Open Risks
 
-- Enigma internal rung behavior still needs guide-by-guide verification. Keep those as data-only changes and mark unverified entries in `brick-lane-data.js` if source evidence is not clear.
+- Enigma internal rung behavior is governed by [brick-lane-manual-audit.md](brick-lane-manual-audit.md). Future changes must update that audit and the source-aligned tests before changing UI labels or preset data.
 - Do not ship official Cranborne imagery as product art unless permission is confirmed. Use official images as implementation reference and QA evidence; keep the shipped faceplate code-drawn.
