@@ -97,6 +97,20 @@ test("parameter cards show hardware labels and plain-language meanings", () => {
   assert.match(html, /Chooses the flavor of drive or clipping/);
 });
 
+test("stress character ladder demystifies mode-family names", () => {
+  const html = renderParameterCard({
+    ...ENIGMA_PARAMETERS.stressTypeDiodeClipping,
+    selected: ["1.0"],
+  });
+
+  assert.match(html, /Velvet \(Vari-Mu\)/);
+  assert.match(html, /Float \(Optical\)/);
+  assert.match(html, /Smash \(FET\)/);
+  assert.match(html, /Tame \(Clean\/Transparent\)/);
+  assert.match(html, /Glue \(VCA\)/);
+  assert.match(html, /Polish Blue \(Limiter\/Clipper\)/);
+});
+
 test("createCopyText contains full parameter names and selected rung labels", () => {
   const preset = getGeneratedPreset();
   const text = createCopyText(preset);
@@ -115,6 +129,16 @@ test("copy recall text includes Enigma guide labels for users", () => {
   assert.match(text, /Compression ratio/);
 });
 
+test("copy recall why text uses saturation language outside hardware labels", () => {
+  const preset = getGeneratedPreset({
+    archetypeId: "modern-finished-bus",
+  });
+  const text = createCopyText(preset);
+
+  assert.match(text, /Low saturation keeps the mix from changing tone too much/i);
+  assert.doesNotMatch(text, /\bLow stress\b/i);
+});
+
 test("polish color variants use the shared Polish mode guide", () => {
   const preset = { ...getGeneratedPreset(), mode: "Polish Blue" };
   const html = renderPresetSummary(preset);
@@ -122,6 +146,18 @@ test("polish color variants use the shared Polish mode guide", () => {
 
   assert.match(html, /POLISH - Limiter\/Clipper/i);
   assert.match(text, /POLISH - Limiter\/Clipper/i);
+});
+
+test("physical faceplate lights shared POLISH mode for polish color variants", () => {
+  const preset = { ...getGeneratedPreset(), mode: "Polish Blue" };
+  const html = renderHardwareFaceplate(preset, {
+    frontPanelValues: preset.frontPanelValues,
+  });
+
+  assert.match(html, /class="brick-lane-mode-dot is-active">POLISH<\/span>/);
+  assert.match(html, /id="brick-lane-hw-mode">POLISH<\/div>/);
+  assert.doesNotMatch(html, /id="brick-lane-hw-mode">Polish Blue<\/div>/);
+  assert.doesNotMatch(html, /Limiter\/Clipper|Saturation/);
 });
 
 test("copyRecallText handles denied clipboard permission without throwing", async () => {
@@ -152,6 +188,25 @@ test("renderPrintSheet includes all Enigma parameters with exact ladders", () =>
   assert.equal((html.match(/class="brick-lane-rung/g) || []).length, 14 * 12);
   assert.match(html, /Brick Lane 500 - Generated Preset Cheat Sheet/);
   assert.match(html, /Front-panel starting points/);
+});
+
+test("renderPrintSheet carries plain-language mode and saturation guidance", () => {
+  const preset = { ...getGeneratedPreset(), mode: "Glue" };
+  const html = renderPrintSheet(preset);
+
+  assert.match(html, /GLUE - VCA/i);
+  assert.match(html, /Saturation \(STRESS\)/);
+  assert.match(html, /The hardware calls this STRESS/i);
+});
+
+test("renderPrintSheet why text avoids lowercase stress wording", () => {
+  const preset = getGeneratedPreset({
+    archetypeId: "aggressive-energy-bus",
+  });
+  const html = renderPrintSheet(preset);
+
+  assert.match(html, /Higher saturation and firmer diode behavior add attitude/i);
+  assert.doesNotMatch(html, /\bHigher stress\b/i);
 });
 
 test("renderHardwareFaceplate matches physical front-panel anatomy", () => {
@@ -209,6 +264,19 @@ test("recall cards mark the selected non-faceplate monitor parameter", () => {
     html,
     /brick-lane-parameter-card is-monitored"[^>]*data-parameter-id="attackWeighting"/
   );
+});
+
+test("recall monitor labels use saturation language for stress parameters", () => {
+  const preset = getGeneratedPreset();
+  const html = renderRecallCards(preset, {
+    activeTab: "tone",
+    monitorParam: "stressTypeDiodeClipping",
+  });
+
+  assert.match(html, /Saturation character \(Red\)/);
+  assert.match(html, /Saturation hardness \(Yellow\)/);
+  assert.match(html, /Saturation crossover and phase \(Blue\)/);
+  assert.doesNotMatch(html, /Stress Diode|Stress Phase/);
 });
 
 test("recall cards include and mark an off-tab monitored parameter", () => {

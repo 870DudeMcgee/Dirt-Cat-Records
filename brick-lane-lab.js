@@ -48,13 +48,13 @@
 
   const RUNG_LABELS = {
     stressTypeDiodeClipping: {
-      "0.5": "Velvet",
-      "1.0": "Float",
-      "1.5": "Smash",
-      "2": "Tame",
-      "3": "Glue",
-      "4": "Polish White",
-      "5": "Polish Blue",
+      "0.5": "Velvet (Vari-Mu)",
+      "1.0": "Float (Optical)",
+      "1.5": "Smash (FET)",
+      "2": "Tame (Clean/Transparent)",
+      "3": "Glue (VCA)",
+      "4": "Polish White (Limiter/Clipper)",
+      "5": "Polish Blue (Limiter/Clipper)",
       "6": "Series Clip 1",
       "8": "Series Clip 2",
       "10": "Series Clip 3",
@@ -413,6 +413,9 @@
   }
 
   function renderPrintSheet(preset) {
+    const modeGuide = getModeGuide(preset.mode);
+    const modeLabel = formatModeLabel(preset.mode);
+    const saturation = data.ENIGMA_DEMYSTIFIER.saturation;
     const parameterCards = preset.parameterOrder
       .map((parameterId) => renderParameterCard(preset.parameters[parameterId]))
       .join("");
@@ -425,6 +428,7 @@
         <div>
           <h2>Brick Lane 500 - Generated Preset Cheat Sheet</h2>
           <p>${escapeHtml(preset.mode)}: ${escapeHtml(preset.label)}</p>
+          ${modeGuide ? `<p class="brick-lane-mode-family">${escapeHtml(modeLabel)}</p>` : ""}
         </div>
         <div class="brick-lane-print-meta">
           <strong>Target GR:</strong> ${escapeHtml(preset.targetGainReduction)}<br>
@@ -439,9 +443,10 @@
           <div><dt>Attack</dt><dd>${escapeHtml(preset.frontPanel.attack)}</dd></div>
           <div><dt>Release</dt><dd>${escapeHtml(preset.frontPanel.release)}</dd></div>
           <div><dt>Output</dt><dd>${escapeHtml(preset.frontPanel.output)}</dd></div>
-          <div><dt>STRESS</dt><dd>${escapeHtml(preset.frontPanel.stress)}</dd></div>
+          <div><dt>${escapeHtml(saturation.userLabel)} (${escapeHtml(saturation.hardwareLabel)})</dt><dd>${escapeHtml(preset.frontPanel.stress)}</dd></div>
           <div><dt>SCF</dt><dd>${escapeHtml(preset.frontPanel.scf)}</dd></div>
         </dl>
+        <p class="brick-lane-saturation-note">${escapeHtml(saturation.summary)}</p>
       </section>
       <section class="brick-lane-print-parameters">
         ${parameterCards}
@@ -552,7 +557,7 @@
   }
 
   function renderPhysicalModeList(activeMode) {
-    const normalizedActiveMode = String(activeMode || "").toUpperCase();
+    const normalizedActiveMode = normalizeModeKey(activeMode);
     const modes = data.FRONT_PANEL_REFERENCE.modeLabels;
     return `<div class="brick-lane-mode-list">${modes
       .map((mode) => {
@@ -609,6 +614,7 @@
       link: "STEREO"
     };
     const reference = data.FRONT_PANEL_REFERENCE;
+    const hardwareModeLabel = getModeGuide(preset.mode)?.hardwareLabel || normalizeModeKey(preset.mode);
 
     return `<div class="brick-lane-hardware" aria-label="Brick Lane 500 front panel">
       <div class="brick-lane-rack-ear brick-lane-rack-ear-top" aria-hidden="true"></div>
@@ -619,7 +625,7 @@
           <div class="brick-lane-brand">BRICK LANE</div>
           <div class="brick-lane-model-label">modal compressor</div>
         </div>
-        <div class="brick-lane-mode-label" id="brick-lane-hw-mode">${escapeHtml(preset.mode)}</div>
+        <div class="brick-lane-mode-label" id="brick-lane-hw-mode">${escapeHtml(hardwareModeLabel)}</div>
       </div>
       <div class="brick-lane-panel-body">
         <div class="brick-lane-main-controls">
@@ -662,12 +668,12 @@
       <select id="brick-lane-monitor-select" class="brick-lane-select" aria-label="Parameter Monitor">
         <option value="VU" ${monitorParam === "VU" ? "selected" : ""}>Monitor: VU (GR Mode)</option>
         <optgroup label="Left Enigma Parameters">
-          <option value="stressTypeDiodeClipping" ${monitorParam === "stressTypeDiodeClipping" ? "selected" : ""}>Stress Diode (Red)</option>
-          <option value="diodeHardness" ${monitorParam === "diodeHardness" ? "selected" : ""}>Diode Hardness (Yellow)</option>
+          <option value="stressTypeDiodeClipping" ${monitorParam === "stressTypeDiodeClipping" ? "selected" : ""}>Saturation character (Red)</option>
+          <option value="diodeHardness" ${monitorParam === "diodeHardness" ? "selected" : ""}>Saturation hardness (Yellow)</option>
           <option value="sidechainHighFrequencyEmphasis" ${monitorParam === "sidechainHighFrequencyEmphasis" ? "selected" : ""}>Sidechain HF (Magenta)</option>
           <option value="detector" ${monitorParam === "detector" ? "selected" : ""}>Detector Curve (Cyan)</option>
           <option value="stereoMonoSidechainLinking" ${monitorParam === "stereoMonoSidechainLinking" ? "selected" : ""}>Sidechain Link (White)</option>
-          <option value="stressCrossoverPhase" ${monitorParam === "stressCrossoverPhase" ? "selected" : ""}>Stress Phase (Blue)</option>
+          <option value="stressCrossoverPhase" ${monitorParam === "stressCrossoverPhase" ? "selected" : ""}>Saturation crossover and phase (Blue)</option>
           <option value="crestFactorShaping" ${monitorParam === "crestFactorShaping" ? "selected" : ""}>Crest Shaping (Green)</option>
         </optgroup>
         <optgroup label="Right Enigma Parameters">

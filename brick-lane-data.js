@@ -256,14 +256,14 @@
       label: "Diode Hardness",
       side: "Enigma Left",
       color: "yellow",
-      description: "Changes the hardness of the stress distortion diode clipping curve.",
+      description: "Changes the hardness of the saturation diode clipping curve.",
     }),
     stressCrossoverPhase: parameter({
       id: "stressCrossoverPhase",
       label: "Stress Crossover & Phase",
       side: "Enigma Left",
       color: "blue",
-      description: "Influences frequency-dependent phase changes when STRESS is engaged; critical for parallel compression.",
+      description: "Influences frequency-dependent phase changes when saturation is engaged; critical for parallel compression.",
     }),
     sidechainHighFrequencyEmphasis: parameter({
       id: "sidechainHighFrequencyEmphasis",
@@ -438,7 +438,7 @@
       why: [
         "Velvet favors a smoother feel.",
         "Softer knee keeps the compression less obvious.",
-        "Moderate stress adds tone without turning the track gritty.",
+        "Moderate saturation adds tone without turning the track gritty.",
       ],
       selected: {
         stressTypeDiodeClipping: ["1.5"],
@@ -535,7 +535,7 @@
         "A more committed vocal print with audible tone, weight, and movement.",
       why: [
         "Float keeps the vocal energetic.",
-        "Higher stress and harder diode behavior print more color.",
+        "Higher saturation and harder diode behavior print more color.",
         "Moderate lookahead keeps the tone useful while tracking.",
       ],
       selected: {
@@ -583,7 +583,7 @@
       summary: "Stable stereo bus control with soft glue and low coloration.",
       why: [
         "Glue mode keeps the stereo bus cohesive.",
-        "Low stress avoids obvious tone shift.",
+        "Low saturation avoids obvious tone shift.",
         "Conservative ratio and knee preserve mix movement.",
       ],
       selected: {
@@ -632,7 +632,7 @@
         "A warmer bus start with more density and a little transformer/tube-like attitude.",
       why: [
         "Velvet leans into smoother color.",
-        "Moderate stress adds thickness.",
+        "Moderate saturation adds thickness.",
         "Slower movement preserves groove.",
       ],
       selected: {
@@ -731,7 +731,7 @@
       why: [
         "Polish Blue keeps the compressor in a peak-finishing role.",
         "Lookahead adds clean control.",
-        "Low stress keeps the mix from changing tone too much.",
+        "Low saturation keeps the mix from changing tone too much.",
       ],
       selected: {
         stressTypeDiodeClipping: ["0.5"],
@@ -779,7 +779,7 @@
         "A character bus start for obvious energy, movement, and attitude.",
       why: [
         "Smash mode makes the compression part of the sound.",
-        "Higher stress and firmer diode behavior add attitude.",
+        "Higher saturation and firmer diode behavior add attitude.",
         "Peak-aware settings keep impact controlled.",
       ],
       selected: {
