@@ -8,6 +8,7 @@ const {
   COMMON_LED_SCALE,
   BRICK_LANE_COLORS,
   ENIGMA_PARAMETERS,
+  PARAMETER_ORDER,
   USE_CASES,
   ARCHETYPES,
   getGeneratedPreset,
@@ -207,4 +208,17 @@ test("Enigma demystifier keeps recall-critical hardware labels available", () =>
     ENIGMA_DEMYSTIFIER.parameters.detector.userLabel,
     "Detector blend"
   );
+});
+
+test("Enigma demystifier hardware labels stay aligned with canonical parameters", () => {
+  const { ENIGMA_DEMYSTIFIER } = require("../brick-lane-data");
+
+  assert.deepEqual(Object.keys(ENIGMA_DEMYSTIFIER.parameters), PARAMETER_ORDER);
+
+  for (const id of PARAMETER_ORDER) {
+    assert.equal(
+      ENIGMA_DEMYSTIFIER.parameters[id].hardwareLabel,
+      ENIGMA_PARAMETERS[id].label
+    );
+  }
 });
