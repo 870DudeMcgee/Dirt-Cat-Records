@@ -1,6 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { getInitialState, labStateReducer } = require("../lib/lab/state-machine");
+const {
+  getInitialState,
+  labStateReducer,
+} = require("../lib/lab/state-machine");
 
 test("state machine returns complete initial state", () => {
   const state = getInitialState();
@@ -24,7 +27,7 @@ test("state machine handles SET_USE_CASE action", () => {
   const initialState = getInitialState();
   const nextState = labStateReducer(initialState, {
     type: "SET_USE_CASE",
-    payload: { useCaseId: "mix-bus" }
+    payload: { useCaseId: "mix-bus" },
   });
 
   assert.equal(nextState.useCaseId, "mix-bus");
@@ -37,7 +40,7 @@ test("state machine handles SET_ARCHETYPE action", () => {
   const initialState = getInitialState();
   const nextState = labStateReducer(initialState, {
     type: "SET_ARCHETYPE",
-    payload: { archetypeId: "character-vocal-print" }
+    payload: { archetypeId: "character-vocal-print" },
   });
 
   assert.equal(nextState.archetypeId, "character-vocal-print");
@@ -48,7 +51,7 @@ test("state machine handles UPDATE_CONTROL action", () => {
   const initialState = getInitialState();
   const nextState = labStateReducer(initialState, {
     type: "UPDATE_CONTROL",
-    payload: { controlId: "punchSmooth", value: 85 }
+    payload: { controlId: "punchSmooth", value: 85 },
   });
 
   assert.equal(nextState.controls.punchSmooth, 85);
@@ -60,7 +63,7 @@ test("state machine handles UPDATE_FRONT_PANEL action", () => {
   const initialState = getInitialState();
   const nextState = labStateReducer(initialState, {
     type: "UPDATE_FRONT_PANEL",
-    payload: { param: "input", value: 75 }
+    payload: { param: "input", value: 75 },
   });
 
   assert.equal(nextState.frontPanelValues.input, 75);
@@ -72,7 +75,7 @@ test("state machine handles SET_ACTIVE_TAB action", () => {
   const initialState = getInitialState();
   const nextState = labStateReducer(initialState, {
     type: "SET_ACTIVE_TAB",
-    payload: { tab: "tone" }
+    payload: { tab: "tone" },
   });
 
   assert.equal(nextState.activeTab, "tone");
@@ -82,26 +85,40 @@ test("state machine handles SET_MONITOR_PARAM action", () => {
   const initialState = getInitialState();
   const nextState = labStateReducer(initialState, {
     type: "SET_MONITOR_PARAM",
-    payload: { param: "ratio" }
+    payload: { param: "ratio" },
   });
 
   assert.equal(nextState.monitorParam, "ratio");
 });
 
-test("state machine toggles parameter rung selections immutably", () => {
+test("state machine stores pattern setting selections immutably", () => {
   const initialState = getInitialState();
   const selectedState = labStateReducer(initialState, {
-    type: "TOGGLE_PARAMETER_RUNG",
-    payload: { parameterId: "ratio", value: "4" }
+    type: "SET_PARAMETER_SELECTION",
+    payload: {
+      parameterId: "detector",
+      selection: { settingId: "peak-rms" },
+    },
   });
 
-  assert.deepEqual(selectedState.parameterSelections.ratio, ["4"]);
+  assert.deepEqual(selectedState.parameterSelections.detector, {
+    settingId: "peak-rms",
+  });
   assert.deepEqual(initialState.parameterSelections, {});
+});
 
-  const clearedState = labStateReducer(selectedState, {
-    type: "TOGGLE_PARAMETER_RUNG",
-    payload: { parameterId: "ratio", value: "4" }
+test("state machine stores stepped scalar selections immutably", () => {
+  const initialState = getInitialState();
+  const selectedState = labStateReducer(initialState, {
+    type: "SET_PARAMETER_SELECTION",
+    payload: {
+      parameterId: "ledBrightness",
+      selection: { value: "6" },
+    },
   });
 
-  assert.deepEqual(clearedState.parameterSelections.ratio, []);
+  assert.deepEqual(selectedState.parameterSelections.ledBrightness, {
+    value: "6",
+  });
+  assert.deepEqual(initialState.parameterSelections, {});
 });

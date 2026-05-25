@@ -667,12 +667,17 @@
       const rung = event.target.closest(".brick-lane-rung");
       if (!rung) return;
       const card = rung.closest(".brick-lane-parameter-card");
+      const parameterId = card?.dataset.parameterId;
+      const preset = data.getGeneratedPreset(state);
+      const parameter = preset.parameters[parameterId];
+
+      if (parameter?.behavior === "pattern-settings") {
+        return;
+      }
+
       state = stateMachine.labStateReducer(state, {
         type: "TOGGLE_PARAMETER_RUNG",
-        payload: {
-          parameterId: card?.dataset.parameterId,
-          value: rung.dataset.val,
-        },
+        payload: { parameterId, value: rung.dataset.val },
       });
       render();
       playShortClick(400, 0.05);
