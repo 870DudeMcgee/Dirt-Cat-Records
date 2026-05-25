@@ -115,6 +115,15 @@ test("copy recall text includes Enigma guide labels for users", () => {
   assert.match(text, /Compression ratio/);
 });
 
+test("polish color variants use the shared Polish mode guide", () => {
+  const preset = { ...getGeneratedPreset(), mode: "Polish Blue" };
+  const html = renderPresetSummary(preset);
+  const text = createCopyText(preset);
+
+  assert.match(html, /POLISH - Limiter\/Clipper/i);
+  assert.match(text, /POLISH - Limiter\/Clipper/i);
+});
+
 test("copyRecallText handles denied clipboard permission without throwing", async () => {
   const result = await copyRecallText("Brick Lane recall", {
     navigator: {

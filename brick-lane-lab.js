@@ -274,7 +274,9 @@
   }
 
   function normalizeModeKey(mode) {
-    return String(mode || "").trim().toUpperCase();
+    const key = String(mode || "").trim().toUpperCase();
+    if (key.includes("POLISH")) return "POLISH";
+    return key;
   }
 
   function getModeGuide(mode) {

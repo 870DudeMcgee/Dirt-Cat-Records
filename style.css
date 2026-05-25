@@ -4286,6 +4286,23 @@ footer {
   flex-grow: 1;
 }
 
+.brick-lane-parameter-card .brick-lane-plain-label {
+  flex-grow: 0;
+  margin: 3px 0 2px;
+  color: var(--brick-lane-cyan);
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.brick-lane-parameter-card .brick-lane-plain-meaning {
+  flex-grow: 0;
+  margin: 0 0 10px;
+  color: var(--brick-lane-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 .brick-lane-print-sheet {
   margin-top: 1rem;
 }
