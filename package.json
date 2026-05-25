@@ -5,6 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "test": "node --test",
+    "test:brick-lane-visual": "node --test test/brick-lane-visual-regression.test.js",
     "deploy:preflight": "node scripts/check-vercel-function-limit.js && npm test && npm run check:js && git diff --check",
     "check:env": "node scripts/check-env-parity.js .env.local --profile local",
     "check:env:preview": "node scripts/check-env-parity.js .env.local --profile preview",
