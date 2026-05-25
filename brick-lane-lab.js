@@ -677,6 +677,14 @@
       parameterIds = preset.parameterOrder;
     }
 
+    if (
+      monitorParam !== "VU" &&
+      preset.parameters[monitorParam] &&
+      !parameterIds.includes(monitorParam)
+    ) {
+      parameterIds = [...parameterIds, monitorParam];
+    }
+
     const cardsHtml = `<div class="brick-lane-cards-grid ${activeTab === "all" ? "is-dense" : ""}">
       ${parameterIds
         .map((id) =>

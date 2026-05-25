@@ -172,6 +172,20 @@ test("recall cards mark the selected non-faceplate monitor parameter", () => {
   );
 });
 
+test("recall cards include and mark an off-tab monitored parameter", () => {
+  const preset = getGeneratedPreset();
+  const html = renderRecallCards(preset, {
+    activeTab: "primary",
+    monitorParam: "diodeHardness",
+  });
+
+  assert.match(html, /data-parameter-id="diodeHardness"/);
+  assert.match(
+    html,
+    /brick-lane-parameter-card is-monitored"[^>]*data-parameter-id="diodeHardness"/
+  );
+});
+
 test("simulation meter animation is not gated by monitor selection", () => {
   const fs = require("node:fs");
   const path = require("node:path");
