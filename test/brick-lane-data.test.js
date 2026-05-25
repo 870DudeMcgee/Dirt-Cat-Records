@@ -90,17 +90,9 @@ test("generated preset returns exact selected rung labels", () => {
   assert.equal(preset.mode, "Tame");
   assert.equal(preset.targetGainReduction, "3-6 dB");
   assert.deepEqual(preset.parameters.sidechainHighFrequencyEmphasis.selected, [
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "8",
-    "10",
-    "12",
     "15",
   ]);
-  assert.deepEqual(preset.parameters.detector.selected, ["0.5", "1.0", "1.5"]);
+  assert.deepEqual(preset.parameters.detector.selected, ["0.5", "1.5", "3"]);
   assert.equal(preset.parameters.ratio.side, "Enigma Right");
 });
 

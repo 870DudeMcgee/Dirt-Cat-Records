@@ -4925,3 +4925,69 @@ footer {
     0 20px 44px rgba(0, 0, 0, 0.6),
     0 0 25px rgba(94, 231, 255, 0.05);
 }
+
+/* High-Fidelity Symmetrical & Mirrored LED Meters Layout */
+.brick-lane-led-ladder {
+  display: grid;
+  grid-template-columns: 34px 22px;
+  grid-auto-rows: 8px; /* Force every single row to be exactly 8px tall, same as rungs! */
+  gap: 4px 6px; /* Strict 4px vertical gap, 6px horizontal gap */
+  align-items: center;
+}
+
+.brick-lane-led-label {
+  color: #9299a9;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap; /* Prevent any wrapping that distorts the grid row heights! */
+  display: flex;
+  align-items: center;
+}
+
+/* Expand the label grid column only on parameter cards where space permits long descriptions */
+.brick-lane-parameter-card .brick-lane-led-ladder {
+  grid-template-columns: 34px 120px;
+}
+
+/* Hide parameter description text on the tight hardware faceplate to maintain symmetry */
+.brick-lane-hardware .brick-lane-led-desc {
+  display: none !important;
+}
+
+/* Perfectly Mirror the Left Meter on the Hardware Faceplate (SIG scale left of LEDs) */
+.brick-lane-hardware-ladders > div:first-child .brick-lane-led-ladder {
+  grid-template-columns: 22px 34px !important;
+}
+
+.brick-lane-hardware-ladders > div:first-child .brick-lane-rung {
+  grid-column: 2 !important;
+}
+
+.brick-lane-hardware-ladders > div:first-child .brick-lane-led-label {
+  grid-column: 1 !important;
+  grid-row: auto !important;
+  text-align: right !important;
+  justify-content: flex-end !important;
+}
+
+.brick-lane-hardware-ladders > div:first-child .brick-lane-gr-tag {
+  grid-column: 2 !important;
+  justify-self: center !important;
+}
+
+/* Left Meter SIG Tag Sizing & Pink/Red Neon Hue */
+.brick-lane-hardware-ladders > div:first-child .brick-lane-gr-tag {
+  font-size: 0 !important; /* Hide original "GR" text */
+  color: #ff3a3a !important; /* Red/pink signal color matching hardware */
+  border-color: rgba(255, 58, 58, 0.35) !important;
+  text-shadow: 0 0 4px rgba(255, 58, 58, 0.5) !important;
+}
+
+.brick-lane-hardware-ladders > div:first-child .brick-lane-gr-tag::after {
+  content: "SIG";
+  font-size: 6.5px;
+  font-weight: 900;
+  display: block;
+}

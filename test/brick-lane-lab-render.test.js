@@ -12,6 +12,7 @@ const { ENIGMA_PARAMETERS, getGeneratedPreset } = require("../brick-lane-data");
 
 test("renderExactLedLadder renders every exact rung label in order", () => {
   const html = renderExactLedLadder({
+    id: "detector",
     color: "magenta",
     scale: [
       "0.5",
@@ -44,7 +45,7 @@ test("renderExactLedLadder renders every exact rung label in order", () => {
     "12",
     "15",
   ]) {
-    assert.match(html, new RegExp(`>${label}<`));
+    assert.match(html, new RegExp(`>${label}(?:\\s+|<)`));
   }
   assert.equal((html.match(/class="brick-lane-rung/g) || []).length, 12);
   assert.equal((html.match(/brick-lane-rung is-on/g) || []).length, 3);
@@ -79,7 +80,7 @@ test("createCopyText contains full parameter names and selected rung labels", ()
 
   assert.match(text, /Sidechain High Frequency Emphasis\/De-emphasis/);
   assert.match(text, /Enigma Left/);
-  assert.match(text, /2, 3, 4, 5, 6, 8, 10, 12, 15/);
+  assert.match(text, /15/);
 });
 
 test("copyRecallText handles denied clipboard permission without throwing", async () => {

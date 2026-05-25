@@ -241,14 +241,32 @@
     }
   };
 
-  function renderExactLedLadder({ color, scale, selected, id }) {
+  function renderExactLedLadder({ color, scale, selected, id, visualScale }) {
     const selectedSet = new Set(selected || []);
     const ledColor = data.BRICK_LANE_COLORS[color] || color;
+
+    // Determine the maximum selected value for standard parameters to light them as a bar
+    let maxSelectedVal = -1;
+    if (id !== "detector" && selected && selected.length > 0) {
+      maxSelectedVal = Math.max(...selected.map(v => parseFloat(v)));
+    }
+
     const rungs = scale
-      .map((label) => {
-        const isOn = selectedSet.has(label) ? " is-on" : "";
+      .map((label, index) => {
+        let isOn = "";
+        if (id === "detector") {
+          // Separated dot/hybrid display for the multi-detector parameter
+          isOn = selectedSet.has(label) ? " is-on" : "";
+        } else {
+          // Contiguous bar display for all other 13 standard parameters
+          const valNum = parseFloat(label);
+          if (maxSelectedVal >= 0 && valNum <= maxSelectedVal) {
+            isOn = " is-on";
+          }
+        }
         const descText = (RUNG_LABELS[id] && RUNG_LABELS[id][label]) ? ` <span class="brick-lane-led-desc">— ${escapeHtml(RUNG_LABELS[id][label])}</span>` : "";
-        return `<span class="brick-lane-rung${isOn}" data-val="${escapeHtml(label)}" aria-hidden="true"></span><span class="brick-lane-led-label">${escapeHtml(label)}${descText}</span>`;
+        const visualLabel = visualScale ? visualScale[index] : label;
+        return `<span class="brick-lane-rung${isOn}" data-val="${escapeHtml(label)}" aria-hidden="true"></span><span class="brick-lane-led-label">${escapeHtml(visualLabel)}${descText}</span>`;
       })
       .join("");
 
@@ -489,11 +507,30 @@
     };
 
     // Deep Enigma Parameter Monitoring Display coloring & rungs logic
-    let leftParameter = { ...preset.parameters.sidechainHighFrequencyEmphasis };
-    let rightParameter = { ...preset.parameters.ratio };
+    let leftParameter;
+    let rightParameter;
 
     const monitorParam = state.monitorParam || "VU";
-    if (monitorParam !== "VU") {
+    if (monitorParam === "VU") {
+      leftParameter = {
+        id: "sigMeter",
+        label: "Signal Level",
+        side: "SIG",
+        color: "red",
+        scale: data.COMMON_LED_SCALE,
+        visualScale: ["24", "21", "18", "15", "12", "9", "6", "3", "0", "-6", "-12", "-24"],
+        selected: []
+      };
+      rightParameter = {
+        id: "grMeter",
+        label: "Gain Reduction",
+        side: "GR",
+        color: "cyan",
+        scale: data.COMMON_LED_SCALE,
+        visualScale: ["0.5", "1.0", "1.5", "2", "3", "4", "5", "6", "8", "10", "12", "15"],
+        selected: []
+      };
+    } else {
       const selectedParam = preset.parameters[monitorParam];
       if (selectedParam) {
         if (selectedParam.side === "Enigma Left") {
@@ -507,6 +544,9 @@
           leftParameter = { ...preset.parameters.sidechainHighFrequencyEmphasis, selected: [] };
           leftParameter.color = "rgba(255,255,255,0.06)";
         }
+      } else {
+        leftParameter = { ...preset.parameters.sidechainHighFrequencyEmphasis };
+        rightParameter = { ...preset.parameters.ratio };
       }
     }
 
