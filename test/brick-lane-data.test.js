@@ -90,9 +90,9 @@ test("generated preset returns exact selected rung labels", () => {
 
   assert.equal(preset.mode, "Tame");
   assert.equal(preset.targetGainReduction, "3-6 dB");
-  assert.deepEqual(preset.parameters.sidechainHighFrequencyEmphasis.selected, [
-    "15",
-  ]);
+  assert.deepEqual(preset.parameters.sidechainHighFrequencyEmphasis.selection, {
+    settingId: "de-ess-hard",
+  });
   assert.deepEqual(preset.parameters.detector.selection, {
     settingId: "peak-rms-slow",
   });
@@ -273,4 +273,24 @@ test("LED Brightness remains a simple stepped scale", () => {
     "12",
     "15",
   ]);
+});
+
+test("archetype Enigma selections use canonical object selections", () => {
+  const { ARCHETYPES, PARAMETER_ORDER } = require("../brick-lane-data");
+
+  for (const archetype of ARCHETYPES) {
+    for (const parameterId of PARAMETER_ORDER) {
+      const selection = archetype.selected[parameterId];
+      assert.equal(
+        Array.isArray(selection),
+        false,
+        `${archetype.id}.${parameterId} still uses a legacy raw rung array`
+      );
+      assert.equal(
+        typeof selection,
+        "object",
+        `${archetype.id}.${parameterId} selection must be an object`
+      );
+    }
+  }
 });
