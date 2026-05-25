@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const {
   getInitialState,
   labStateReducer,
+  mapCompressionPointToControls,
 } = require("../lib/lab/state-machine");
 
 test("state machine returns complete initial state", () => {
@@ -57,6 +58,28 @@ test("state machine handles UPDATE_CONTROL action", () => {
   assert.equal(nextState.controls.punchSmooth, 85);
   // Verify immutability
   assert.equal(initialState.controls.punchSmooth, 58);
+});
+
+test("compression field point update moves all trade-off controls", () => {
+  const mapped = mapCompressionPointToControls({ x: 72, y: 28 });
+
+  assert.deepEqual(Object.keys(mapped), [
+    "punchSmooth",
+    "cleanColor",
+    "controlOpen",
+    "safeExciting",
+    "glueLoud",
+    "stableWide",
+  ]);
+
+  const initialState = getInitialState();
+  const nextState = labStateReducer(initialState, {
+    type: "UPDATE_COMPRESSION_POINT",
+    payload: { x: 72, y: 28 },
+  });
+
+  assert.deepEqual(nextState.controls, mapped);
+  assert.notDeepEqual(nextState.controls, initialState.controls);
 });
 
 test("state machine handles UPDATE_FRONT_PANEL action", () => {

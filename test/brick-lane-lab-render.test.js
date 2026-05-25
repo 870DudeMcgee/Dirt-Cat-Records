@@ -9,6 +9,7 @@ const {
   renderPrintSheet,
   renderHardwareFaceplate,
   renderRecallCards,
+  renderControls,
 } = require("../brick-lane-lab");
 const { ENIGMA_PARAMETERS, getGeneratedPreset } = require("../brick-lane-data");
 
@@ -236,6 +237,25 @@ test("renderHardwareFaceplate matches physical front-panel anatomy", () => {
   assert.match(html, />POLISH</);
   assert.match(html, />optosync</i);
   assert.match(html, />IN</);
+});
+
+test("renderControls replaces six separate knob cards with one compression field", () => {
+  const html = renderControls({
+    controls: {
+      punchSmooth: 58,
+      cleanColor: 32,
+      controlOpen: 76,
+      safeExciting: 64,
+      glueLoud: 44,
+      stableWide: 38,
+    },
+  });
+
+  assert.match(html, /brick-lane-compression-field/);
+  assert.match(html, /data-compression-point/);
+  assert.equal((html.match(/data-control-id=/g) || []).length, 6);
+  assert.equal((html.match(/class="brick-lane-control"/g) || []).length, 0);
+  assert.doesNotMatch(html, /brick-lane-dial/);
 });
 
 test("physical faceplate does not contain UI-only controls", () => {

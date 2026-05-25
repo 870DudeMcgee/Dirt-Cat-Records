@@ -425,6 +425,25 @@
     </div>`;
   }
 
+  function deriveCompressionPoint(controls = {}) {
+    const getValue = (id, fallback = 50) =>
+      normalizePanelValue(controls[id], fallback);
+    return {
+      x: Math.round(
+        (getValue("punchSmooth") +
+          getValue("controlOpen") +
+          getValue("stableWide")) /
+          3
+      ),
+      y: Math.round(
+        (getValue("cleanColor") +
+          (100 - getValue("safeExciting")) +
+          getValue("stableWide")) /
+          3
+      ),
+    };
+  }
+
   function renderPhysicalMeter(meter, activeScale = []) {
     const activeValues = new Set(activeScale.map(String));
     const ledColor = data.BRICK_LANE_COLORS[meter.color] || meter.color;
@@ -539,16 +558,32 @@
   }
 
   function renderControls(state) {
-    return data.CONTROL_DEFINITIONS.map((control) => {
+    const point = deriveCompressionPoint(state.controls);
+    const readouts = data.CONTROL_DEFINITIONS.map((control) => {
       const value = state.controls[control.id] ?? control.defaultValue;
       const ledColor = data.BRICK_LANE_COLORS[control.color];
-      return `<label class="brick-lane-control" style="--brick-lane-led:${escapeHtml(ledColor)};--brick-lane-value:${Number(value)}%;--brick-lane-angle:${knobAngle(value)}deg">
-        <span>${escapeHtml(control.label)}</span>
-        <div class="brick-lane-dial" aria-hidden="true"></div>
-        <input type="range" min="0" max="100" value="${Number(value)}" data-control-id="${escapeHtml(control.id)}" aria-label="${escapeHtml(control.label)} to ${escapeHtml(control.oppositeLabel)}">
-        <span>${escapeHtml(control.oppositeLabel)}</span>
+      const normalizedValue = normalizePanelValue(value, control.defaultValue);
+      return `<label class="brick-lane-field-axis" style="--brick-lane-led:${escapeHtml(ledColor)};--brick-lane-value:${normalizedValue}%">
+        <span class="brick-lane-axis-label">${escapeHtml(control.label)}</span>
+        <span class="brick-lane-axis-track" aria-hidden="true"><span></span></span>
+        <span class="brick-lane-axis-opposite">${escapeHtml(control.oppositeLabel)}</span>
+        <input type="range" min="0" max="100" value="${normalizedValue}" data-control-id="${escapeHtml(control.id)}" aria-label="${escapeHtml(control.label)} to ${escapeHtml(control.oppositeLabel)}">
       </label>`;
     }).join("");
+
+    return `<section class="brick-lane-compression-field" style="--brick-lane-point-x:${point.x}%;--brick-lane-point-y:${point.y}%">
+      <div class="brick-lane-field-map" data-compression-field role="slider" tabindex="0" aria-label="Compression balance" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${point.x}" aria-valuetext="Compression balance ${point.x} by ${point.y}">
+        <span class="brick-lane-field-label is-clean">Clean</span>
+        <span class="brick-lane-field-label is-punch">Punch</span>
+        <span class="brick-lane-field-label is-smooth">Smooth</span>
+        <span class="brick-lane-field-label is-dynamic">Dynamic</span>
+        <span class="brick-lane-field-blob" aria-hidden="true"></span>
+        <span class="brick-lane-field-point" data-compression-point aria-hidden="true"></span>
+      </div>
+      <div class="brick-lane-field-readouts">
+        ${readouts}
+      </div>
+    </section>`;
   }
 
   function renderMonitorSelect(state) {
@@ -825,61 +860,99 @@
       playShortClick(600, 0.03);
     }
 
-    // Draggable Bottom Dials
-    nodes.controls.addEventListener("mousedown", dragStartDial);
-    nodes.controls.addEventListener("touchstart", dragStartDial, {
+    // Draggable compression field
+    nodes.controls.addEventListener("mousedown", dragStartCompressionField);
+    nodes.controls.addEventListener("touchstart", dragStartCompressionField, {
       passive: false,
     });
+    nodes.controls.addEventListener("keydown", (event) => {
+      const field = event.target.closest("[data-compression-field]");
+      if (!field) return;
+      const step = event.shiftKey ? 10 : 4;
+      const currentPoint = deriveCompressionPoint(state.controls);
+      let nextPoint = { ...currentPoint };
 
-    function dragStartDial(e) {
-      const dial = e.target.closest(".brick-lane-dial");
-      if (!dial) return;
+      if (event.key === "ArrowLeft") nextPoint.x -= step;
+      else if (event.key === "ArrowRight") nextPoint.x += step;
+      else if (event.key === "ArrowUp") nextPoint.y -= step;
+      else if (event.key === "ArrowDown") nextPoint.y += step;
+      else return;
+
+      event.preventDefault();
+      state = stateMachine.labStateReducer(state, {
+        type: "UPDATE_COMPRESSION_POINT",
+        payload: nextPoint,
+      });
+      render();
+      playShortClick(520, 0.04);
+    });
+
+    function getCompressionPointFromEvent(event, field) {
+      const rect = field.getBoundingClientRect();
+      const source = event.touches ? event.touches[0] : event;
+      const x = normalizePanelValue(
+        ((source.clientX - rect.left) / rect.width) * 100
+      );
+      const y = normalizePanelValue(
+        ((source.clientY - rect.top) / rect.height) * 100
+      );
+      return { x, y };
+    }
+
+    function updateCompressionFieldDom(field, point) {
+      const fieldRoot = field.closest(".brick-lane-compression-field");
+      if (!fieldRoot) return;
+      const controls = stateMachine.mapCompressionPointToControls(point);
+      fieldRoot.style.setProperty("--brick-lane-point-x", `${point.x}%`);
+      fieldRoot.style.setProperty("--brick-lane-point-y", `${point.y}%`);
+      field.setAttribute("aria-valuenow", String(Math.round(point.x)));
+      field.setAttribute(
+        "aria-valuetext",
+        `Compression balance ${Math.round(point.x)} by ${Math.round(point.y)}`
+      );
+
+      for (const [controlId, value] of Object.entries(controls)) {
+        const input = fieldRoot.querySelector(`[data-control-id="${controlId}"]`);
+        const axis = input?.closest(".brick-lane-field-axis");
+        if (!input || !axis) continue;
+        input.value = value;
+        axis.style.setProperty("--brick-lane-value", `${value}%`);
+      }
+    }
+
+    function dragStartCompressionField(e) {
+      const field = e.target.closest("[data-compression-field]");
+      if (!field) return;
       e.preventDefault();
 
-      const label = dial.closest(".brick-lane-control");
-      const input = label.querySelector("input[type='range']");
-      const controlId = input.dataset.controlId;
+      let latestPoint = getCompressionPointFromEvent(e, field);
+      updateCompressionFieldDom(field, latestPoint);
 
-      let startY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-      let startVal = Number(input.value);
-
-      function dragMoveDial(moveEvent) {
+      function dragMoveCompressionField(moveEvent) {
         moveEvent.preventDefault();
-        const clientY =
-          moveEvent.type === "touchmove"
-            ? moveEvent.touches[0].clientY
-            : moveEvent.clientY;
-        const deltaY = startY - clientY;
-
-        let newVal = startVal + deltaY * 0.45;
-        if (newVal < 0) newVal = 0;
-        if (newVal > 100) newVal = 100;
-
-        input.value = newVal;
-        label.style.setProperty("--brick-lane-value", `${newVal}%`);
-        label.style.setProperty(
-          "--brick-lane-angle",
-          `${Math.round(-135 + (newVal / 100) * 270)}deg`
-        );
+        latestPoint = getCompressionPointFromEvent(moveEvent, field);
+        updateCompressionFieldDom(field, latestPoint);
       }
 
-      function dragEndDial() {
-        document.removeEventListener("mousemove", dragMoveDial);
-        document.removeEventListener("mouseup", dragEndDial);
-        document.removeEventListener("touchmove", dragMoveDial);
-        document.removeEventListener("touchend", dragEndDial);
+      function dragEndCompressionField() {
+        document.removeEventListener("mousemove", dragMoveCompressionField);
+        document.removeEventListener("mouseup", dragEndCompressionField);
+        document.removeEventListener("touchmove", dragMoveCompressionField);
+        document.removeEventListener("touchend", dragEndCompressionField);
 
         state = stateMachine.labStateReducer(state, {
-          type: "UPDATE_CONTROL",
-          payload: { controlId, value: Number(input.value) },
+          type: "UPDATE_COMPRESSION_POINT",
+          payload: latestPoint,
         });
         render();
       }
 
-      document.addEventListener("mousemove", dragMoveDial);
-      document.addEventListener("mouseup", dragEndDial);
-      document.addEventListener("touchmove", dragMoveDial, { passive: false });
-      document.addEventListener("touchend", dragEndDial);
+      document.addEventListener("mousemove", dragMoveCompressionField);
+      document.addEventListener("mouseup", dragEndCompressionField);
+      document.addEventListener("touchmove", dragMoveCompressionField, {
+        passive: false,
+      });
+      document.addEventListener("touchend", dragEndCompressionField);
 
       playShortClick(600, 0.03);
     }
