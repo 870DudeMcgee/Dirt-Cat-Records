@@ -3807,6 +3807,13 @@ footer {
   line-height: 1.35;
 }
 
+.brick-lane-resolved-setting {
+  margin: 0.2rem 0 0.45rem;
+  color: var(--brick-lane-led, #5ee7ff);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
 .brick-lane-browser h2 {
   margin: 0.95rem 0 0.45rem;
   color: var(--brick-lane-muted);
@@ -3887,7 +3894,12 @@ footer {
   margin: -0.35rem -0.35rem 0.45rem;
   border-radius: 10px 10px 4px 4px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.04) 48%, rgba(0, 0, 0, 0.32)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.28),
+      rgba(255, 255, 255, 0.04) 48%,
+      rgba(0, 0, 0, 0.32)
+    ),
     #777b84;
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow:
@@ -3905,7 +3917,11 @@ footer {
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background:
-    radial-gradient(circle at 36% 32%, rgba(255, 255, 255, 0.42), transparent 24%),
+    radial-gradient(
+      circle at 36% 32%,
+      rgba(255, 255, 255, 0.42),
+      transparent 24%
+    ),
     radial-gradient(circle, #17191f 0 42%, #4f535c 46% 62%, #1a1c21 66% 100%);
   box-shadow:
     inset 0 1px 2px rgba(0, 0, 0, 0.85),
@@ -4174,8 +4190,7 @@ footer {
   padding: 10px 8px;
   border-radius: 10px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent 30%),
-    #1e2025;
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent 30%), #1e2025;
   border: 1px solid rgba(0, 0, 0, 0.6);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.08),
@@ -4189,7 +4204,11 @@ footer {
   position: absolute;
   inset: 0;
   border-radius: 9px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 40%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05),
+    transparent 40%
+  );
   pointer-events: none;
 }
 
@@ -4403,7 +4422,11 @@ footer {
   border: 1px solid color-mix(in srgb, var(--brick-lane-led), transparent 75%);
   border-radius: 12px;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--brick-lane-led), transparent 94%), transparent),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--brick-lane-led), transparent 94%),
+      transparent
+    ),
     rgba(255, 255, 255, 0.02);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   display: flex;
@@ -4415,7 +4438,11 @@ footer {
 .brick-lane-parameter-card:hover {
   border-color: color-mix(in srgb, var(--brick-lane-led), transparent 45%);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--brick-lane-led), transparent 90%), transparent),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--brick-lane-led), transparent 90%),
+      transparent
+    ),
     rgba(255, 255, 255, 0.04);
   box-shadow:
     0 12px 30px rgba(0, 0, 0, 0.35),
@@ -4691,7 +4718,9 @@ footer {
 .brick-lane-big-knob {
   cursor: ns-resize;
   touch-action: none;
-  transition: transform 0.05s linear, box-shadow 0.2s ease;
+  transition:
+    transform 0.05s linear,
+    box-shadow 0.2s ease;
 }
 
 .brick-lane-big-knob:hover {
@@ -4719,7 +4748,9 @@ footer {
   opacity: 0;
   pointer-events: none;
   transition: all 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.5), 0 0 10px rgba(94, 231, 255, 0.3);
+  box-shadow:
+    0 5px 12px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(94, 231, 255, 0.3);
   z-index: 10;
   white-space: nowrap;
 }
@@ -4733,13 +4764,15 @@ footer {
 .brick-lane-dial {
   cursor: ns-resize;
   touch-action: none;
-  transition: transform 0.05s linear, box-shadow 0.2s ease;
+  transition:
+    transform 0.05s linear,
+    box-shadow 0.2s ease;
 }
 
 .brick-lane-dial:hover {
   filter: brightness(1.15);
   box-shadow:
-    inset 0 -4px 6px rgba(0,0,0,0.6),
+    inset 0 -4px 6px rgba(0, 0, 0, 0.6),
     0 0 8px var(--brick-lane-led);
 }
 
@@ -4761,7 +4794,7 @@ footer {
   border-radius: 5px;
   background: #0f1013;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
   margin: 0 auto;
   position: relative;
   cursor: pointer;
@@ -4778,7 +4811,7 @@ footer {
   background: linear-gradient(180deg, #6c707d, #2f323c);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 2px 4px rgba(0,0,0,0.5);
+    0 2px 4px rgba(0, 0, 0, 0.5);
   transition: all 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   align-items: center;
@@ -4798,7 +4831,7 @@ footer {
   background: linear-gradient(180deg, #3d414a, var(--brick-lane-cyan));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 -2px 4px rgba(0,0,0,0.4),
+    0 -2px 4px rgba(0, 0, 0, 0.4),
     0 0 8px rgba(94, 231, 255, 0.4);
 }
 
@@ -4813,7 +4846,7 @@ footer {
   background: #040508;
   border-radius: 8px;
   padding: 2px;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 /* Interactive clickable rung highlights */
@@ -4847,7 +4880,7 @@ footer {
   border-radius: 4px;
   outline: none;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   transition: all 0.2s ease;
 }
 
@@ -4944,7 +4977,6 @@ footer {
   }
 }
 
-
 /* High-Fidelity Symmetrical & Mirrored LED Meters Layout */
 .brick-lane-led-ladder {
   display: grid;
@@ -4976,17 +5008,23 @@ footer {
 }
 
 /* Perfectly Mirror the Left Meter on the Hardware Faceplate (SIG scale left of LEDs) */
-.brick-lane-meter-pair > .brick-lane-physical-meter:first-child .brick-lane-led-ladder,
+.brick-lane-meter-pair
+  > .brick-lane-physical-meter:first-child
+  .brick-lane-led-ladder,
 .brick-lane-hardware-ladders > div:first-child .brick-lane-led-ladder {
   grid-template-columns: 22px 34px !important;
 }
 
-.brick-lane-meter-pair > .brick-lane-physical-meter:first-child .brick-lane-rung,
+.brick-lane-meter-pair
+  > .brick-lane-physical-meter:first-child
+  .brick-lane-rung,
 .brick-lane-hardware-ladders > div:first-child .brick-lane-rung {
   grid-column: 2 !important;
 }
 
-.brick-lane-meter-pair > .brick-lane-physical-meter:first-child .brick-lane-led-label,
+.brick-lane-meter-pair
+  > .brick-lane-physical-meter:first-child
+  .brick-lane-led-label,
 .brick-lane-hardware-ladders > div:first-child .brick-lane-led-label {
   grid-column: 1 !important;
   grid-row: auto !important;

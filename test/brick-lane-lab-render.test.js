@@ -94,21 +94,24 @@ test("parameter cards show hardware labels and plain-language meanings", () => {
 
   assert.match(html, /Stress Character \/ Diode Clipping/);
   assert.match(html, /Saturation character/);
-  assert.match(html, /Chooses the flavor of drive or clipping/);
+  assert.match(html, /Float \(Optical\)/);
+  assert.match(html, /Airy, low-grain color\./);
 });
 
-test("stress character ladder demystifies mode-family names", () => {
-  const html = renderParameterCard({
+test("stress character card demystifies mode-family names and meanings based on selection", () => {
+  const htmlTame = renderParameterCard({
     ...ENIGMA_PARAMETERS.stressTypeDiodeClipping,
-    selected: ["1.0"],
+    selected: ["2"],
   });
+  assert.match(htmlTame, /Tame \(Clean\/Transparent\)/);
+  assert.match(htmlTame, /Least colored saturation path\./);
 
-  assert.match(html, /Velvet \(Vari-Mu\)/);
-  assert.match(html, /Float \(Optical\)/);
-  assert.match(html, /Smash \(FET\)/);
-  assert.match(html, /Tame \(Clean\/Transparent\)/);
-  assert.match(html, /Glue \(VCA\)/);
-  assert.match(html, /Polish Blue \(Limiter\/Clipper\)/);
+  const htmlVelvet = renderParameterCard({
+    ...ENIGMA_PARAMETERS.stressTypeDiodeClipping,
+    selected: ["0.5"],
+  });
+  assert.match(htmlVelvet, /Velvet \(Vari-Mu\)/);
+  assert.match(htmlVelvet, /Soft harmonic thickening\./);
 });
 
 test("createCopyText contains full parameter names and selected rung labels", () => {
@@ -135,7 +138,10 @@ test("copy recall why text uses saturation language outside hardware labels", ()
   });
   const text = createCopyText(preset);
 
-  assert.match(text, /Low saturation keeps the mix from changing tone too much/i);
+  assert.match(
+    text,
+    /Low saturation keeps the mix from changing tone too much/i
+  );
   assert.doesNotMatch(text, /\bLow stress\b/i);
 });
 
@@ -205,7 +211,10 @@ test("renderPrintSheet why text avoids lowercase stress wording", () => {
   });
   const html = renderPrintSheet(preset);
 
-  assert.match(html, /Higher saturation and firmer diode behavior add attitude/i);
+  assert.match(
+    html,
+    /Higher saturation and firmer diode behavior add attitude/i
+  );
   assert.doesNotMatch(html, /\bHigher stress\b/i);
 });
 
@@ -303,9 +312,14 @@ test("recall cards render state-owned rung selections exactly", () => {
     },
   });
 
-  const ratioCard = html.match(/<article[^>]*data-parameter-id="ratio"[\s\S]*?<\/article>/)[0];
+  const ratioCard = html.match(
+    /<article[^>]*data-parameter-id="ratio"[\s\S]*?<\/article>/
+  )[0];
   assert.equal((ratioCard.match(/brick-lane-rung is-on/g) || []).length, 1);
-  assert.match(ratioCard, /data-val="8" aria-hidden="true"><\/span><span class="brick-lane-led-label">8/);
+  assert.match(
+    ratioCard,
+    /data-val="8" aria-hidden="true"><\/span><span class="brick-lane-led-label">8/
+  );
 });
 
 test("simulation meter animation is not gated by monitor selection", () => {
@@ -317,4 +331,41 @@ test("simulation meter animation is not gated by monitor selection", () => {
   );
 
   assert.doesNotMatch(source, /state\.monitorParam\s*===\s*"VU"/);
+});
+
+test("detector card renders valid setting name and exact LED pattern", () => {
+  const preset = getGeneratedPreset({
+    useCaseId: "tracking-vocal",
+    archetypeId: "safe-vocal-catcher",
+  });
+  const html = renderParameterCard(preset.parameters.detector);
+
+  assert.match(html, /Detector Mode Selection/);
+  assert.match(html, /Peak \+ RMS \+ Slow RMS/);
+  assert.equal((html.match(/brick-lane-rung is-on/g) || []).length, 3);
+  assert.match(
+    html,
+    /data-val="0.5" aria-hidden="true"><\/span><span class="brick-lane-led-label">0.5/
+  );
+  assert.match(
+    html,
+    /data-val="1.5" aria-hidden="true"><\/span><span class="brick-lane-led-label">1.5/
+  );
+  assert.match(
+    html,
+    /data-val="3" aria-hidden="true"><\/span><span class="brick-lane-led-label">3/
+  );
+  assert.doesNotMatch(html, /Triple RMS Hyb|Dual RMS Hybrid/);
+});
+
+test("render module does not own Enigma rung labels", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "brick-lane-lab.js"),
+    "utf8"
+  );
+
+  assert.doesNotMatch(source, /const RUNG_LABELS/);
+  assert.doesNotMatch(source, /Triple RMS Hyb|Dual RMS Hybrid|Brutal|Hardest/);
 });

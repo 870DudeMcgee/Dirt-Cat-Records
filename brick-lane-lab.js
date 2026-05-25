@@ -7,6 +7,12 @@
     globalScope.BrickLaneLabStateMachine ||
     (typeof require === "function" ? require("./lib/lab/state-machine") : null);
 
+  const resolver =
+    globalScope.BrickLaneResolver ||
+    (typeof require === "function"
+      ? require("./lib/lab/brick-lane-resolver")
+      : null);
+
   let audioCtx = null;
 
   function escapeHtml(value) {
@@ -25,20 +31,26 @@
       if (audioCtx.state === "suspended") {
         audioCtx.resume();
       }
-      
+
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      
+
       osc.type = "sine";
       osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(freq / 2, audioCtx.currentTime + 0.05);
-      
+      osc.frequency.exponentialRampToValueAtTime(
+        freq / 2,
+        audioCtx.currentTime + 0.05
+      );
+
       gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
-      
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioCtx.currentTime + 0.04
+      );
+
       osc.connect(gain);
       gain.connect(audioCtx.destination);
-      
+
       osc.start();
       osc.stop(audioCtx.currentTime + 0.06);
     } catch (e) {
@@ -46,231 +58,42 @@
     }
   }
 
-  const RUNG_LABELS = {
-    stressTypeDiodeClipping: {
-      "0.5": "Velvet (Vari-Mu)",
-      "1.0": "Float (Optical)",
-      "1.5": "Smash (FET)",
-      "2": "Tame (Clean/Transparent)",
-      "3": "Glue (VCA)",
-      "4": "Polish White (Limiter/Clipper)",
-      "5": "Polish Blue (Limiter/Clipper)",
-      "6": "Series Clip 1",
-      "8": "Series Clip 2",
-      "10": "Series Clip 3",
-      "12": "Series Clip 4",
-      "15": "Series Clip 5"
-    },
-    diodeHardness: {
-      "0.5": "Ultra Soft",
-      "1.0": "Very Soft",
-      "1.5": "Soft",
-      "2": "Med-Soft",
-      "3": "Medium",
-      "4": "Med-Hard",
-      "5": "Hard",
-      "6": "Very Hard",
-      "8": "Ultra Hard",
-      "10": "Extreme",
-      "12": "Brutal",
-      "15": "Hardest"
-    },
-    stressCrossoverPhase: {
-      "0.5": "Linear Phase",
-      "1.0": "Linear Freq",
-      "1.5": "Low-Freq Par",
-      "2": "Inverted Phase",
-      "3": "Crossover A",
-      "4": "Crossover B",
-      "5": "Crossover C",
-      "6": "Crossover D",
-      "8": "Phase 45°",
-      "10": "Phase 90°",
-      "12": "Phase 135°",
-      "15": "Phase Inverted"
-    },
-    sidechainHighFrequencyEmphasis: {
-      "0.5": "Flat (Bypass)",
-      "1.0": "SC De-emp Soft",
-      "1.5": "SC De-emp Mid",
-      "2": "SC De-emp Hard",
-      "3": "SC De-emp Ext",
-      "4": "SC Emp Soft",
-      "5": "SC Emp Mid",
-      "6": "SC Emp Hard",
-      "8": "SC Emp Ext",
-      "10": "De-ess Soft",
-      "12": "De-ess Mid",
-      "15": "De-ess Hard"
-    },
-    detector: {
-      "0.5": "Peak",
-      "1.0": "RMS Fixed",
-      "1.5": "RMS Variable",
-      "2": "Peak+RMS Fixed",
-      "3": "Slow RMS",
-      "4": "Peak+Slow RMS",
-      "5": "RMS+Slow RMS",
-      "6": "Peak+RMS+Slow",
-      "8": "Peak+RMS Var",
-      "10": "Triple Var",
-      "12": "Dual RMS Hybrid",
-      "15": "Triple RMS Hyb"
-    },
-    crestFactorShaping: {
-      "0.5": "Peak Dominant",
-      "1.0": "Peak Favored",
-      "1.5": "Peak Heavy",
-      "2": "Equal Balance",
-      "3": "RMS Heavy",
-      "4": "RMS Favored",
-      "5": "RMS Dominant",
-      "6": "Slow RMS Fav",
-      "8": "Slow RMS Dom",
-      "10": "Auto Crest Sft",
-      "12": "Auto Crest Med",
-      "15": "Auto Crest Hrd"
-    },
-    stereoMonoSidechainLinking: {
-      "0.5": "Dual Mono (0%)",
-      "1.0": "Linked 10%",
-      "1.5": "Linked 20%",
-      "2": "Linked 30%",
-      "3": "Linked 40%",
-      "4": "Linked 50%",
-      "5": "Linked 60%",
-      "6": "Linked 70%",
-      "8": "Linked 80%",
-      "10": "Linked 90%",
-      "12": "Stereo (100%)",
-      "15": "Hybrid Linking"
-    },
-    ratio: {
-      "0.5": "1.5:1",
-      "1.0": "2:1",
-      "1.5": "3:1",
-      "2": "4:1",
-      "3": "6:1",
-      "4": "8:1",
-      "5": "10:1",
-      "6": "12:1",
-      "8": "20:1",
-      "10": "50:1",
-      "12": "100:1 (Limit)",
-      "15": "Brickwall (∞:1)"
-    },
-    knee: {
-      "0.5": "Hardest (0dB)",
-      "1.0": "Very Hard (2dB)",
-      "1.5": "Hard (4dB)",
-      "2": "Med-Hard (6dB)",
-      "3": "Medium (9dB)",
-      "4": "Med-Soft (12dB)",
-      "5": "Soft (15dB)",
-      "6": "Very Soft (18dB)",
-      "8": "Softest (24dB)",
-      "10": "Over-Knee Prog",
-      "12": "Dual Knee Soft",
-      "15": "Hybrid Prog"
-    },
-    attackWeighting: {
-      "0.5": "4.0x / 300x",
-      "1.0": "2.0x / 200x",
-      "1.5": "1.0x / 150x",
-      "2": "0.66x / 120x",
-      "3": "0.56x / 100x",
-      "4": "0.31x / 75x",
-      "5": "0.17x / 50x",
-      "6": "0.09x / 40x",
-      "8": "0.05x / 30x",
-      "10": "0.03x / 25x",
-      "12": "0.01x / 20x",
-      "15": "0.009x / 15x"
-    },
-    releaseWeighting: {
-      "0.5": "4.0x / 5.0x",
-      "1.0": "2.0x / 4.6x",
-      "1.5": "1.0x / 4.2x",
-      "2": "0.66x / 3.9x",
-      "3": "0.56x / 3.5x",
-      "4": "0.31x / 3.1x",
-      "5": "0.17x / 2.8x",
-      "6": "0.09x / 2.4x",
-      "8": "0.05x / 2.0x",
-      "10": "0.03x / 1.7x",
-      "12": "0.01x / 1.3x",
-      "15": "0.009x / 1.0x"
-    },
-    hold: {
-      "0.5": "Bypass (0ms)",
-      "1.0": "Hold 2ms",
-      "1.5": "Hold 5ms",
-      "2": "Hold 10ms",
-      "3": "Hold 20ms",
-      "4": "Hold 35ms",
-      "5": "Hold 50ms",
-      "6": "Hold 75ms",
-      "8": "Hold 100ms",
-      "10": "Hold 150ms",
-      "12": "Hold 200ms",
-      "15": "Hold 300ms"
-    },
-    lookahead: {
-      "0.5": "Bypass (0ms)",
-      "1.0": "Look 0.25ms",
-      "1.5": "Look 0.50ms",
-      "2": "Look 0.75ms",
-      "3": "Look 1.0ms",
-      "4": "Look 1.25ms",
-      "5": "Look 1.5ms",
-      "6": "Look 1.75ms",
-      "8": "Look 2.0ms",
-      "10": "Look 2.5ms",
-      "12": "Look 3.0ms",
-      "15": "Look 4.0ms"
-    },
-    ledBrightness: {
-      "0.5": "Brightness 5%",
-      "1.0": "Brightness 10%",
-      "1.5": "Brightness 20%",
-      "2": "Brightness 30%",
-      "3": "Brightness 40%",
-      "4": "Brightness 50%",
-      "5": "Brightness 60%",
-      "6": "Brightness 70%",
-      "8": "Brightness 80%",
-      "10": "Brightness 90%",
-      "12": "Brightness 95%",
-      "15": "Brightness 100%"
-    }
-  };
-
-  function renderExactLedLadder({ color, scale, selected, id, visualScale, exactSelected }) {
-    const selectedSet = new Set(selected || []);
+  function renderExactLedLadder({
+    color,
+    scale,
+    displayScale,
+    activeLedValues,
+    selected,
+    id,
+    visualScale,
+    exactSelected,
+  }) {
+    const resolvedScale = displayScale || scale || [];
+    const selectedSet = new Set(
+      activeLedValues || (selected || []).map(String)
+    );
     const ledColor = data.BRICK_LANE_COLORS[color] || color;
 
-    // Determine the maximum selected value for standard parameters to light them as a bar
     let maxSelectedVal = -1;
-    if (id !== "detector" && selected && selected.length > 0) {
-      maxSelectedVal = Math.max(...selected.map(v => parseFloat(v)));
+    if (
+      !activeLedValues &&
+      id !== "detector" &&
+      selected &&
+      selected.length > 0 &&
+      !exactSelected
+    ) {
+      maxSelectedVal = Math.max(...selected.map((value) => parseFloat(value)));
     }
 
-    const rungs = scale
+    const rungs = resolvedScale
       .map((label, index) => {
-        let isOn = "";
-        if (id === "detector" || exactSelected) {
-          // Separated dot/hybrid display for the multi-detector parameter
-          isOn = selectedSet.has(label) ? " is-on" : "";
-        } else {
-          // Contiguous bar display for all other 13 standard parameters
+        let isOn = selectedSet.has(label) ? " is-on" : "";
+        if (!activeLedValues && maxSelectedVal >= 0) {
           const valNum = parseFloat(label);
-          if (maxSelectedVal >= 0 && valNum <= maxSelectedVal) {
-            isOn = " is-on";
-          }
+          if (valNum <= maxSelectedVal) isOn = " is-on";
         }
-        const descText = (RUNG_LABELS[id] && RUNG_LABELS[id][label]) ? ` <span class="brick-lane-led-desc">— ${escapeHtml(RUNG_LABELS[id][label])}</span>` : "";
         const visualLabel = visualScale ? visualScale[index] : label;
-        return `<span class="brick-lane-rung${isOn}" data-val="${escapeHtml(label)}" aria-hidden="true"></span><span class="brick-lane-led-label">${escapeHtml(visualLabel)}${descText}</span>`;
+        return `<span class="brick-lane-rung${isOn}" data-val="${escapeHtml(label)}" aria-hidden="true"></span><span class="brick-lane-led-label">${escapeHtml(visualLabel)}</span>`;
       })
       .join("");
 
@@ -278,7 +101,9 @@
   }
 
   function normalizeModeKey(mode) {
-    const key = String(mode || "").trim().toUpperCase();
+    const key = String(mode || "")
+      .trim()
+      .toUpperCase();
     if (key.includes("POLISH")) return "POLISH";
     return key;
   }
@@ -298,22 +123,58 @@
   }
 
   function renderParameterCard(parameter, options = {}) {
+    const selected =
+      options.selectedOverride || parameter.selection || parameter.selected;
+    let resolved;
+
+    try {
+      resolved = resolver
+        ? resolver.resolveParameterSelection(parameter, selected)
+        : {
+            label: Array.isArray(selected) ? selected.join(", ") : "",
+            meaning: parameter.description || "",
+            activeLedValues: Array.isArray(selected) ? selected : [],
+            displayScale: parameter.displayScale || parameter.scale,
+            behavior: parameter.behavior || "legacy-rungs",
+          };
+    } catch (_error) {
+      resolved = {
+        label: "Setting unavailable",
+        meaning:
+          "This setting could not be resolved from the Brick Lane data map.",
+        activeLedValues: [],
+        displayScale: parameter.displayScale || parameter.scale,
+        behavior: parameter.behavior || "unresolved",
+      };
+    }
+
     const ledColor = data.BRICK_LANE_COLORS[parameter.color] || parameter.color;
     const monitoredClass = options.isMonitored ? " is-monitored" : "";
-    const selected = options.selectedOverride || parameter.selected;
     const guide = getParameterGuide(parameter.id);
     const plainLabel = guide
       ? `<p class="brick-lane-plain-label">${escapeHtml(guide.userLabel)}</p>`
       : "";
-    const plainMeaning = guide
-      ? `<p class="brick-lane-plain-meaning">${escapeHtml(guide.plainMeaning)}</p>`
+    const plainMeaning = resolved.meaning
+      ? `<p class="brick-lane-plain-meaning">${escapeHtml(resolved.meaning)}</p>`
+      : guide
+        ? `<p class="brick-lane-plain-meaning">${escapeHtml(guide.plainMeaning)}</p>`
+        : "";
+    const resolvedLabel = resolved.label
+      ? `<p class="brick-lane-resolved-setting">${escapeHtml(resolved.label)}</p>`
       : "";
+
     return `<article class="brick-lane-parameter-card${monitoredClass}" data-parameter-id="${escapeHtml(parameter.id)}" style="--brick-lane-led:${escapeHtml(ledColor)}">
       <h3>${escapeHtml(parameter.label)}</h3>
       ${plainLabel}
+      ${resolvedLabel}
       <p>${escapeHtml(parameter.side)}. ${escapeHtml(parameter.description || "")}</p>
       ${plainMeaning}
-      ${renderExactLedLadder({ ...parameter, selected, exactSelected: Boolean(options.selectedOverride) })}
+      ${renderExactLedLadder({
+        ...parameter,
+        displayScale: resolved.displayScale,
+        activeLedValues: resolved.activeLedValues,
+        exactSelected: Boolean(options.selectedOverride),
+      })}
     </article>`;
   }
 
@@ -571,7 +432,9 @@
     const scfValue = fp.scf || "100 Hz";
     const linkValue = fp.link || "STEREO";
     const scfActive =
-      scfValue === "120Hz" || scfValue === "100 Hz" || scfValue === "60 Hz or 100 Hz";
+      scfValue === "120Hz" ||
+      scfValue === "100 Hz" ||
+      scfValue === "60 Hz or 100 Hz";
     return `<div class="brick-lane-lower-hardware">
       <div class="brick-lane-lower-section">
         <div class="brick-lane-mini-title">SCF</div>
@@ -603,18 +466,20 @@
   }
 
   function renderHardwareFaceplate(preset, state = {}) {
-    const fp = state.frontPanelValues || preset.frontPanelValues || {
-      input: 50,
-      threshold: 48,
-      attack: 42,
-      release: 52,
-      output: 50,
-      stress: 28,
-      scf: "100 Hz",
-      link: "STEREO"
-    };
+    const fp = state.frontPanelValues ||
+      preset.frontPanelValues || {
+        input: 50,
+        threshold: 48,
+        attack: 42,
+        release: 52,
+        output: 50,
+        stress: 28,
+        scf: "100 Hz",
+        link: "STEREO",
+      };
     const reference = data.FRONT_PANEL_REFERENCE;
-    const hardwareModeLabel = getModeGuide(preset.mode)?.hardwareLabel || normalizeModeKey(preset.mode);
+    const hardwareModeLabel =
+      getModeGuide(preset.mode)?.hardwareLabel || normalizeModeKey(preset.mode);
 
     return `<div class="brick-lane-hardware" aria-label="Brick Lane 500 front panel">
       <div class="brick-lane-rack-ear brick-lane-rack-ear-top" aria-hidden="true"></div>
@@ -721,12 +586,7 @@
         "crestFactorShaping",
       ];
     } else if (activeTab === "timing") {
-      parameterIds = [
-        "knee",
-        "hold",
-        "lookahead",
-        "ledBrightness",
-      ];
+      parameterIds = ["knee", "hold", "lookahead", "ledBrightness"];
     } else if (activeTab === "all") {
       parameterIds = preset.parameterOrder;
     }
@@ -775,7 +635,7 @@
     function setUseCase(useCaseId) {
       state = stateMachine.labStateReducer(state, {
         type: "SET_USE_CASE",
-        payload: { useCaseId }
+        payload: { useCaseId },
       });
       render();
     }
@@ -797,7 +657,7 @@
       if (tabBtn) {
         state = stateMachine.labStateReducer(state, {
           type: "SET_ACTIVE_TAB",
-          payload: { tab: tabBtn.dataset.tab }
+          payload: { tab: tabBtn.dataset.tab },
         });
         render();
         playShortClick(700, 0.08);
@@ -809,7 +669,10 @@
       const card = rung.closest(".brick-lane-parameter-card");
       state = stateMachine.labStateReducer(state, {
         type: "TOGGLE_PARAMETER_RUNG",
-        payload: { parameterId: card?.dataset.parameterId, value: rung.dataset.val }
+        payload: {
+          parameterId: card?.dataset.parameterId,
+          value: rung.dataset.val,
+        },
       });
       render();
       playShortClick(400, 0.05);
@@ -820,7 +683,7 @@
       if (!select) return;
       state = stateMachine.labStateReducer(state, {
         type: "SET_MONITOR_PARAM",
-        payload: { param: select.value }
+        payload: { param: select.value },
       });
       render();
       playShortClick(800, 0.1);
@@ -830,7 +693,7 @@
     nodes.faceplate.addEventListener("click", (event) => {
       const toggle = event.target.closest(".brick-lane-toggle-box");
       if (!toggle) return;
-      
+
       const param = toggle.dataset.param;
       const isOn = toggle.classList.toggle("is-on");
 
@@ -846,39 +709,47 @@
 
       state = stateMachine.labStateReducer(state, {
         type: "UPDATE_FRONT_PANEL",
-        payload: { param, value }
+        payload: { param, value },
       });
       render();
     });
 
     // Circular Radial Draggable Dials (Faceplate Knobs)
     nodes.faceplate.addEventListener("mousedown", dragStartKnob);
-    nodes.faceplate.addEventListener("touchstart", dragStartKnob, { passive: false });
-    
+    nodes.faceplate.addEventListener("touchstart", dragStartKnob, {
+      passive: false,
+    });
+
     function dragStartKnob(e) {
       const knob = e.target.closest(".brick-lane-big-knob");
       if (!knob) return;
       e.preventDefault();
-      
+
       const container = knob.closest(".brick-lane-knob-container");
       if (container) container.classList.add("active-dragging");
-      
+
       let startY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
       let startVal = Number(knob.dataset.val);
       const param = knob.dataset.param;
-      
+
       function dragMoveKnob(moveEvent) {
         moveEvent.preventDefault();
-        const clientY = moveEvent.type === "touchmove" ? moveEvent.touches[0].clientY : moveEvent.clientY;
+        const clientY =
+          moveEvent.type === "touchmove"
+            ? moveEvent.touches[0].clientY
+            : moveEvent.clientY;
         const deltaY = startY - clientY;
-        
-        let newVal = startVal + (deltaY * 0.45);
+
+        let newVal = startVal + deltaY * 0.45;
         if (newVal < 0) newVal = 0;
         if (newVal > 100) newVal = 100;
-        
+
         knob.dataset.val = newVal;
-        knob.style.setProperty("--brick-lane-knob-angle", `${Math.round(-135 + (newVal / 100) * 270)}deg`);
-        
+        knob.style.setProperty(
+          "--brick-lane-knob-angle",
+          `${Math.round(-135 + (newVal / 100) * 270)}deg`
+        );
+
         let valString = "";
         if (param === "input" || param === "output") {
           const db = ((newVal / 100) * 40 - 20).toFixed(1);
@@ -896,83 +767,91 @@
           const units = ((newVal / 100) * 10).toFixed(1);
           valString = units;
         }
-        
+
         const readout = container.querySelector(".brick-lane-knob-readout");
         if (readout) readout.textContent = valString;
         const tooltip = container.querySelector(".brick-lane-tooltip");
         if (tooltip) tooltip.textContent = valString;
       }
-      
+
       function dragEndKnob() {
         if (container) container.classList.remove("active-dragging");
         document.removeEventListener("mousemove", dragMoveKnob);
         document.removeEventListener("mouseup", dragEndKnob);
         document.removeEventListener("touchmove", dragMoveKnob);
         document.removeEventListener("touchend", dragEndKnob);
-        
+
         state = stateMachine.labStateReducer(state, {
           type: "UPDATE_FRONT_PANEL",
-          payload: { param, value: Number(knob.dataset.val) }
+          payload: { param, value: Number(knob.dataset.val) },
         });
         render();
       }
-      
+
       document.addEventListener("mousemove", dragMoveKnob);
       document.addEventListener("mouseup", dragEndKnob);
       document.addEventListener("touchmove", dragMoveKnob, { passive: false });
       document.addEventListener("touchend", dragEndKnob);
-      
+
       playShortClick(600, 0.03);
     }
 
     // Draggable Bottom Dials
     nodes.controls.addEventListener("mousedown", dragStartDial);
-    nodes.controls.addEventListener("touchstart", dragStartDial, { passive: false });
-    
+    nodes.controls.addEventListener("touchstart", dragStartDial, {
+      passive: false,
+    });
+
     function dragStartDial(e) {
       const dial = e.target.closest(".brick-lane-dial");
       if (!dial) return;
       e.preventDefault();
-      
+
       const label = dial.closest(".brick-lane-control");
       const input = label.querySelector("input[type='range']");
       const controlId = input.dataset.controlId;
-      
+
       let startY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
       let startVal = Number(input.value);
-      
+
       function dragMoveDial(moveEvent) {
         moveEvent.preventDefault();
-        const clientY = moveEvent.type === "touchmove" ? moveEvent.touches[0].clientY : moveEvent.clientY;
+        const clientY =
+          moveEvent.type === "touchmove"
+            ? moveEvent.touches[0].clientY
+            : moveEvent.clientY;
         const deltaY = startY - clientY;
-        
-        let newVal = startVal + (deltaY * 0.45);
+
+        let newVal = startVal + deltaY * 0.45;
         if (newVal < 0) newVal = 0;
         if (newVal > 100) newVal = 100;
-        
+
         input.value = newVal;
         label.style.setProperty("--brick-lane-value", `${newVal}%`);
-        label.style.setProperty("--brick-lane-angle", `${Math.round(-135 + (newVal / 100) * 270)}deg`);
+        label.style.setProperty(
+          "--brick-lane-angle",
+          `${Math.round(-135 + (newVal / 100) * 270)}deg`
+        );
       }
-      
+
       function dragEndDial() {
         document.removeEventListener("mousemove", dragMoveDial);
         document.removeEventListener("mouseup", dragEndDial);
         document.removeEventListener("touchmove", dragMoveDial);
         document.removeEventListener("touchend", dragEndDial);
-        
+
         state = stateMachine.labStateReducer(state, {
           type: "UPDATE_CONTROL",
-          payload: { controlId, value: Number(input.value) }
+          payload: { controlId, value: Number(input.value) },
         });
         render();
       }
-      
+
       document.addEventListener("mousemove", dragMoveDial);
       document.addEventListener("mouseup", dragEndDial);
       document.addEventListener("touchmove", dragMoveDial, { passive: false });
       document.addEventListener("touchend", dragEndDial);
-      
+
       playShortClick(600, 0.03);
     }
 
@@ -981,14 +860,14 @@
     let animationFrameId = null;
     let simulatedGainReductionLeft = 0;
     let simulatedGainReductionRight = 0;
-    
+
     // Create and insert simulation button dynamically
     const simButton = document.createElement("button");
     simButton.type = "button";
     simButton.id = "brick-lane-sim";
     simButton.textContent = "▶ SIM SIGNAL";
     nodes.copy.parentNode.insertBefore(simButton, nodes.copy);
-    
+
     // Create and insert scope dynamically in the sidebar
     const scopeContainer = document.createElement("div");
     scopeContainer.className = "brick-lane-scope-container";
@@ -999,12 +878,12 @@
       </div>
     `;
     nodes.context.parentNode.appendChild(scopeContainer);
-    
+
     const canvas = document.getElementById("brick-lane-scope-canvas");
     const ctx = canvas.getContext("2d");
-    let canvasWidth = canvas.width = canvas.offsetWidth || 190;
-    let canvasHeight = canvas.height = canvas.offsetHeight || 50;
-    
+    let canvasWidth = (canvas.width = canvas.offsetWidth || 190);
+    let canvasHeight = (canvas.height = canvas.offsetHeight || 50);
+
     function clearScope() {
       ctx.fillStyle = "#040508";
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
@@ -1015,12 +894,12 @@
       ctx.lineTo(canvasWidth, canvasHeight / 2);
       ctx.stroke();
     }
-    
+
     clearScope();
-    
+
     let synthOsc = null;
     let synthGain = null;
-    
+
     function startAudioHum() {
       try {
         if (!audioCtx) {
@@ -1039,16 +918,16 @@
         synthOsc.start();
       } catch (e) {}
     }
-    
+
     function stopAudioHum() {
       if (synthOsc) {
         try {
           synthOsc.stop();
-        } catch(e){}
+        } catch (e) {}
         synthOsc = null;
       }
     }
-    
+
     simButton.addEventListener("click", () => {
       activeAudioSim = !activeAudioSim;
       if (activeAudioSim) {
@@ -1068,70 +947,87 @@
       }
       playShortClick(600, 0.1);
     });
-    
+
     function startScopeAnimation() {
       let phase = 0;
-      
+
       function renderScope() {
         if (!activeAudioSim) return;
-        
+
         ctx.fillStyle = "rgba(4, 5, 8, 0.25)";
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-        
+
         ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(0, canvasHeight / 2);
         ctx.lineTo(canvasWidth, canvasHeight / 2);
         ctx.stroke();
-        
-        ctx.strokeStyle = state.useCaseId === "mix-bus" ? "var(--brick-lane-blue)" : "var(--brick-lane-cyan)";
+
+        ctx.strokeStyle =
+          state.useCaseId === "mix-bus"
+            ? "var(--brick-lane-blue)"
+            : "var(--brick-lane-cyan)";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        
+
         let amplitude = 8 + Math.sin(phase * 0.02) * 3;
         let thresholdVal = state.frontPanelValues.threshold;
         let inputVal = state.frontPanelValues.input;
-        
-        let signal = Math.sin(phase * 0.1) * 0.6 + Math.sin(phase * 0.03) * 0.3 + (Math.random() - 0.5) * 0.08;
-        let rawDB = (signal * 15) + (inputVal - 50) * 0.4;
+
+        let signal =
+          Math.sin(phase * 0.1) * 0.6 +
+          Math.sin(phase * 0.03) * 0.3 +
+          (Math.random() - 0.5) * 0.08;
+        let rawDB = signal * 15 + (inputVal - 50) * 0.4;
         let threshDB = (thresholdVal - 50) * 0.4;
-        
+
         let gr = 0;
         if (rawDB > threshDB) {
           gr = (rawDB - threshDB) * 0.6;
         }
-        
-        simulatedGainReductionLeft = simulatedGainReductionLeft * 0.85 + gr * 0.15;
-        simulatedGainReductionRight = simulatedGainReductionRight * 0.9 + gr * 0.1;
-        
+
+        simulatedGainReductionLeft =
+          simulatedGainReductionLeft * 0.85 + gr * 0.15;
+        simulatedGainReductionRight =
+          simulatedGainReductionRight * 0.9 + gr * 0.1;
+
         for (let x = 0; x < canvasWidth; x++) {
-          let y = canvasHeight / 2 + Math.sin(x * 0.06 + phase) * amplitude * (1 - (gr * 0.05));
+          let y =
+            canvasHeight / 2 +
+            Math.sin(x * 0.06 + phase) * amplitude * (1 - gr * 0.05);
           if (x === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
         ctx.stroke();
-        
-        animatePanelMetersRealtime(simulatedGainReductionLeft, simulatedGainReductionRight);
-        
+
+        animatePanelMetersRealtime(
+          simulatedGainReductionLeft,
+          simulatedGainReductionRight
+        );
+
         phase += 0.25;
         animationFrameId = requestAnimationFrame(renderScope);
       }
-      
+
       renderScope();
     }
-    
+
     function animatePanelMetersRealtime(grLeft, grRight) {
-      const leftMeterRungs = document.querySelectorAll('[data-meter-id="sig"] .brick-lane-rung');
-      const rightMeterRungs = document.querySelectorAll('[data-meter-id="gr"] .brick-lane-rung');
+      const leftMeterRungs = document.querySelectorAll(
+        '[data-meter-id="sig"] .brick-lane-rung'
+      );
+      const rightMeterRungs = document.querySelectorAll(
+        '[data-meter-id="gr"] .brick-lane-rung'
+      );
       const ladderValues = [0.5, 1.0, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 15];
-      
+
       leftMeterRungs.forEach((rung, index) => {
         const val = ladderValues[index];
         if (grLeft * 1.5 >= val) rung.classList.add("is-on");
         else rung.classList.remove("is-on");
       });
-      
+
       rightMeterRungs.forEach((rung, index) => {
         const val = ladderValues[index];
         if (grRight * 1.3 >= val) rung.classList.add("is-on");
@@ -1147,10 +1043,10 @@
     nodes.archetypes.addEventListener("click", (event) => {
       const button = event.target.closest("[data-archetype-id]");
       if (!button) return;
-      
+
       state = stateMachine.labStateReducer(state, {
         type: "SET_ARCHETYPE",
-        payload: { archetypeId: button.dataset.archetypeId }
+        payload: { archetypeId: button.dataset.archetypeId },
       });
       render();
     });
@@ -1160,7 +1056,10 @@
       if (!input) return;
       state = stateMachine.labStateReducer(state, {
         type: "UPDATE_CONTROL",
-        payload: { controlId: input.dataset.controlId, value: Number(input.value) }
+        payload: {
+          controlId: input.dataset.controlId,
+          value: Number(input.value),
+        },
       });
       render();
     });
