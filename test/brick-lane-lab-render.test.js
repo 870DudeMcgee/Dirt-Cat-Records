@@ -76,6 +76,27 @@ test("renderPresetSummary includes mode, target gain reduction, and front-panel 
   assert.match(html, /STRESS/);
 });
 
+test("preset summary explains hardware mode with plain-language compressor family", () => {
+  const preset = getGeneratedPreset();
+  const html = renderPresetSummary({ ...preset, mode: "Tame" });
+
+  assert.match(html, /TAME/i);
+  assert.match(html, /Clean\/Transparent/);
+  assert.match(html, /Saturation/);
+  assert.doesNotMatch(html, /Stress:/);
+});
+
+test("parameter cards show hardware labels and plain-language meanings", () => {
+  const html = renderParameterCard({
+    ...ENIGMA_PARAMETERS.stressTypeDiodeClipping,
+    selected: ["1.0"],
+  });
+
+  assert.match(html, /Stress Character \/ Diode Clipping/);
+  assert.match(html, /Saturation character/);
+  assert.match(html, /Chooses the flavor of drive or clipping/);
+});
+
 test("createCopyText contains full parameter names and selected rung labels", () => {
   const preset = getGeneratedPreset();
   const text = createCopyText(preset);
@@ -83,6 +104,15 @@ test("createCopyText contains full parameter names and selected rung labels", ()
   assert.match(text, /Sidechain High Frequency Emphasis\/De-emphasis/);
   assert.match(text, /Enigma Left/);
   assert.match(text, /15/);
+});
+
+test("copy recall text includes Enigma guide labels for users", () => {
+  const preset = getGeneratedPreset();
+  const text = createCopyText({ ...preset, mode: "Glue" });
+
+  assert.match(text, /GLUE - VCA/i);
+  assert.match(text, /STRESS hardware control = Saturation/i);
+  assert.match(text, /Compression ratio/);
 });
 
 test("copyRecallText handles denied clipboard permission without throwing", async () => {

@@ -273,27 +273,62 @@
     return `<div class="brick-lane-led-housing" style="--brick-lane-led:${escapeHtml(ledColor)}"><div class="brick-lane-led-ladder">${rungs}<span class="brick-lane-gr-tag">GR</span><span></span></div></div>`;
   }
 
+  function normalizeModeKey(mode) {
+    return String(mode || "").trim().toUpperCase();
+  }
+
+  function getModeGuide(mode) {
+    return data.ENIGMA_DEMYSTIFIER.modes[normalizeModeKey(mode)] || null;
+  }
+
+  function getParameterGuide(parameterId) {
+    return data.ENIGMA_DEMYSTIFIER.parameters[parameterId] || null;
+  }
+
+  function formatModeLabel(mode) {
+    const modeGuide = getModeGuide(mode);
+    if (!modeGuide) return String(mode || "");
+    return `${modeGuide.hardwareLabel} - ${modeGuide.family}`;
+  }
+
   function renderParameterCard(parameter, options = {}) {
     const ledColor = data.BRICK_LANE_COLORS[parameter.color] || parameter.color;
     const monitoredClass = options.isMonitored ? " is-monitored" : "";
+    const guide = getParameterGuide(parameter.id);
+    const plainLabel = guide
+      ? `<p class="brick-lane-plain-label">${escapeHtml(guide.userLabel)}</p>`
+      : "";
+    const plainMeaning = guide
+      ? `<p class="brick-lane-plain-meaning">${escapeHtml(guide.plainMeaning)}</p>`
+      : "";
     return `<article class="brick-lane-parameter-card${monitoredClass}" data-parameter-id="${escapeHtml(parameter.id)}" style="--brick-lane-led:${escapeHtml(ledColor)}">
       <h3>${escapeHtml(parameter.label)}</h3>
+      ${plainLabel}
       <p>${escapeHtml(parameter.side)}. ${escapeHtml(parameter.description || "")}</p>
+      ${plainMeaning}
       ${renderExactLedLadder(parameter)}
     </article>`;
   }
 
   function renderPresetSummary(preset) {
     const frontPanel = preset.frontPanel;
+    const modeGuide = getModeGuide(preset.mode);
+    const modeLabel = formatModeLabel(preset.mode);
+    const saturationSummary = data.ENIGMA_DEMYSTIFIER.saturation.summary;
+    const modeFamily = modeGuide
+      ? `<p class="brick-lane-mode-family">${escapeHtml(modeLabel)}</p>`
+      : "";
     return `<section class="brick-lane-summary-card">
       <p class="brick-lane-kicker">Generated Preset</p>
       <h2>${escapeHtml(preset.mode)}: ${escapeHtml(preset.label)}</h2>
+      ${modeFamily}
       <p>${escapeHtml(preset.summary)}</p>
+      <p class="brick-lane-saturation-note">${escapeHtml(saturationSummary)}</p>
       <dl class="brick-lane-front-panel">
         <div><dt>Target GR</dt><dd>${escapeHtml(preset.targetGainReduction)}</dd></div>
         <div><dt>Attack</dt><dd>${escapeHtml(frontPanel.attack)}</dd></div>
         <div><dt>Release</dt><dd>${escapeHtml(frontPanel.release)}</dd></div>
-        <div><dt>STRESS</dt><dd>${escapeHtml(frontPanel.stress)}</dd></div>
+        <div><dt>Saturation (STRESS)</dt><dd>${escapeHtml(frontPanel.stress)}</dd></div>
         <div><dt>SCF</dt><dd>${escapeHtml(frontPanel.scf)}</dd></div>
         <div><dt>Threshold</dt><dd>${escapeHtml(frontPanel.threshold)}</dd></div>
       </dl>
@@ -301,15 +336,17 @@
   }
 
   function createCopyText(preset) {
+    const saturation = data.ENIGMA_DEMYSTIFIER.saturation;
     const lines = [
       `Brick Lane Sonic Lab - ${preset.mode}: ${preset.label}`,
+      `Mode: ${formatModeLabel(preset.mode)}`,
       `Target GR: ${preset.targetGainReduction}`,
       `Input: ${preset.frontPanel.input}`,
       `Threshold: ${preset.frontPanel.threshold}`,
       `Attack: ${preset.frontPanel.attack}`,
       `Release: ${preset.frontPanel.release}`,
       `Output: ${preset.frontPanel.output}`,
-      `STRESS: ${preset.frontPanel.stress}`,
+      `${saturation.hardwareLabel} hardware control = ${saturation.userLabel}: ${preset.frontPanel.stress}`,
       `SCF: ${preset.frontPanel.scf}`,
       "",
       "Enigma Parameters:",
@@ -317,8 +354,12 @@
 
     for (const parameterId of preset.parameterOrder) {
       const parameter = preset.parameters[parameterId];
+      const guide = getParameterGuide(parameterId);
+      const label = guide
+        ? `${parameter.label} / ${guide.userLabel}`
+        : parameter.label;
       lines.push(
-        `${parameter.label} (${parameter.side}, ${parameter.color}): ${parameter.selected.join(", ")}`
+        `${label} (${parameter.side}, ${parameter.color}): ${parameter.selected.join(", ")}`
       );
     }
 

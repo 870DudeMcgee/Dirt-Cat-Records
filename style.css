@@ -3786,6 +3786,27 @@ footer {
   padding: 0.75rem;
 }
 
+.brick-lane-mode-family,
+.brick-lane-plain-label,
+.brick-lane-saturation-note,
+.brick-lane-plain-meaning {
+  letter-spacing: 0;
+}
+
+.brick-lane-mode-family,
+.brick-lane-plain-label {
+  color: var(--brick-lane-cyan);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.brick-lane-saturation-note,
+.brick-lane-plain-meaning {
+  color: var(--brick-lane-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 .brick-lane-browser h2 {
   margin: 0.95rem 0 0.45rem;
   color: var(--brick-lane-muted);
