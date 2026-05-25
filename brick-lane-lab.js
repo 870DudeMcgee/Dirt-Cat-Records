@@ -442,59 +442,113 @@
     return Math.round(-135 + (Number(value) / 100) * 270);
   }
 
-  function renderHardwareKnob({ label, value, low, high, param }) {
+  function normalizePanelValue(value, fallback = 50) {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return fallback;
+    return Math.min(100, Math.max(0, numericValue));
+  }
+
+  function formatPanelReadout(param, value) {
     let valString = "";
+    const normalizedValue = normalizePanelValue(value);
     if (param === "input" || param === "output") {
-      const db = ((Number(value) / 100) * 40 - 20).toFixed(1);
+      const db = ((normalizedValue / 100) * 40 - 20).toFixed(1);
       valString = (db >= 0 ? "+" : "") + db + " dB";
     } else if (param === "threshold") {
-      const db = ((Number(value) / 100) * 40 - 40).toFixed(1);
+      const db = ((normalizedValue / 100) * 40 - 40).toFixed(1);
       valString = db + " dB";
     } else if (param === "attack") {
-      const ms = Math.round(1 + (Number(value) / 100) * 99);
+      const ms = Math.round(1 + (normalizedValue / 100) * 99);
       valString = ms + " ms";
     } else if (param === "release") {
-      const ms = Math.round(10 + (Number(value) / 100) * 990);
+      const ms = Math.round(10 + (normalizedValue / 100) * 990);
       valString = ms + " ms";
     } else if (param === "stress") {
-      const units = ((Number(value) / 100) * 10).toFixed(1);
+      const units = ((normalizedValue / 100) * 10).toFixed(1);
       valString = units;
     }
+    return valString;
+  }
 
-    return `<div class="brick-lane-knob-container">
+  function renderPhysicalKnob(knob, value, className = "brick-lane-main-knob") {
+    const normalizedValue = normalizePanelValue(value);
+    const param = knob.id;
+    const valString = formatPanelReadout(param, normalizedValue);
+
+    return `<div class="brick-lane-knob-container ${escapeHtml(className)}">
       <div class="brick-lane-knob-header">
-        <span class="brick-lane-knob-name">${escapeHtml(label)}</span>
+        <span class="brick-lane-knob-name">${escapeHtml(knob.label)}</span>
         <span class="brick-lane-knob-readout" id="readout-fp-${param}">${valString}</span>
       </div>
-      <div class="brick-lane-big-knob" data-param="${param}" data-val="${value}" style="--brick-lane-knob-angle:${knobAngle(value)}deg"></div>
-      <div class="brick-lane-scale-row"><span>${escapeHtml(low)}</span><span>${escapeHtml(high)}</span></div>
+      <div class="brick-lane-big-knob" data-param="${escapeHtml(param)}" data-val="${normalizedValue}" style="--brick-lane-knob-angle:${knobAngle(normalizedValue)}deg"></div>
+      <div class="brick-lane-scale-row"><span>${escapeHtml(knob.low || "")}</span>${knob.center ? `<span>${escapeHtml(knob.center)}</span>` : ""}<span>${escapeHtml(knob.high || "")}</span></div>
       <div class="brick-lane-tooltip" id="tooltip-fp-${param}">${valString}</div>
     </div>`;
   }
 
-  function renderModeList(activeMode) {
-    const modes = [
-      "Velvet",
-      "Float",
-      "Smash",
-      "Tame",
-      "Glue",
-      "Polish White",
-      "Polish Blue",
-    ];
+  function renderPhysicalMeter(meter, activeScale = []) {
+    const activeValues = new Set(activeScale.map(String));
+    const ledColor = data.BRICK_LANE_COLORS[meter.color] || meter.color;
+    const rungs = meter.scale
+      .map((label) => {
+        const activeClass = activeValues.has(String(label)) ? " is-on" : "";
+        return `<span class="brick-lane-rung${activeClass}" data-val="${escapeHtml(label)}" aria-hidden="true"></span><span class="brick-lane-led-label">${escapeHtml(label)}</span>`;
+      })
+      .join("");
+
+    return `<div class="brick-lane-physical-meter" data-meter-id="${escapeHtml(meter.id)}" style="--brick-lane-led:${escapeHtml(ledColor)}">
+      <div class="brick-lane-mini-title">${escapeHtml(meter.label)}</div>
+      <div class="brick-lane-led-housing"><div class="brick-lane-led-ladder">${rungs}</div></div>
+    </div>`;
+  }
+
+  function renderPhysicalModeList(activeMode) {
+    const normalizedActiveMode = String(activeMode || "").toUpperCase();
+    const modes = data.FRONT_PANEL_REFERENCE.modeLabels;
     return `<div class="brick-lane-mode-list">${modes
       .map((mode) => {
-        const activeClass =
-          activeMode === mode ||
-          (activeMode === "Polish" && mode === "Polish Blue")
-            ? " is-active"
-            : "";
+        const activeClass = normalizedActiveMode === mode ? " is-active" : "";
         return `<span class="brick-lane-mode-dot${activeClass}">${escapeHtml(mode)}</span>`;
       })
       .join("")}</div>`;
   }
 
-  function renderFaceplate(preset, state) {
+  function renderLowerHardware(fp) {
+    const scfValue = fp.scf || "100 Hz";
+    const linkValue = fp.link || "STEREO";
+    const scfActive =
+      scfValue === "120Hz" || scfValue === "100 Hz" || scfValue === "60 Hz or 100 Hz";
+    return `<div class="brick-lane-lower-hardware">
+      <div class="brick-lane-lower-section">
+        <div class="brick-lane-mini-title">SCF</div>
+        <div class="brick-lane-toggle-box ${scfActive ? "is-on" : ""}" data-param="scf">
+          <span class="brick-lane-toggle-handle"></span>
+        </div>
+        <div class="brick-lane-toggle-label">${escapeHtml(scfValue)}</div>
+      </div>
+      <div class="brick-lane-lower-section">
+        <div class="brick-lane-mini-title">MODE</div>
+        <div class="brick-lane-toggle-box ${linkValue === "MONO" ? "is-on" : ""}" data-param="link">
+          <span class="brick-lane-toggle-handle"></span>
+        </div>
+        <div class="brick-lane-toggle-label">${escapeHtml(linkValue)}</div>
+      </div>
+      <div class="brick-lane-lower-section">
+        <div class="brick-lane-mini-title">optosync</div>
+        <div class="brick-lane-toggle-box is-on" aria-hidden="true">
+          <span class="brick-lane-toggle-handle"></span>
+        </div>
+      </div>
+      <div class="brick-lane-lower-section">
+        <div class="brick-lane-mini-title">IN</div>
+        <div class="brick-lane-toggle-box is-on" aria-hidden="true">
+          <span class="brick-lane-toggle-handle"></span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderHardwareFaceplate(preset, state = {}) {
     const fp = state.frontPanelValues || preset.frontPanelValues || {
       input: 50,
       threshold: 48,
@@ -505,124 +559,38 @@
       scf: "100 Hz",
       link: "STEREO"
     };
+    const reference = data.FRONT_PANEL_REFERENCE;
 
-    // Deep Enigma Parameter Monitoring Display coloring & rungs logic
-    let leftParameter;
-    let rightParameter;
-
-    const monitorParam = state.monitorParam || "VU";
-    if (monitorParam === "VU") {
-      leftParameter = {
-        id: "sigMeter",
-        label: "Signal Level",
-        side: "SIG",
-        color: "red",
-        scale: data.COMMON_LED_SCALE,
-        visualScale: ["24", "21", "18", "15", "12", "9", "6", "3", "0", "-6", "-12", "-24"],
-        selected: []
-      };
-      rightParameter = {
-        id: "grMeter",
-        label: "Gain Reduction",
-        side: "GR",
-        color: "cyan",
-        scale: data.COMMON_LED_SCALE,
-        visualScale: ["0.5", "1.0", "1.5", "2", "3", "4", "5", "6", "8", "10", "12", "15"],
-        selected: []
-      };
-    } else {
-      const selectedParam = preset.parameters[monitorParam];
-      if (selectedParam) {
-        if (selectedParam.side === "Enigma Left") {
-          leftParameter = { ...selectedParam };
-          // Turn right meter off
-          rightParameter = { ...preset.parameters.ratio, selected: [] };
-          rightParameter.color = "rgba(255,255,255,0.06)";
-        } else {
-          rightParameter = { ...selectedParam };
-          // Turn left meter off
-          leftParameter = { ...preset.parameters.sidechainHighFrequencyEmphasis, selected: [] };
-          leftParameter.color = "rgba(255,255,255,0.06)";
-        }
-      } else {
-        leftParameter = { ...preset.parameters.sidechainHighFrequencyEmphasis };
-        rightParameter = { ...preset.parameters.ratio };
-      }
-    }
-
-    return `<div class="brick-lane-hardware">
+    return `<div class="brick-lane-hardware" aria-label="Brick Lane 500 front panel">
+      <div class="brick-lane-rack-ear brick-lane-rack-ear-top" aria-hidden="true"></div>
+      <div class="brick-lane-faceplate-core">
       <div class="brick-lane-stripe"></div>
-      <div class="brick-lane-brand-row" style="align-items: center; margin-bottom: 0.75rem;">
+      <div class="brick-lane-brand-lockup">
         <div>
           <div class="brick-lane-brand">BRICK LANE</div>
-          <div class="brick-lane-source-tile" style="margin-top:.2rem; font-size: 8px; padding: 2px 4px; display: inline-block;">modal compressor</div>
+          <div class="brick-lane-model-label">modal compressor</div>
         </div>
-        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-          <div class="brick-lane-mode-label" id="brick-lane-hw-mode" style="font-size: 9px; font-weight: 800;">Mode: ${escapeHtml(preset.mode)}</div>
-          <select id="brick-lane-monitor-select" class="brick-lane-select" aria-label="Parameter Monitor">
-            <option value="VU">Monitor: VU (GR Mode)</option>
-            <optgroup label="Left Enigma Parameters">
-              <option value="stressTypeDiodeClipping" ${monitorParam === "stressTypeDiodeClipping" ? "selected" : ""}>Stress Diode (Red)</option>
-              <option value="diodeHardness" ${monitorParam === "diodeHardness" ? "selected" : ""}>Diode Hardness (Yellow)</option>
-              <option value="sidechainHighFrequencyEmphasis" ${monitorParam === "sidechainHighFrequencyEmphasis" ? "selected" : ""}>Sidechain HF (Magenta)</option>
-              <option value="detector" ${monitorParam === "detector" ? "selected" : ""}>Detector Curve (Cyan)</option>
-              <option value="stereoMonoSidechainLinking" ${monitorParam === "stereoMonoSidechainLinking" ? "selected" : ""}>Sidechain Link (White)</option>
-              <option value="stressCrossoverPhase" ${monitorParam === "stressCrossoverPhase" ? "selected" : ""}>Stress Phase (Blue)</option>
-              <option value="crestFactorShaping" ${monitorParam === "crestFactorShaping" ? "selected" : ""}>Crest Shaping (Green)</option>
-            </optgroup>
-            <optgroup label="Right Enigma Parameters">
-              <option value="ratio" ${monitorParam === "ratio" ? "selected" : ""}>Ratio Curve (Blue)</option>
-              <option value="knee" ${monitorParam === "knee" ? "selected" : ""}>Knee Width (Cyan)</option>
-              <option value="attackWeighting" ${monitorParam === "attackWeighting" ? "selected" : ""}>Attack Weight (Red)</option>
-              <option value="releaseWeighting" ${monitorParam === "releaseWeighting" ? "selected" : ""}>Release Weight (White)</option>
-              <option value="hold" ${monitorParam === "hold" ? "selected" : ""}>Hold Timing (Green)</option>
-              <option value="lookahead" ${monitorParam === "lookahead" ? "selected" : ""}>Lookahead Time (Yellow)</option>
-              <option value="ledBrightness" ${monitorParam === "ledBrightness" ? "selected" : ""}>LED Brightness (Magenta)</option>
-            </optgroup>
-          </select>
+        <div class="brick-lane-mode-label" id="brick-lane-hw-mode">${escapeHtml(preset.mode)}</div>
+      </div>
+      <div class="brick-lane-panel-body">
+        <div class="brick-lane-main-controls">
+          ${reference.mainKnobs
+            .map((knob) => renderPhysicalKnob(knob, fp[knob.id]))
+            .join("")}
+        </div>
+        <div class="brick-lane-right-controls">
+          <div class="brick-lane-meter-pair">
+            ${renderPhysicalMeter(reference.meters.sig)}
+            ${renderPhysicalMeter(reference.meters.gr)}
+          </div>
+          ${renderPhysicalKnob(reference.stressKnob, fp.stress, "brick-lane-stress-knob")}
+          ${renderPhysicalModeList(preset.mode)}
+          ${renderLowerHardware(fp)}
         </div>
       </div>
-      <div class="brick-lane-hardware-grid">
-        <div class="brick-lane-knob-stack">
-          ${renderHardwareKnob({ label: "INPUT", value: fp.input, low: "-20", high: "20", param: "input" })}
-          ${renderHardwareKnob({ label: "THRESHOLD", value: fp.threshold, low: "MIN", high: "MAX", param: "threshold" })}
-          ${renderHardwareKnob({ label: "ATTACK", value: fp.attack, low: "SLOW", high: "FAST", param: "attack" })}
-          ${renderHardwareKnob({ label: "RELEASE", value: fp.release, low: "SLOW", high: "FAST", param: "release" })}
-          ${renderHardwareKnob({ label: "OUTPUT", value: fp.output, low: "-20", high: "20", param: "output" })}
-        </div>
-        <div>
-          <div class="brick-lane-hardware-ladders">
-            <div>
-              <div class="brick-lane-mini-title">${escapeHtml(leftParameter.side)}</div>
-              ${renderExactLedLadder(leftParameter)}
-            </div>
-            <div>
-              <div class="brick-lane-mini-title">${escapeHtml(rightParameter.side)}</div>
-              ${renderExactLedLadder(rightParameter)}
-            </div>
-          </div>
-          <div style="margin-top:.8rem; display: flex; flex-direction: column; align-items: center;">
-            ${renderHardwareKnob({ label: "STRESS", value: fp.stress, low: "OFF", high: "MAX", param: "stress" })}
-            ${renderModeList(preset.mode)}
-          </div>
-          <div class="brick-lane-hardware-ladders" style="margin-top:.8rem">
-            <div>
-              <div class="brick-lane-mini-title">SCF</div>
-              <div class="brick-lane-toggle-box ${fp.scf === "120Hz" || fp.scf === "100 Hz" || fp.scf === "60 Hz or 100 Hz" ? "is-on" : ""}" data-param="scf">
-                <span class="brick-lane-toggle-handle"></span>
-              </div>
-              <div class="brick-lane-toggle-label" style="font-size: 8px; text-align: center; color: #fff; margin-top: 3px;">${escapeHtml(fp.scf)}</div>
-            </div>
-            <div>
-              <div class="brick-lane-mini-title">MODE</div>
-              <div class="brick-lane-toggle-box ${fp.link === "MONO" ? "is-on" : ""}" data-param="link">
-                <span class="brick-lane-toggle-handle"></span>
-              </div>
-              <div class="brick-lane-toggle-label" style="font-size: 8px; text-align: center; color: #fff; margin-top: 3px;">${escapeHtml(fp.link || "STEREO")}</div>
-            </div>
-          </div>
-        </div>
+      <footer class="brick-lane-footer-brand">CRANBORNE AUDIO</footer>
       </div>
+      <div class="brick-lane-rack-ear brick-lane-rack-ear-bottom" aria-hidden="true"></div>
     </div>`;
   }
 
@@ -637,6 +605,33 @@
         <span>${escapeHtml(control.oppositeLabel)}</span>
       </label>`;
     }).join("");
+  }
+
+  function renderMonitorSelect(state) {
+    const monitorParam = state.monitorParam || "VU";
+    return `<div class="brick-lane-monitor-control">
+      <select id="brick-lane-monitor-select" class="brick-lane-select" aria-label="Parameter Monitor">
+        <option value="VU" ${monitorParam === "VU" ? "selected" : ""}>Monitor: VU (GR Mode)</option>
+        <optgroup label="Left Enigma Parameters">
+          <option value="stressTypeDiodeClipping" ${monitorParam === "stressTypeDiodeClipping" ? "selected" : ""}>Stress Diode (Red)</option>
+          <option value="diodeHardness" ${monitorParam === "diodeHardness" ? "selected" : ""}>Diode Hardness (Yellow)</option>
+          <option value="sidechainHighFrequencyEmphasis" ${monitorParam === "sidechainHighFrequencyEmphasis" ? "selected" : ""}>Sidechain HF (Magenta)</option>
+          <option value="detector" ${monitorParam === "detector" ? "selected" : ""}>Detector Curve (Cyan)</option>
+          <option value="stereoMonoSidechainLinking" ${monitorParam === "stereoMonoSidechainLinking" ? "selected" : ""}>Sidechain Link (White)</option>
+          <option value="stressCrossoverPhase" ${monitorParam === "stressCrossoverPhase" ? "selected" : ""}>Stress Phase (Blue)</option>
+          <option value="crestFactorShaping" ${monitorParam === "crestFactorShaping" ? "selected" : ""}>Crest Shaping (Green)</option>
+        </optgroup>
+        <optgroup label="Right Enigma Parameters">
+          <option value="ratio" ${monitorParam === "ratio" ? "selected" : ""}>Ratio Curve (Blue)</option>
+          <option value="knee" ${monitorParam === "knee" ? "selected" : ""}>Knee Width (Cyan)</option>
+          <option value="attackWeighting" ${monitorParam === "attackWeighting" ? "selected" : ""}>Attack Weight (Red)</option>
+          <option value="releaseWeighting" ${monitorParam === "releaseWeighting" ? "selected" : ""}>Release Weight (White)</option>
+          <option value="hold" ${monitorParam === "hold" ? "selected" : ""}>Hold Timing (Green)</option>
+          <option value="lookahead" ${monitorParam === "lookahead" ? "selected" : ""}>Lookahead Time (Yellow)</option>
+          <option value="ledBrightness" ${monitorParam === "ledBrightness" ? "selected" : ""}>LED Brightness (Magenta)</option>
+        </optgroup>
+      </select>
+    </div>`;
   }
 
   // Upgraded Tabbed Recall Card category filtering
@@ -684,7 +679,7 @@
       ${parameterIds.map(id => renderParameterCard(preset.parameters[id])).join("")}
     </div>`;
 
-    return tabsHtml + cardsHtml;
+    return renderMonitorSelect(state) + tabsHtml + cardsHtml;
   }
 
   function cloneDefaultState() {
@@ -744,7 +739,7 @@
       nodes.useCases.innerHTML = renderUseCases(state);
       nodes.archetypes.innerHTML = renderArchetypes(state);
       nodes.context.innerHTML = renderContext(preset);
-      nodes.faceplate.innerHTML = renderFaceplate(preset, state);
+      nodes.faceplate.innerHTML = renderHardwareFaceplate(preset, state);
       nodes.controls.innerHTML = renderControls(state);
       nodes.summary.innerHTML = renderPresetSummary(preset);
       nodes.parameters.innerHTML = renderRecallCards(preset, state);
@@ -766,7 +761,15 @@
       playShortClick(400, 0.05);
     });
 
-    // Faceplate Event listeners for mechanical switches AND parameter select dropdown monitoring
+    nodes.parameters.addEventListener("change", (event) => {
+      const select = event.target.closest("#brick-lane-monitor-select");
+      if (!select) return;
+      state.monitorParam = select.value;
+      render();
+      playShortClick(800, 0.1);
+    });
+
+    // Faceplate Event listeners for mechanical switches
     nodes.faceplate.addEventListener("click", (event) => {
       const toggle = event.target.closest(".brick-lane-toggle-box");
       if (!toggle) return;
@@ -783,14 +786,6 @@
         state.frontPanelValues.link = isOn ? "MONO" : "STEREO";
       }
       render();
-    });
-
-    nodes.faceplate.addEventListener("change", (event) => {
-      const select = event.target.closest("#brick-lane-monitor-select");
-      if (!select) return;
-      state.monitorParam = select.value;
-      render();
-      playShortClick(800, 0.1);
     });
 
     // Circular Radial Draggable Dials (Faceplate Knobs)
@@ -1061,8 +1056,8 @@
     }
     
     function animatePanelMetersRealtime(grLeft, grRight) {
-      const leftMeterRungs = document.querySelectorAll(".brick-lane-hardware .brick-lane-led-housing:nth-of-type(1) .brick-lane-rung");
-      const rightMeterRungs = document.querySelectorAll(".brick-lane-hardware .brick-lane-led-housing:nth-of-type(2) .brick-lane-rung");
+      const leftMeterRungs = document.querySelectorAll('[data-meter-id="sig"] .brick-lane-rung');
+      const rightMeterRungs = document.querySelectorAll('[data-meter-id="gr"] .brick-lane-rung');
       const ladderValues = [0.5, 1.0, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 15];
       
       leftMeterRungs.forEach((rung, index) => {
@@ -1138,7 +1133,8 @@
     createCopyText,
     copyRecallText,
     renderPrintSheet,
-    renderFaceplate,
+    renderHardwareFaceplate,
+    renderFaceplate: renderHardwareFaceplate,
     renderControls,
     renderRecallCards,
     initDom,

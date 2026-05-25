@@ -112,3 +112,35 @@ test("renderPrintSheet includes all Enigma parameters with exact ladders", () =>
   assert.match(html, /Brick Lane 500 - Generated Preset Cheat Sheet/);
   assert.match(html, /Front-panel starting points/);
 });
+
+test("renderHardwareFaceplate matches physical front-panel anatomy", () => {
+  const { renderHardwareFaceplate } = require("../brick-lane-lab");
+  const { getGeneratedPreset } = require("../brick-lane-data");
+  const preset = getGeneratedPreset();
+  const html = renderHardwareFaceplate(preset, {
+    frontPanelValues: preset.frontPanelValues,
+  });
+
+  for (const label of ["INPUT", "THRESHOLD", "ATTACK", "RELEASE", "OUTPUT"]) {
+    assert.match(html, new RegExp(`>${label}<`));
+  }
+  assert.equal((html.match(/brick-lane-main-knob/g) || []).length, 5);
+  assert.equal((html.match(/brick-lane-stress-knob/g) || []).length, 1);
+  assert.match(html, /data-meter-id="sig"/);
+  assert.match(html, /data-meter-id="gr"/);
+  assert.match(html, />VELVET</);
+  assert.match(html, />POLISH</);
+  assert.match(html, />optosync</i);
+  assert.match(html, />IN</);
+});
+
+test("physical faceplate does not contain UI-only controls", () => {
+  const { renderHardwareFaceplate } = require("../brick-lane-lab");
+  const { getGeneratedPreset } = require("../brick-lane-data");
+  const html = renderHardwareFaceplate(getGeneratedPreset(), {});
+
+  assert.doesNotMatch(html, /<select/i);
+  assert.doesNotMatch(html, /Monitor:/);
+  assert.doesNotMatch(html, /Generated Preset/);
+  assert.doesNotMatch(html, /brick-lane-tab-btn/);
+});
