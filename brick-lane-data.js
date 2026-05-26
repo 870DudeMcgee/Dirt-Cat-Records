@@ -1385,9 +1385,8 @@
   }));
 
   const DEFAULT_STATE = {
-    useCaseId: "tracking-vocal",
-    archetypeId: "safe-vocal-catcher",
-    problemPresetId: "sibilant-uneven-vocal",
+    useAreaId: "tracking",
+    presetId: "safe-vocal-catcher",
     controls: { ...DEFAULT_CONTROL_VALUES },
     context: {
       vocalStyle: "rap-singing",
@@ -1817,8 +1816,8 @@
     return { settingId: "slow-rms" };
   }
 
-  function deriveSidechainSelection(intent, useCaseId) {
-    if (useCaseId === "tracking-vocal" || useCaseId === "tracking") {
+  function deriveSidechainSelection(intent, useAreaId) {
+    if (useAreaId === "tracking") {
       if (intent.safe >= 76 && intent.clean >= 62) {
         return { settingId: "de-ess-hard" };
       }
@@ -1840,7 +1839,7 @@
 
   function deriveCompressionSelectionsFromControls(
     controls = {},
-    useCaseId = DEFAULT_STATE.useCaseId
+    useAreaId = DEFAULT_STATE.useAreaId
   ) {
     const intent = deriveCompressionIntent(controls);
     const ratioScore = weightedScore([
@@ -1911,7 +1910,7 @@
       },
       sidechainHighFrequencyEmphasis: deriveSidechainSelection(
         intent,
-        useCaseId
+        useAreaId
       ),
       detector: deriveDetectorSelection(intent),
       crestFactorShaping: {
@@ -2036,30 +2035,28 @@
   }
 
   function getGeneratedPreset(state = DEFAULT_STATE) {
-    const requestedUseCaseId = state.useCaseId || DEFAULT_STATE.useCaseId;
-    const requestedUseAreaId = state.useAreaId || null;
-    const requestedPresetId = state.presetId || state.archetypeId;
+    const requestedUseAreaId = state.useAreaId || DEFAULT_STATE.useAreaId;
     const preset =
-      PRESETS.find((candidate) => candidate.id === requestedPresetId) ||
-      PRESETS.find((candidate) => candidate.useAreaId === requestedUseAreaId) ||
-      PRESETS.find((candidate) => candidate.useCaseId === requestedUseCaseId) ||
+      getPresetById(state.presetId) ||
+      getFirstPresetForUseArea(requestedUseAreaId) ||
       PRESETS[0];
+    const useArea = getUseAreaById(preset.useAreaId);
+    const source = getSourceById(preset.useAreaId, preset.sourceId);
 
     const generatedControls = {
-      ...(preset.controls || DEFAULT_STATE.controls),
+      ...DEFAULT_CONTROL_VALUES,
+      ...(preset.controls || {}),
       ...(state.controls || {}),
     };
     const generatedContext = {
-      ...(preset.context || DEFAULT_STATE.context),
+      ...(preset.context || {}),
       ...(state.context || {}),
     };
-    const derivationUseCaseId =
-      state.useAreaId || preset.useAreaId || requestedUseCaseId;
 
     const predictiveSelections = hasCustomCompressionControls(state.controls)
       ? deriveCompressionSelectionsFromControls(
           generatedControls,
-          derivationUseCaseId
+          preset.useAreaId
         )
       : {};
     const selected = {
@@ -2073,9 +2070,17 @@
         cloneParameterWithSelection(definition, selected[id]),
       ])
     );
+    const isModified = Boolean(
+      state.modified ||
+      hasCustomCompressionControls(state.controls) ||
+      Object.keys(state.parameterSelections || {}).length > 0
+    );
 
     return {
       ...preset,
+      useAreaLabel: useArea ? useArea.label : preset.useAreaId,
+      sourceLabel: source ? source.label : preset.sourceId,
+      isModified,
       selected,
       controls: generatedControls,
       context: generatedContext,

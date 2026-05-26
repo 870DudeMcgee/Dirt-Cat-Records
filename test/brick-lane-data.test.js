@@ -239,8 +239,8 @@ test("generated preset mutable fields do not mutate canonical preset data", () =
 
 test("generated preset returns exact selected rung labels", () => {
   const preset = getGeneratedPreset({
-    useCaseId: "tracking-vocal",
-    archetypeId: "safe-vocal-catcher",
+    useAreaId: "tracking",
+    presetId: "safe-vocal-catcher",
     controls: {
       punchSmooth: 58,
       cleanColor: 32,
@@ -270,8 +270,8 @@ test("generated preset returns exact selected rung labels", () => {
 
 test("generated preset derives Enigma selections from desired compression controls", () => {
   const smoothSafe = getGeneratedPreset({
-    useCaseId: "tracking-vocal",
-    archetypeId: "safe-vocal-catcher",
+    useAreaId: "tracking",
+    presetId: "safe-vocal-catcher",
     controls: {
       punchSmooth: 18,
       cleanColor: 12,
@@ -283,8 +283,8 @@ test("generated preset derives Enigma selections from desired compression contro
   });
 
   const punchyControlled = getGeneratedPreset({
-    useCaseId: "tracking-vocal",
-    archetypeId: "safe-vocal-catcher",
+    useAreaId: "tracking",
+    presetId: "safe-vocal-catcher",
     controls: {
       punchSmooth: 92,
       cleanColor: 84,
@@ -311,6 +311,21 @@ test("generated preset derives Enigma selections from desired compression contro
   assert.deepEqual(punchyControlled.parameters.releaseWeighting.selection, {
     value: "1.5",
   });
+});
+
+test("generated preset includes workflow and source metadata", () => {
+  const preset = getGeneratedPreset({
+    useAreaId: "mixing",
+    presetId: "vocal-de-esser",
+  });
+
+  assert.equal(preset.id, "vocal-de-esser");
+  assert.equal(preset.useAreaId, "mixing");
+  assert.equal(preset.sourceId, "vocals");
+  assert.equal(preset.useAreaLabel, "Mixing");
+  assert.equal(preset.sourceLabel, "Vocals");
+  assert.equal(preset.label, "Vocal De-Esser");
+  assert.ok(preset.tags.includes("de-ess"));
 });
 
 test("existing business config imports still work beside the new root module", () => {
