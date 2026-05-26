@@ -75,6 +75,22 @@ test("studio tools page hosts the Brick Lane lab and live workbench", () => {
   assert.match(html, /brick-lane-lab\.js/);
 });
 
+test("studio tools page hosts the Logic Auto Bounce preferences dialogue", () => {
+  const html = readFileSync(join(root, "studio-tools.html"), "utf8");
+
+  // Verify elements exist
+  assert.match(html, /id="logic-bounce-preferences"/);
+  assert.match(html, /id="bounce-preset-selector"/);
+  assert.match(html, /id="toggle-inserts-active"/);
+  assert.match(html, /id="toggle-instruments-active"/);
+  assert.match(html, /id="toggle-master-active"/);
+  assert.match(html, /class="bounce-tracks-table"/);
+  assert.match(html, /id="bounce-recipe-preview"/);
+  assert.match(html, /id="btn-copy-recipe"/);
+  assert.match(html, /id="btn-download-recipe"/);
+  assert.match(html, /src="logic-auto-bounce\.js"/);
+});
+
 test("legacy Brick Lane lab URL points to Studio Tools", () => {
   const html = readFileSync(join(root, "brick-lane-lab.html"), "utf8");
 
