@@ -1291,6 +1291,7 @@
   const DEFAULT_STATE = {
     useCaseId: "tracking-vocal",
     archetypeId: "safe-vocal-catcher",
+    problemPresetId: "sibilant-uneven-vocal",
     controls: Object.fromEntries(
       CONTROL_DEFINITIONS.map((control) => [control.id, control.defaultValue])
     ),
@@ -1301,6 +1302,128 @@
       targetGainReduction: "3-6 dB",
     },
   };
+
+  const PROBLEM_PRESETS = [
+    {
+      id: "sibilant-uneven-vocal",
+      label: "Sibilant Uneven Vocal",
+      description: "Catches sharp syllables without dragging the whole phrase.",
+      useCaseId: "tracking-vocal",
+      archetypeId: "safe-vocal-catcher",
+      context: {
+        vocalStyle: "rap-singing",
+        brightness: "sibilant",
+        dynamics: "uneven",
+        targetGainReduction: "3-6 dB",
+      },
+      controls: { ...DEFAULT_STATE.controls },
+    },
+    {
+      id: "dull-buried-vocal",
+      label: "Dull Buried Vocal",
+      description: "Adds forward color and presence while keeping the print usable.",
+      useCaseId: "tracking-vocal",
+      archetypeId: "character-vocal-print",
+      context: {
+        vocalStyle: "melodic vocal",
+        brightness: "dark",
+        dynamics: "flat",
+        targetGainReduction: "3-6 dB",
+      },
+      controls: {
+        punchSmooth: 62,
+        cleanColor: 68,
+        controlOpen: 58,
+        safeExciting: 38,
+        glueLoud: 34,
+        stableWide: 44,
+      },
+    },
+    {
+      id: "peaky-aggressive-vocal",
+      label: "Peaky Aggressive Vocal",
+      description: "Controls hard consonants and level jumps before they hit the chain.",
+      useCaseId: "tracking-vocal",
+      archetypeId: "modern-controlled-vocal",
+      context: {
+        vocalStyle: "aggressive lead",
+        brightness: "bright",
+        dynamics: "spiky",
+        targetGainReduction: "4-7 dB",
+      },
+      controls: {
+        punchSmooth: 84,
+        cleanColor: 24,
+        controlOpen: 88,
+        safeExciting: 74,
+        glueLoud: 52,
+        stableWide: 76,
+      },
+    },
+    {
+      id: "low-end-pumping-mix",
+      label: "Low-End Pumping Mix",
+      description: "Keeps kick and bass from over-driving bus compression.",
+      useCaseId: "mix-bus",
+      archetypeId: "punch-preserving-bus",
+      context: {
+        vocalStyle: "full mix",
+        brightness: "low-end heavy",
+        dynamics: "pumping",
+        targetGainReduction: "1-2 dB",
+      },
+      controls: {
+        punchSmooth: 72,
+        cleanColor: 22,
+        controlOpen: 54,
+        safeExciting: 62,
+        glueLoud: 42,
+        stableWide: 72,
+      },
+    },
+    {
+      id: "flat-lifeless-mix",
+      label: "Flat Lifeless Mix",
+      description: "Adds movement, harmonic attitude, and level confidence.",
+      useCaseId: "mix-bus",
+      archetypeId: "aggressive-energy-bus",
+      context: {
+        vocalStyle: "full mix",
+        brightness: "balanced",
+        dynamics: "flat",
+        targetGainReduction: "2-4 dB",
+      },
+      controls: {
+        punchSmooth: 78,
+        cleanColor: 76,
+        controlOpen: 72,
+        safeExciting: 28,
+        glueLoud: 22,
+        stableWide: 42,
+      },
+    },
+    {
+      id: "harsh-bright-mix",
+      label: "Harsh Bright Mix",
+      description: "Finishes the bus while reducing high-frequency overreaction.",
+      useCaseId: "mix-bus",
+      archetypeId: "modern-finished-bus",
+      context: {
+        vocalStyle: "full mix",
+        brightness: "harsh",
+        dynamics: "controlled",
+        targetGainReduction: "0.5-1.5 dB",
+      },
+      controls: {
+        punchSmooth: 48,
+        cleanColor: 18,
+        controlOpen: 62,
+        safeExciting: 78,
+        glueLoud: 36,
+        stableWide: 84,
+      },
+    },
+  ];
 
   function cloneParameterWithSelection(parameterDefinition, selected) {
     return {
@@ -1644,6 +1767,7 @@
     PARAMETER_ORDER,
     USE_CASES,
     ARCHETYPES,
+    PROBLEM_PRESETS,
     DEFAULT_STATE,
     getArchetypesForUseCase,
     deriveCompressionSelectionsFromControls,

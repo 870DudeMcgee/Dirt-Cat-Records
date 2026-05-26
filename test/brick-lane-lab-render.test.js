@@ -10,6 +10,7 @@ const {
   renderHardwareFaceplate,
   renderRecallCards,
   renderControls,
+  renderProblemPresets,
 } = require("../brick-lane-lab");
 const { ENIGMA_PARAMETERS, getGeneratedPreset } = require("../brick-lane-data");
 
@@ -258,6 +259,19 @@ test("renderControls replaces six separate knob cards with one compression field
   assert.doesNotMatch(html, /brick-lane-dial/);
 });
 
+test("renderProblemPresets shows actionable common problems instead of static source tiles", () => {
+  const html = renderProblemPresets({
+    problemPresetId: "sibilant-uneven-vocal",
+  });
+
+  assert.match(html, /data-problem-preset-id="sibilant-uneven-vocal"/);
+  assert.match(html, /Sibilant Uneven Vocal/);
+  assert.match(html, /Low-End Pumping Mix/);
+  assert.match(html, /class="brick-lane-problem-card is-active"/);
+  assert.doesNotMatch(html, /brick-lane-source-tile/);
+  assert.doesNotMatch(html, /Signal Generator/i);
+});
+
 test("physical faceplate does not contain UI-only controls", () => {
   const { getGeneratedPreset } = require("../brick-lane-data");
   const html = renderHardwareFaceplate(getGeneratedPreset(), {});
@@ -342,7 +356,7 @@ test("recall cards render state-owned rung selections exactly", () => {
   );
 });
 
-test("simulation meter animation is not gated by monitor selection", () => {
+test("render module does not inject signal generator UI", () => {
   const fs = require("node:fs");
   const path = require("node:path");
   const source = fs.readFileSync(
@@ -350,7 +364,9 @@ test("simulation meter animation is not gated by monitor selection", () => {
     "utf8"
   );
 
-  assert.doesNotMatch(source, /state\.monitorParam\s*===\s*"VU"/);
+  assert.doesNotMatch(source, /brick-lane-sim/);
+  assert.doesNotMatch(source, /Signal Generator/i);
+  assert.doesNotMatch(source, /brick-lane-scope/);
 });
 
 test("detector card renders valid setting name and exact LED pattern", () => {

@@ -11,6 +11,7 @@ const {
   PARAMETER_ORDER,
   USE_CASES,
   ARCHETYPES,
+  PROBLEM_PRESETS,
   getGeneratedPreset,
 } = require("../brick-lane-data");
 
@@ -66,6 +67,44 @@ test("first build exposes Tracking Vocal and Mix Bus use cases", () => {
   assert.ok(
     ARCHETYPES.some((archetype) => archetype.id === "invisible-mix-glue")
   );
+});
+
+test("problem presets model common source problems as real preset state", () => {
+  assert.deepEqual(
+    PROBLEM_PRESETS.map((preset) => preset.id),
+    [
+      "sibilant-uneven-vocal",
+      "dull-buried-vocal",
+      "peaky-aggressive-vocal",
+      "low-end-pumping-mix",
+      "flat-lifeless-mix",
+      "harsh-bright-mix",
+    ]
+  );
+
+  for (const problemPreset of PROBLEM_PRESETS) {
+    assert.ok(
+      USE_CASES.some((useCase) => useCase.id === problemPreset.useCaseId),
+      `${problemPreset.id} should reference a valid use case`
+    );
+    assert.ok(
+      ARCHETYPES.some(
+        (archetype) => archetype.id === problemPreset.archetypeId
+      ),
+      `${problemPreset.id} should reference a valid archetype`
+    );
+    assert.ok(problemPreset.context.brightness);
+    assert.ok(problemPreset.context.dynamics);
+    assert.ok(problemPreset.context.targetGainReduction);
+    assert.deepEqual(Object.keys(problemPreset.controls), [
+      "punchSmooth",
+      "cleanColor",
+      "controlOpen",
+      "safeExciting",
+      "glueLoud",
+      "stableWide",
+    ]);
+  }
 });
 
 test("generated preset returns exact selected rung labels", () => {

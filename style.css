@@ -3654,6 +3654,7 @@ footer {
 
 .brick-lane-actions button,
 .brick-lane-option,
+.brick-lane-problem-card,
 .brick-lane-copy-button {
   min-height: 38px;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -3845,24 +3846,47 @@ footer {
   color: #fff;
 }
 
-.brick-lane-source-grid {
+.brick-lane-problem-list {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.48rem;
 }
 
-.brick-lane-source-tile {
+.brick-lane-problem-card {
+  display: grid;
+  width: 100%;
+  gap: 0.22rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 7px;
-  padding: 0.48rem;
+  padding: 0.55rem;
   background: rgba(255, 255, 255, 0.055);
   color: var(--brick-lane-muted);
   font-size: 0.74rem;
+  text-align: left;
 }
 
-.brick-lane-source-tile strong {
-  display: inline;
-  margin-right: 0.25rem;
+.brick-lane-problem-card.is-active {
+  border-color: rgba(94, 231, 255, 0.56);
+  background:
+    linear-gradient(135deg, rgba(94, 231, 255, 0.14), transparent 70%),
+    rgba(255, 255, 255, 0.07);
+}
+
+.brick-lane-problem-label {
   color: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.brick-lane-problem-description {
+  line-height: 1.28;
+}
+
+.brick-lane-problem-meta {
+  color: var(--brick-lane-cyan);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .brick-lane-hardware {
@@ -4960,20 +4984,6 @@ footer {
     0 0 8px rgba(94, 231, 255, 0.4);
 }
 
-/* Oscilloscope scope styling */
-.brick-lane-scope-container {
-  margin-top: 1rem;
-  padding-top: 0.8rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.brick-lane-scope-box {
-  background: #040508;
-  border-radius: 8px;
-  padding: 2px;
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
-}
-
 /* Interactive clickable rung highlights */
 .brick-lane-parameters .brick-lane-rung,
 .brick-lane-hardware .brick-lane-rung {
@@ -4982,15 +4992,6 @@ footer {
 
 .brick-lane-rung:hover {
   filter: brightness(1.3);
-}
-
-/* Active audio glow boundary */
-.audio-playing .brick-lane-hardware {
-  border-color: rgba(94, 231, 255, 0.3);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 20px 44px rgba(0, 0, 0, 0.6),
-    0 0 25px rgba(94, 231, 255, 0.05);
 }
 
 /* Premium Select Box */

@@ -10,6 +10,7 @@ test("state machine returns complete initial state", () => {
   const state = getInitialState();
   assert.ok(state.useCaseId);
   assert.ok(state.archetypeId);
+  assert.equal(state.problemPresetId, "sibilant-uneven-vocal");
   assert.ok(state.controls);
   assert.ok(state.context);
   assert.ok(state.frontPanelValues);
@@ -45,7 +46,29 @@ test("state machine handles SET_ARCHETYPE action", () => {
   });
 
   assert.equal(nextState.archetypeId, "character-vocal-print");
+  assert.equal(nextState.problemPresetId, null);
   assert.equal(nextState.frontPanelValues.stress, 45);
+});
+
+test("state machine applies a problem preset to source context and recall settings", () => {
+  const initialState = getInitialState();
+  const nextState = labStateReducer(initialState, {
+    type: "APPLY_PROBLEM_PRESET",
+    payload: { problemPresetId: "low-end-pumping-mix" },
+  });
+
+  assert.equal(nextState.problemPresetId, "low-end-pumping-mix");
+  assert.equal(nextState.useCaseId, "mix-bus");
+  assert.equal(nextState.archetypeId, "punch-preserving-bus");
+  assert.equal(nextState.context.brightness, "low-end heavy");
+  assert.equal(nextState.context.dynamics, "pumping");
+  assert.equal(nextState.context.targetGainReduction, "1-2 dB");
+  assert.equal(nextState.controls.punchSmooth, 72);
+  assert.equal(nextState.frontPanelValues.scf, "200 Hz");
+  assert.deepEqual(nextState.parameterSelections, {});
+  assert.equal(nextState.activeTab, "primary");
+  assert.equal(nextState.monitorParam, "VU");
+  assert.notDeepEqual(nextState.controls, initialState.controls);
 });
 
 test("state machine handles UPDATE_CONTROL action", () => {

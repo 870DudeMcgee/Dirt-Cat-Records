@@ -361,20 +361,18 @@
       .join("");
   }
 
-  function renderContext(preset) {
-    const contextItems = [
-      ["Style", preset.context.vocalStyle || "Genre/energy"],
-      ["Brightness", preset.context.brightness || "Balanced"],
-      ["Dynamics", preset.context.dynamics || "Controlled"],
-      ["Target GR", preset.targetGainReduction],
-    ];
-
-    return `<div class="brick-lane-source-grid">${contextItems
-      .map(
-        ([label, value]) =>
-          `<div class="brick-lane-source-tile"><strong>${escapeHtml(label)}:</strong>${escapeHtml(value)}</div>`
-      )
-      .join("")}</div>`;
+  function renderProblemPresets(state = {}) {
+    return `<div class="brick-lane-problem-list">${data.PROBLEM_PRESETS.map(
+      (preset) => {
+        const activeClass =
+          preset.id === state.problemPresetId ? " is-active" : "";
+        return `<button class="brick-lane-problem-card${activeClass}" type="button" data-problem-preset-id="${escapeHtml(preset.id)}">
+          <span class="brick-lane-problem-label">${escapeHtml(preset.label)}</span>
+          <span class="brick-lane-problem-description">${escapeHtml(preset.description)}</span>
+          <span class="brick-lane-problem-meta">${escapeHtml(preset.context.brightness)} / ${escapeHtml(preset.context.dynamics)} / ${escapeHtml(preset.context.targetGainReduction)}</span>
+        </button>`;
+      }
+    ).join("")}</div>`;
   }
 
   function knobAngle(value) {
@@ -710,7 +708,7 @@
       const preset = renderGeneratedPanels(state);
       nodes.useCases.innerHTML = renderUseCases(state);
       nodes.archetypes.innerHTML = renderArchetypes(state);
-      nodes.context.innerHTML = renderContext(preset);
+      nodes.context.innerHTML = renderProblemPresets(state);
       nodes.faceplate.innerHTML = renderHardwareFaceplate(preset, state);
       nodes.controls.innerHTML = renderControls(state);
     }
@@ -967,186 +965,6 @@
       playShortClick(600, 0.03);
     }
 
-    // Dynamic simulation signal generator visualizer scope
-    let activeAudioSim = false;
-    let animationFrameId = null;
-    let simulatedGainReductionLeft = 0;
-    let simulatedGainReductionRight = 0;
-
-    // Create and insert simulation button dynamically
-    const simButton = document.createElement("button");
-    simButton.type = "button";
-    simButton.id = "brick-lane-sim";
-    simButton.textContent = "▶ SIM SIGNAL";
-    nodes.copy.parentNode.insertBefore(simButton, nodes.copy);
-
-    // Create and insert scope dynamically in the sidebar
-    const scopeContainer = document.createElement("div");
-    scopeContainer.className = "brick-lane-scope-container";
-    scopeContainer.innerHTML = `
-      <div class="brick-lane-mini-title" style="margin-top: 1rem; color: var(--brick-lane-cyan); text-align: left;">Signal Generator</div>
-      <div class="brick-lane-scope-box" style="margin-top: 0.3rem;">
-        <canvas id="brick-lane-scope-canvas" style="width: 100%; height: 50px; display: block; background: #040508; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);"></canvas>
-      </div>
-    `;
-    nodes.context.parentNode.appendChild(scopeContainer);
-
-    const canvas = document.getElementById("brick-lane-scope-canvas");
-    const ctx = canvas.getContext("2d");
-    let canvasWidth = (canvas.width = canvas.offsetWidth || 190);
-    let canvasHeight = (canvas.height = canvas.offsetHeight || 50);
-
-    function clearScope() {
-      ctx.fillStyle = "#040508";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, canvasHeight / 2);
-      ctx.lineTo(canvasWidth, canvasHeight / 2);
-      ctx.stroke();
-    }
-
-    clearScope();
-
-    let synthOsc = null;
-    let synthGain = null;
-
-    function startAudioHum() {
-      try {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === "suspended") {
-          audioCtx.resume();
-        }
-        synthOsc = audioCtx.createOscillator();
-        synthOsc.type = "triangle";
-        synthOsc.frequency.value = 55;
-        synthGain = audioCtx.createGain();
-        synthGain.gain.value = 0.012;
-        synthOsc.connect(synthGain);
-        synthGain.connect(audioCtx.destination);
-        synthOsc.start();
-      } catch (e) {}
-    }
-
-    function stopAudioHum() {
-      if (synthOsc) {
-        try {
-          synthOsc.stop();
-        } catch (e) {}
-        synthOsc = null;
-      }
-    }
-
-    simButton.addEventListener("click", () => {
-      activeAudioSim = !activeAudioSim;
-      if (activeAudioSim) {
-        simButton.textContent = "■ STOP SIGNAL";
-        simButton.classList.remove("brick-lane-primary");
-        root.classList.add("audio-playing");
-        startScopeAnimation();
-        startAudioHum();
-      } else {
-        simButton.textContent = "▶ SIM SIGNAL";
-        simButton.classList.add("brick-lane-primary");
-        root.classList.remove("audio-playing");
-        cancelAnimationFrame(animationFrameId);
-        stopAudioHum();
-        clearScope();
-        render();
-      }
-      playShortClick(600, 0.1);
-    });
-
-    function startScopeAnimation() {
-      let phase = 0;
-
-      function renderScope() {
-        if (!activeAudioSim) return;
-
-        ctx.fillStyle = "rgba(4, 5, 8, 0.25)";
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(0, canvasHeight / 2);
-        ctx.lineTo(canvasWidth, canvasHeight / 2);
-        ctx.stroke();
-
-        ctx.strokeStyle =
-          state.useCaseId === "mix-bus"
-            ? "var(--brick-lane-blue)"
-            : "var(--brick-lane-cyan)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-
-        let amplitude = 8 + Math.sin(phase * 0.02) * 3;
-        let thresholdVal = state.frontPanelValues.threshold;
-        let inputVal = state.frontPanelValues.input;
-
-        let signal =
-          Math.sin(phase * 0.1) * 0.6 +
-          Math.sin(phase * 0.03) * 0.3 +
-          (Math.random() - 0.5) * 0.08;
-        let rawDB = signal * 15 + (inputVal - 50) * 0.4;
-        let threshDB = (thresholdVal - 50) * 0.4;
-
-        let gr = 0;
-        if (rawDB > threshDB) {
-          gr = (rawDB - threshDB) * 0.6;
-        }
-
-        simulatedGainReductionLeft =
-          simulatedGainReductionLeft * 0.85 + gr * 0.15;
-        simulatedGainReductionRight =
-          simulatedGainReductionRight * 0.9 + gr * 0.1;
-
-        for (let x = 0; x < canvasWidth; x++) {
-          let y =
-            canvasHeight / 2 +
-            Math.sin(x * 0.06 + phase) * amplitude * (1 - gr * 0.05);
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-
-        animatePanelMetersRealtime(
-          simulatedGainReductionLeft,
-          simulatedGainReductionRight
-        );
-
-        phase += 0.25;
-        animationFrameId = requestAnimationFrame(renderScope);
-      }
-
-      renderScope();
-    }
-
-    function animatePanelMetersRealtime(grLeft, grRight) {
-      const leftMeterRungs = document.querySelectorAll(
-        '[data-meter-id="sig"] .brick-lane-rung'
-      );
-      const rightMeterRungs = document.querySelectorAll(
-        '[data-meter-id="gr"] .brick-lane-rung'
-      );
-      const ladderValues = [0.5, 1.0, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 15];
-
-      leftMeterRungs.forEach((rung, index) => {
-        const val = ladderValues[index];
-        if (grLeft * 1.5 >= val) rung.classList.add("is-on");
-        else rung.classList.remove("is-on");
-      });
-
-      rightMeterRungs.forEach((rung, index) => {
-        const val = ladderValues[index];
-        if (grRight * 1.3 >= val) rung.classList.add("is-on");
-        else rung.classList.remove("is-on");
-      });
-    }
-
     nodes.useCases.addEventListener("click", (event) => {
       const button = event.target.closest("[data-use-case-id]");
       if (button) setUseCase(button.dataset.useCaseId);
@@ -1161,6 +979,18 @@
         payload: { archetypeId: button.dataset.archetypeId },
       });
       render();
+    });
+
+    nodes.context.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-problem-preset-id]");
+      if (!button) return;
+
+      state = stateMachine.labStateReducer(state, {
+        type: "APPLY_PROBLEM_PRESET",
+        payload: { problemPresetId: button.dataset.problemPresetId },
+      });
+      render();
+      playShortClick(660, 0.07);
     });
 
     nodes.controls.addEventListener("input", (event) => {
@@ -1207,6 +1037,7 @@
     renderHardwareFaceplate,
     renderFaceplate: renderHardwareFaceplate,
     renderControls,
+    renderProblemPresets,
     renderRecallCards,
     initDom,
   };
