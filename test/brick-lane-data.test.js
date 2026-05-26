@@ -12,6 +12,7 @@ const {
   USE_AREAS,
   SOURCES,
   PRESETS,
+  DEFAULT_CONTROL_VALUES,
   getPresetsForUseArea,
   getPresetsGroupedBySource,
   getPresetById,
@@ -118,6 +119,17 @@ test("Brick Lane preset browser exposes workflow areas, sources, and one preset 
       "stableWide",
     ]);
   }
+});
+
+test("Brick Lane preset model exports reusable default control values", () => {
+  assert.deepEqual(DEFAULT_CONTROL_VALUES, {
+    punchSmooth: 58,
+    cleanColor: 32,
+    controlOpen: 76,
+    safeExciting: 64,
+    glueLoud: 44,
+    stableWide: 38,
+  });
 });
 
 test("preset helpers filter and group presets by source under a workflow area", () => {
