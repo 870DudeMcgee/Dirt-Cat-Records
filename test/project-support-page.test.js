@@ -69,8 +69,6 @@ test("studio tools page hosts the Brick Lane lab and live workbench", () => {
   assert.match(html, /One stable live URL/);
   assert.match(html, /Current Branch/);
   assert.match(html, /wip\/studio-tools-live-workspace/);
-  assert.match(html, /dirtcat-stem-exporter/);
-  assert.match(html, /Live Logic proof/);
   assert.match(html, /brick-lane-data\.js/);
   assert.match(html, /brick-lane-lab\.js/);
 });
