@@ -6,69 +6,66 @@ const {
   mapCompressionPointToControls,
 } = require("../lib/lab/state-machine");
 
-test("state machine returns complete initial state", () => {
+test("state machine returns complete initial preset browser state", () => {
   const state = getInitialState();
-  assert.ok(state.useCaseId);
-  assert.ok(state.archetypeId);
-  assert.equal(state.problemPresetId, "sibilant-uneven-vocal");
+  assert.equal(state.useAreaId, "tracking");
+  assert.equal(state.presetId, "safe-vocal-catcher");
   assert.ok(state.controls);
   assert.ok(state.context);
   assert.ok(state.frontPanelValues);
   assert.deepEqual(state.parameterSelections, {});
   assert.equal(state.activeTab, "primary");
   assert.equal(state.monitorParam, "VU");
+  assert.equal(state.modified, false);
 });
 
 test("state machine handles INIT action", () => {
   const state = labStateReducer(undefined, { type: "INIT" });
-  assert.equal(state.useCaseId, "tracking-vocal");
-  assert.equal(state.archetypeId, "safe-vocal-catcher");
+  assert.equal(state.useAreaId, "tracking");
+  assert.equal(state.presetId, "safe-vocal-catcher");
 });
 
-test("state machine handles SET_USE_CASE action", () => {
+test("state machine handles SET_USE_AREA action", () => {
   const initialState = getInitialState();
   const nextState = labStateReducer(initialState, {
-    type: "SET_USE_CASE",
-    payload: { useCaseId: "mix-bus" },
+    type: "SET_USE_AREA",
+    payload: { useAreaId: "bus-master" },
   });
 
-  assert.equal(nextState.useCaseId, "mix-bus");
-  assert.equal(nextState.archetypeId, "invisible-mix-glue");
-  // verify deep copy of frontPanelValues
+  assert.equal(nextState.useAreaId, "bus-master");
+  assert.equal(nextState.presetId, "invisible-mix-glue");
+  assert.equal(nextState.modified, false);
   assert.notEqual(nextState.frontPanelValues, initialState.frontPanelValues);
 });
 
-test("state machine handles SET_ARCHETYPE action", () => {
+test("state machine handles SET_PRESET action", () => {
   const initialState = getInitialState();
   const nextState = labStateReducer(initialState, {
-    type: "SET_ARCHETYPE",
-    payload: { archetypeId: "character-vocal-print" },
+    type: "SET_PRESET",
+    payload: { presetId: "character-vocal-print" },
   });
 
-  assert.equal(nextState.archetypeId, "character-vocal-print");
-  assert.equal(nextState.problemPresetId, null);
+  assert.equal(nextState.useAreaId, "tracking");
+  assert.equal(nextState.presetId, "character-vocal-print");
+  assert.equal(nextState.modified, false);
   assert.equal(nextState.frontPanelValues.stress, 45);
 });
 
-test("state machine applies a problem preset to source context and recall settings", () => {
+test("state machine selects a migrated problem-solving preset as a normal preset", () => {
   const initialState = getInitialState();
   const nextState = labStateReducer(initialState, {
-    type: "APPLY_PROBLEM_PRESET",
-    payload: { problemPresetId: "low-end-pumping-mix" },
+    type: "SET_PRESET",
+    payload: { presetId: "vocal-de-esser" },
   });
 
-  assert.equal(nextState.problemPresetId, "low-end-pumping-mix");
-  assert.equal(nextState.useCaseId, "mix-bus");
-  assert.equal(nextState.archetypeId, "punch-preserving-bus");
-  assert.equal(nextState.context.brightness, "low-end heavy");
-  assert.equal(nextState.context.dynamics, "pumping");
-  assert.equal(nextState.context.targetGainReduction, "1-2 dB");
-  assert.equal(nextState.controls.punchSmooth, 72);
-  assert.equal(nextState.frontPanelValues.scf, "200 Hz");
+  assert.equal(nextState.useAreaId, "mixing");
+  assert.equal(nextState.presetId, "vocal-de-esser");
+  assert.equal(nextState.context.brightness, "sibilant");
+  assert.equal(nextState.context.targetGainReduction, "2-5 dB");
   assert.deepEqual(nextState.parameterSelections, {});
   assert.equal(nextState.activeTab, "primary");
   assert.equal(nextState.monitorParam, "VU");
-  assert.notDeepEqual(nextState.controls, initialState.controls);
+  assert.equal(nextState.modified, false);
 });
 
 test("state machine handles UPDATE_CONTROL action", () => {
@@ -167,4 +164,26 @@ test("state machine stores stepped scalar selections immutably", () => {
     value: "6",
   });
   assert.deepEqual(initialState.parameterSelections, {});
+});
+
+test("state machine marks selected preset modified after user edits", () => {
+  const initialState = getInitialState();
+
+  const controlState = labStateReducer(initialState, {
+    type: "UPDATE_CONTROL",
+    payload: { controlId: "punchSmooth", value: 85 },
+  });
+  assert.equal(controlState.modified, true);
+
+  const frontPanelState = labStateReducer(initialState, {
+    type: "UPDATE_FRONT_PANEL",
+    payload: { param: "threshold", value: 64 },
+  });
+  assert.equal(frontPanelState.modified, true);
+
+  const parameterState = labStateReducer(initialState, {
+    type: "SET_PARAMETER_SELECTION",
+    payload: { parameterId: "ratio", selection: { value: "4" } },
+  });
+  assert.equal(parameterState.modified, true);
 });
