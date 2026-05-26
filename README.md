@@ -199,6 +199,8 @@ Use the smallest doc that owns the fact you need.
 - [docs/execution-trail.md](docs/execution-trail.md): required implementation logging process.
 - [docs/execution-log.md](docs/execution-log.md): append-only history and validation evidence.
 - [docs/superpowers/](docs/superpowers): plans, specs, and future-product exploration.
+- [docs/superpowers/specs/2026-05-26-drum-alignment-workbench-v1-design.md](docs/superpowers/specs/2026-05-26-drum-alignment-workbench-v1-design.md): approved Drum Alignment Workbench V1 design.
+- [docs/superpowers/plans/2026-05-26-drum-alignment-workbench-v1-implementation.md](docs/superpowers/plans/2026-05-26-drum-alignment-workbench-v1-implementation.md): parallel-agent implementation plan for the Drum Alignment Workbench.
 
 ### Architecture
 

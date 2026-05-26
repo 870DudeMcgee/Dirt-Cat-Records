@@ -3833,6 +3833,7 @@ footer {
 .bounce-preset-toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
   padding: 0.9rem;
   border: 1px solid rgba(255, 213, 73, 0.28);
@@ -3870,7 +3871,9 @@ footer {
 }
 
 /* Button variants */
-.btn-primary, .btn-secondary, .btn-danger {
+.btn-primary,
+.btn-secondary,
+.btn-danger {
   min-height: 34px;
   padding: 0.42rem 0.8rem;
   border-radius: 6px;
@@ -3958,20 +3961,25 @@ footer {
 .neon-slider {
   position: absolute;
   cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 34px;
-  transition: .2s;
+  transition: 0.2s;
 }
 .neon-slider:before {
   position: absolute;
   content: "";
-  height: 14px; width: 14px;
-  left: 3px; bottom: 3px;
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
   background-color: var(--brick-lane-muted);
   border-radius: 50%;
-  transition: .2s;
+  transition: 0.2s;
 }
 input:checked + .neon-slider {
   background-color: rgba(94, 231, 255, 0.16);
@@ -3993,7 +4001,8 @@ input:checked + .neon-slider:before {
   border-collapse: collapse;
   text-align: left;
 }
-.bounce-tracks-table th, .bounce-tracks-table td {
+.bounce-tracks-table th,
+.bounce-tracks-table td {
   padding: 0.6rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 0.86rem;
@@ -4033,6 +4042,7 @@ input:checked + .neon-slider:before {
 }
 .recipe-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.8rem;
   margin-top: 0.8rem;
 }
@@ -4658,7 +4668,11 @@ input:checked + .neon-slider:before {
       transparent 34%
     ),
     #15171c;
-  background-size: 34px 34px, 34px 34px, auto, auto;
+  background-size:
+    34px 34px,
+    34px 34px,
+    auto,
+    auto;
   box-shadow:
     inset 0 20px 34px rgba(255, 255, 255, 0.04),
     inset 0 -26px 44px rgba(0, 0, 0, 0.42);
@@ -4678,7 +4692,11 @@ input:checked + .neon-slider:before {
   inset: 22px 40px 24px 34px;
   border-radius: 44% 56% 42% 58%;
   background:
-    radial-gradient(circle at 64% 28%, rgba(255, 255, 255, 0.18), transparent 22%),
+    radial-gradient(
+      circle at 64% 28%,
+      rgba(255, 255, 255, 0.18),
+      transparent 22%
+    ),
     linear-gradient(112deg, rgba(64, 239, 211, 0.58), rgba(20, 129, 115, 0.18));
   clip-path: polygon(
     0 68%,
@@ -4755,7 +4773,10 @@ input:checked + .neon-slider:before {
 .brick-lane-field-axis {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(54px, 0.8fr) minmax(58px, 1fr) minmax(60px, 0.9fr);
+  grid-template-columns: minmax(54px, 0.8fr) minmax(58px, 1fr) minmax(
+      60px,
+      0.9fr
+    );
   gap: 0.32rem;
   align-items: center;
 }
@@ -4789,7 +4810,8 @@ input:checked + .neon-slider:before {
   height: 100%;
   border-radius: inherit;
   background: var(--brick-lane-led);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--brick-lane-led), transparent 35%);
+  box-shadow: 0 0 10px
+    color-mix(in srgb, var(--brick-lane-led), transparent 35%);
 }
 
 .brick-lane-field-axis input {
@@ -5065,6 +5087,10 @@ input:checked + .neon-slider:before {
 
   .studio-workbench-grid {
     grid-template-columns: 1fr;
+  }
+
+  .bounce-panel-full {
+    grid-column: span 1 !important;
   }
 
   .brick-lane-controls,
@@ -5386,7 +5412,10 @@ input:checked + .neon-slider:before {
   }
 
   .brick-lane-field-axis {
-    grid-template-columns: minmax(52px, 0.8fr) minmax(52px, 1fr) minmax(58px, 0.9fr);
+    grid-template-columns: minmax(52px, 0.8fr) minmax(52px, 1fr) minmax(
+        58px,
+        0.9fr
+      );
   }
 }
 @media (max-width: 480px) {

@@ -29,6 +29,8 @@ If `main` is dirty when a new implementation slice starts, recover by branching 
 10. Future product only: `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`
 11. Future product implementation plan only: `docs/superpowers/plans/2026-05-21-logic-stem-exporter-implementation-plan.md`
 12. Future growth tools only: `docs/superpowers/specs/2026-05-21-dirt-cat-growth-tools-brainstorm.md`
+13. Drum Alignment Workbench V1 design: `docs/superpowers/specs/2026-05-26-drum-alignment-workbench-v1-design.md`
+14. Drum Alignment Workbench V1 parallel-agent implementation plan: `docs/superpowers/plans/2026-05-26-drum-alignment-workbench-v1-implementation.md`
 
 ## Current Focus
 
@@ -43,6 +45,8 @@ The top-level README is now a reader-oriented project front door with feature gr
 A separate future-product brainstorm now exists for the Logic Pro stem exporter desktop app at `docs/superpowers/specs/2026-05-21-logic-stem-exporter-deep-modules.md`, with an executable follow-on plan at `docs/superpowers/plans/2026-05-21-logic-stem-exporter-implementation-plan.md`. Treat both as future product work until the web launch has settled and the separate `dirtcat-stem-exporter` repo is explicitly started.
 
 A broader future-product brainstorm now exists for Dirt Cat growth tools, lead magnets, education, community, and quick-win service offers at `docs/superpowers/specs/2026-05-21-dirt-cat-growth-tools-brainstorm.md`. Treat it as captured product exploration only until the web launch has settled and one slice is approved for planning.
+
+Drum Alignment Workbench V1 now has an approved design and implementation plan. The planned first operational version is browser-only, keeps audio local, recommends overheads as the reference, compares close mics directly to an internal overhead event envelope, treats toms as first-class tracks, renders before/after waveform movement, reports offsets in samples/ms, and includes correlation confidence while deferring spectral phase alignment.
 
 Current constraints that matter before new feature work:
 
