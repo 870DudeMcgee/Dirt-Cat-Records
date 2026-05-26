@@ -249,6 +249,15 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
       mobileFirstLabel.x >= mobileHardware.x,
       "mobile INPUT label should not be clipped by the faceplate edge"
     );
+
+    const mobileLayout = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+    }));
+    assert.ok(
+      mobileLayout.scrollWidth <= mobileLayout.viewportWidth,
+      `mobile Studio Tools should not create horizontal overflow, got scrollWidth ${mobileLayout.scrollWidth} for viewport ${mobileLayout.viewportWidth}`
+    );
   } finally {
     if (browser) {
       await browser.close();

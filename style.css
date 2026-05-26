@@ -3713,6 +3713,29 @@ footer {
   opacity: 0.76;
 }
 
+.studio-tool-card.is-workbench {
+  border-color: rgba(255, 213, 73, 0.42);
+  background:
+    linear-gradient(135deg, rgba(255, 213, 73, 0.12), transparent),
+    rgba(255, 255, 255, 0.07);
+}
+
+.studio-tool-card a,
+.studio-workbench-panel a {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 34px;
+  margin-top: 0.75rem;
+  padding: 0.42rem 0.68rem;
+  border: 1px solid rgba(94, 231, 255, 0.36);
+  border-radius: 8px;
+  color: var(--brick-lane-cyan);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
 .studio-tool-card p,
 .studio-tools-tool-heading p {
   margin: 0;
@@ -3749,6 +3772,57 @@ footer {
 
 .studio-tools-tool-heading {
   padding: 1rem 1rem 0;
+}
+
+.studio-workbench-section {
+  margin-top: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(2, 2, 5, 0.52);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+}
+
+.studio-workbench-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 0.8rem;
+}
+
+.studio-workbench-panel {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 30%),
+    rgba(8, 9, 16, 0.72);
+}
+
+.studio-workbench-label {
+  color: var(--brick-lane-yellow);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.studio-workbench-panel h3 {
+  margin: 0.25rem 0 0.4rem;
+  color: var(--brick-lane-text);
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.studio-workbench-panel p {
+  margin: 0;
+  color: var(--brick-lane-muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.studio-workbench-task {
+  border-color: rgba(94, 231, 255, 0.28);
 }
 
 .brick-lane-grid {
@@ -4777,6 +4851,10 @@ footer {
     grid-template-columns: 1fr;
   }
 
+  .studio-workbench-grid {
+    grid-template-columns: 1fr;
+  }
+
   .brick-lane-controls,
   .brick-lane-cards-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -5205,4 +5283,15 @@ footer {
   font-size: 6.5px;
   font-weight: 900;
   display: block;
+}
+
+@media (max-width: 480px) {
+  .brick-lane-parameter-card .brick-lane-led-ladder {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .brick-lane-parameter-card .brick-lane-led-label {
+    min-width: 0;
+    width: auto;
+  }
 }

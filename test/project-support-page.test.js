@@ -56,7 +56,7 @@ test("primary pages load the shared responsive navigation script", () => {
   });
 });
 
-test("studio tools page hosts the Brick Lane lab and future tool slots", () => {
+test("studio tools page hosts the Brick Lane lab and live workbench", () => {
   const html = readFileSync(join(root, "studio-tools.html"), "utf8");
 
   assert.match(html, /<title>Studio Tools \| Dirt Cat Records<\/title>/);
@@ -64,6 +64,13 @@ test("studio tools page hosts the Brick Lane lab and future tool slots", () => {
   assert.match(html, /Brick Lane Sonic Lab/);
   assert.match(html, /Drum Alignment/);
   assert.match(html, /Logic Auto Bounce/);
+  assert.match(html, /id="drum-alignment-workbench"/);
+  assert.match(html, /id="logic-auto-bounce-workbench"/);
+  assert.match(html, /One stable live URL/);
+  assert.match(html, /Current Branch/);
+  assert.match(html, /wip\/studio-tools-live-workspace/);
+  assert.match(html, /dirtcat-stem-exporter/);
+  assert.match(html, /Live Logic proof/);
   assert.match(html, /brick-lane-data\.js/);
   assert.match(html, /brick-lane-lab\.js/);
 });
