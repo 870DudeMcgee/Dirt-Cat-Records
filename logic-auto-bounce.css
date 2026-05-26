@@ -1,0 +1,227 @@
+/* Logic Auto Bounce Preferences Layout */
+.bounce-panel-full {
+  grid-column: span 3;
+}
+
+.bounce-preset-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(255, 213, 73, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 213, 73, 0.04);
+}
+
+.bounce-preset-toolbar label {
+  color: var(--brick-lane-yellow);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.bounce-preset-toolbar select {
+  min-height: 34px;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: #080910;
+  color: var(--brick-lane-text);
+  font-weight: 700;
+  outline: none;
+}
+
+.badge-modified {
+  display: inline-block;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  background: var(--brick-lane-yellow);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Button variants */
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  min-height: 34px;
+  padding: 0.42rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+.btn-primary {
+  background: var(--brick-lane-cyan);
+  border-color: rgba(94, 231, 255, 0.5);
+  color: #000;
+}
+.btn-primary:hover {
+  background: #84eeff;
+  box-shadow: 0 0 10px rgba(94, 231, 255, 0.3);
+}
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--brick-lane-text);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.btn-danger {
+  background: rgba(255, 84, 84, 0.16);
+  border-color: rgba(255, 84, 84, 0.4);
+  color: #ff8484;
+}
+.btn-danger:hover {
+  background: rgba(255, 84, 84, 0.28);
+}
+
+/* Formspec rows */
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+.form-row label {
+  color: var(--brick-lane-muted);
+  font-size: 0.86rem;
+}
+.form-row select {
+  min-height: 32px;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  background: #080910;
+  color: var(--brick-lane-text);
+  outline: none;
+}
+.static-value-label {
+  font-weight: 900;
+  color: var(--brick-lane-cyan);
+  font-size: 0.95rem;
+}
+
+/* Toggle Switches */
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+.switch-label {
+  color: var(--brick-lane-text);
+  font-size: 0.86rem;
+}
+.switch-container {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 22px;
+}
+.switch-container input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.neon-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 34px;
+  transition: 0.2s;
+}
+.neon-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--brick-lane-muted);
+  border-radius: 50%;
+  transition: 0.2s;
+}
+input:checked + .neon-slider {
+  background-color: rgba(94, 231, 255, 0.16);
+  border-color: rgba(94, 231, 255, 0.6);
+}
+input:checked + .neon-slider:before {
+  transform: translateX(22px);
+  background-color: var(--brick-lane-cyan);
+  box-shadow: 0 0 8px var(--brick-lane-cyan);
+}
+
+/* Tracks Table */
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+}
+.bounce-tracks-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.bounce-tracks-table th,
+.bounce-tracks-table td {
+  padding: 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.86rem;
+}
+.bounce-tracks-table th {
+  color: var(--brick-lane-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+.bounce-tracks-table select {
+  min-height: 28px;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  background: #080910;
+  color: var(--brick-lane-text);
+  font-size: 0.8rem;
+  outline: none;
+}
+
+/* Recipe Preview JSON */
+.recipe-preview-card pre {
+  margin: 0.5rem 0;
+  padding: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: #040407;
+  overflow-x: auto;
+  max-height: 220px;
+}
+.recipe-preview-card code {
+  color: #a5d6ff;
+  font-family: monospace;
+  font-size: 0.82rem;
+}
+.recipe-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+@media (max-width: 760px) {
+  .bounce-panel-full {
+    grid-column: span 1 !important;
+  }
+}

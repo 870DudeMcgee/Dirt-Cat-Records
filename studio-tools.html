@@ -11,6 +11,7 @@
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
     <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
     <link rel="stylesheet" href="style.css?v=4" />
+    <link rel="stylesheet" href="logic-auto-bounce.css?v=1" />
   </head>
   <body class="brick-lane-lab-page studio-tools-page">
     <nav id="main-nav">
@@ -162,40 +163,173 @@
           <p class="brick-lane-kicker">Live Workbench</p>
           <h2>Logic Auto Bounce</h2>
           <p>
-            One stable live URL for the exporter milestone, repo handoff, and
-            next live Logic proof.
+            Customize your bounce presets, configure track sidechains, and
+            export your 1-click execution recipe.
           </p>
         </div>
-        <div class="studio-workbench-grid">
-          <article class="studio-workbench-panel">
-            <span class="studio-workbench-label">Source Repo</span>
-            <h3>dirtcat-stem-exporter</h3>
-            <p>
-              The actual Logic automation belongs in the separate macOS app
-              repo, not inside this website.
-            </p>
-            <a
-              href="https://github.com/870DudeMcgee/Dirt-Cat-Records/blob/wip/studio-tools-live-workspace/2026-05-22-next-agent-live-logic-redirection-handoff.md"
-              >Open Exporter Handoff</a
+
+        <div
+          id="logic-bounce-preferences"
+          class="studio-workbench-grid bounce-preference-shell"
+        >
+          <!-- Preset Toolbar -->
+          <div class="bounce-panel-full bounce-preset-toolbar">
+            <label for="bounce-preset-selector">Active Export Preset:</label>
+            <select id="bounce-preset-selector">
+              <option value="mix-prep-dry">Mix Prep (Dry)</option>
+              <option value="vocal-stems-wet">Vocal Stems (Wet)</option>
+              <option value="mastering-pre-bounce">Mastering Pre-Bounce</option>
+              <option value="custom">-- Custom Presets --</option>
+            </select>
+            <button type="button" id="btn-new-preset" class="btn-secondary">
+              New
+            </button>
+            <button type="button" id="btn-save-preset" class="btn-primary">
+              Save
+            </button>
+            <button type="button" id="btn-delete-preset" class="btn-danger">
+              Delete
+            </button>
+            <span id="preset-modified-badge" class="badge-modified" hidden
+              >Modified</span
             >
-          </article>
-          <article class="studio-workbench-panel">
-            <span class="studio-workbench-label">Current Milestone</span>
-            <h3>Live Logic proof</h3>
-            <p>
-              Prove real Accessibility readiness, capture or diagnose the Logic
-              UI state, confirm one or two real bounce files, and assemble a
-              local manifest before packaging or Drive upload.
-            </p>
-          </article>
-          <article class="studio-workbench-panel studio-workbench-task">
-            <span class="studio-workbench-label">Current Task</span>
-            <h3>Continue the local proof branch</h3>
-            <p>
-              Start from the live-Logic redirection notes and keep export
-              success local-first.
-            </p>
-          </article>
+          </div>
+
+          <!-- Group 1: Bounce & Audio Settings -->
+          <div class="studio-workbench-panel bounce-settings-card">
+            <span class="studio-workbench-label">Bounce Settings</span>
+            <h3>Audio Specifications</h3>
+
+            <div class="form-row">
+              <label>Format</label>
+              <span class="static-value-label">WAV</span>
+            </div>
+
+            <div class="form-row">
+              <label for="bounce-bit-depth">Bit Depth</label>
+              <select id="bounce-bit-depth">
+                <option value="16">16-bit</option>
+                <option value="24" selected>24-bit</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="bounce-sample-rate">Sample Rate</label>
+              <select id="bounce-sample-rate">
+                <option value="44100">44.1 kHz</option>
+                <option value="48000" selected>48 kHz</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="bounce-range">Bounce Range</label>
+              <select id="bounce-range">
+                <option value="entire-project">Entire Project</option>
+                <option value="cycle-range">Cycle Range</option>
+                <option value="selected-regions">Selected Regions</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Group 2: Option C Granular Plugin & Automation Toggles -->
+          <div class="studio-workbench-panel plugin-toggles-card">
+            <span class="studio-workbench-label">Plugin & Track Control</span>
+            <h3>Option C Toggles</h3>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-inserts-active" checked />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Insert Effects Active</span>
+            </div>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-instruments-active" checked />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Software Instruments Active</span>
+            </div>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-master-active" />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Master Bus Effects Active</span>
+            </div>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-volume-pan-active" checked />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Apply Volume/Pan Automation</span>
+            </div>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-print-fx" />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Print FX Returns (Auxes)</span>
+            </div>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-print-subgroups" />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Print Subgroups (Buses)</span>
+            </div>
+          </div>
+
+          <!-- Group 3: Discovered Tracks Simulated Table -->
+          <div
+            class="studio-workbench-panel bounce-panel-full track-table-card"
+          >
+            <span class="studio-workbench-label"
+              >Discovered Session Tracks</span
+            >
+            <h3>Sidechain & Track Mappings</h3>
+            <div class="table-wrapper">
+              <table class="bounce-tracks-table">
+                <thead>
+                  <tr>
+                    <th>Track Name</th>
+                    <th>Type</th>
+                    <th>Sidechain Input</th>
+                    <th>Sidechain Policy</th>
+                  </tr>
+                </thead>
+                <tbody id="bounce-tracks-body">
+                  <!-- Discovered tracks will be populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Group 4: JSON Recipe Generation & Download -->
+          <div
+            class="studio-workbench-panel bounce-panel-full recipe-preview-card"
+          >
+            <span class="studio-workbench-label">1-Click Exporter Recipe</span>
+            <h3>Generated Config JSON</h3>
+            <pre><code id="bounce-recipe-preview"></code></pre>
+            <div class="recipe-actions">
+              <button type="button" id="btn-copy-recipe" class="btn-secondary">
+                Copy to Clipboard
+              </button>
+              <button
+                type="button"
+                id="btn-download-recipe"
+                class="btn-primary"
+              >
+                Download Recipe
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -211,5 +345,6 @@
     <script src="lib/lab/state-machine.js"></script>
     <script src="lib/lab/brick-lane-resolver.js"></script>
     <script src="brick-lane-lab.js"></script>
+    <script src="logic-auto-bounce.js"></script>
   </body>
 </html>
