@@ -699,15 +699,20 @@
       render();
     }
 
+    function renderGeneratedPanels(renderState) {
+      const preset = data.getGeneratedPreset(renderState);
+      nodes.summary.innerHTML = renderPresetSummary(preset);
+      nodes.parameters.innerHTML = renderRecallCards(preset, renderState);
+      return preset;
+    }
+
     function render() {
-      const preset = data.getGeneratedPreset(state);
+      const preset = renderGeneratedPanels(state);
       nodes.useCases.innerHTML = renderUseCases(state);
       nodes.archetypes.innerHTML = renderArchetypes(state);
       nodes.context.innerHTML = renderContext(preset);
       nodes.faceplate.innerHTML = renderHardwareFaceplate(preset, state);
       nodes.controls.innerHTML = renderControls(state);
-      nodes.summary.innerHTML = renderPresetSummary(preset);
-      nodes.parameters.innerHTML = renderRecallCards(preset, state);
     }
 
     // Dynamic click handler for category sub-nav tabs AND click-to-paint LED segments
@@ -918,6 +923,11 @@
         input.value = value;
         axis.style.setProperty("--brick-lane-value", `${value}%`);
       }
+
+      renderGeneratedPanels({
+        ...state,
+        controls,
+      });
     }
 
     function dragStartCompressionField(e) {

@@ -99,6 +99,51 @@ test("generated preset returns exact selected rung labels", () => {
   assert.equal(preset.parameters.ratio.side, "Enigma Right");
 });
 
+test("generated preset derives Enigma selections from desired compression controls", () => {
+  const smoothSafe = getGeneratedPreset({
+    useCaseId: "tracking-vocal",
+    archetypeId: "safe-vocal-catcher",
+    controls: {
+      punchSmooth: 18,
+      cleanColor: 12,
+      controlOpen: 24,
+      safeExciting: 86,
+      glueLoud: 78,
+      stableWide: 82,
+    },
+  });
+
+  const punchyControlled = getGeneratedPreset({
+    useCaseId: "tracking-vocal",
+    archetypeId: "safe-vocal-catcher",
+    controls: {
+      punchSmooth: 92,
+      cleanColor: 84,
+      controlOpen: 94,
+      safeExciting: 22,
+      glueLoud: 24,
+      stableWide: 28,
+    },
+  });
+
+  assert.deepEqual(smoothSafe.parameters.detector.selection, {
+    settingId: "rms-slow-rms",
+  });
+  assert.deepEqual(punchyControlled.parameters.detector.selection, {
+    settingId: "peak-rms",
+  });
+  assert.deepEqual(smoothSafe.parameters.ratio.selection, { value: "1.5" });
+  assert.deepEqual(punchyControlled.parameters.ratio.selection, {
+    value: "8",
+  });
+  assert.deepEqual(smoothSafe.parameters.releaseWeighting.selection, {
+    value: "6",
+  });
+  assert.deepEqual(punchyControlled.parameters.releaseWeighting.selection, {
+    value: "1.5",
+  });
+});
+
 test("existing business config imports still work beside the new root module", () => {
   const redacted = redactBusinessConfig(
     getBusinessConfig({

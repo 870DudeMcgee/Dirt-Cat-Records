@@ -1313,6 +1313,286 @@
     };
   }
 
+  function clampPercent(value, fallback = 50) {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return fallback;
+    return Math.min(100, Math.max(0, numericValue));
+  }
+
+  function controlValue(controls, id) {
+    return clampPercent(controls?.[id], DEFAULT_STATE.controls[id] ?? 50);
+  }
+
+  function weightedScore(parts) {
+    const totalWeight = parts.reduce((sum, part) => sum + part.weight, 0);
+    if (!totalWeight) return 50;
+    return parts.reduce(
+      (sum, part) => sum + clampPercent(part.value) * (part.weight / totalWeight),
+      0
+    );
+  }
+
+  function thresholdPick(score, thresholds) {
+    const normalizedScore = clampPercent(score);
+    const match = thresholds.find((entry) => normalizedScore < entry.below);
+    return match ? match.value : thresholds[thresholds.length - 1].value;
+  }
+
+  function hasCustomCompressionControls(controls = {}) {
+    return Object.keys(DEFAULT_STATE.controls).some((id) => {
+      if (controls[id] === undefined) return false;
+      return controlValue(controls, id) !== DEFAULT_STATE.controls[id];
+    });
+  }
+
+  function deriveCompressionIntent(controls = {}) {
+    const punch = controlValue(controls, "punchSmooth");
+    const color = controlValue(controls, "cleanColor");
+    const control = controlValue(controls, "controlOpen");
+    const safe = controlValue(controls, "safeExciting");
+    const glue = controlValue(controls, "glueLoud");
+    const stable = controlValue(controls, "stableWide");
+    const smooth = 100 - punch;
+    const clean = 100 - color;
+    const open = 100 - control;
+    const exciting = 100 - safe;
+    const loud = 100 - glue;
+    const movement = 100 - stable;
+
+    return {
+      punch,
+      color,
+      control,
+      safe,
+      glue,
+      stable,
+      smooth,
+      clean,
+      open,
+      exciting,
+      loud,
+      movement,
+      peakNeed: weightedScore([
+        { value: punch, weight: 0.4 },
+        { value: control, weight: 0.3 },
+        { value: exciting, weight: 0.2 },
+        { value: movement, weight: 0.1 },
+      ]),
+      bodyNeed: weightedScore([
+        { value: smooth, weight: 0.35 },
+        { value: glue, weight: 0.35 },
+        { value: safe, weight: 0.2 },
+        { value: clean, weight: 0.1 },
+      ]),
+      intensity: weightedScore([
+        { value: control, weight: 0.33 },
+        { value: color, weight: 0.22 },
+        { value: exciting, weight: 0.22 },
+        { value: loud, weight: 0.13 },
+        { value: punch, weight: 0.1 },
+      ]),
+      transparent: weightedScore([
+        { value: clean, weight: 0.4 },
+        { value: open, weight: 0.3 },
+        { value: safe, weight: 0.2 },
+        { value: glue, weight: 0.1 },
+      ]),
+    };
+  }
+
+  function deriveDetectorSelection(intent) {
+    if (intent.peakNeed >= 70 && intent.bodyNeed >= 55) {
+      return { settingId: "peak-rms-slow" };
+    }
+    if (intent.peakNeed >= 62) return { settingId: "peak-rms" };
+    if (intent.bodyNeed >= 70) return { settingId: "rms-slow-rms" };
+    if (intent.bodyNeed >= 58) return { settingId: "rms" };
+    if (intent.peakNeed >= 48) return { settingId: "peak" };
+    return { settingId: "slow-rms" };
+  }
+
+  function deriveSidechainSelection(intent, useCaseId) {
+    if (useCaseId === "tracking-vocal") {
+      if (intent.safe >= 76 && intent.clean >= 62) {
+        return { settingId: "de-ess-hard" };
+      }
+      if (intent.safe >= 62) return { settingId: "de-ess-mid" };
+      if (intent.color >= 72 || intent.exciting >= 68) {
+        return { settingId: "sc-emp-hard" };
+      }
+      if (intent.color >= 54) return { settingId: "sc-emp-soft" };
+      return { settingId: "sc-de-emp-soft" };
+    }
+
+    if (intent.loud >= 76 || intent.exciting >= 76) {
+      return { settingId: "sc-de-emp-mid" };
+    }
+    if (intent.punch >= 72) return { settingId: "sc-de-emp-soft" };
+    if (intent.color >= 70) return { settingId: "sc-emp-soft" };
+    return { settingId: "flat" };
+  }
+
+  function deriveCompressionSelectionsFromControls(
+    controls = {},
+    useCaseId = DEFAULT_STATE.useCaseId
+  ) {
+    const intent = deriveCompressionIntent(controls);
+    const ratioScore = weightedScore([
+      { value: intent.control, weight: 0.42 },
+      { value: intent.color, weight: 0.22 },
+      { value: intent.exciting, weight: 0.18 },
+      { value: intent.loud, weight: 0.12 },
+      { value: intent.punch, weight: 0.06 },
+    ]);
+    const releaseScore = intent.bodyNeed;
+    const attackClampScore = weightedScore([
+      { value: intent.control, weight: 0.4 },
+      { value: intent.exciting, weight: 0.25 },
+      { value: intent.color, weight: 0.15 },
+      { value: intent.smooth, weight: 0.2 },
+    ]);
+    const crestScore = weightedScore([
+      { value: intent.peakNeed, weight: 0.45 },
+      { value: intent.bodyNeed, weight: 0.25 },
+      { value: intent.intensity, weight: 0.3 },
+    ]);
+    const kneeScore = 100 - intent.intensity;
+    const holdScore = weightedScore([
+      { value: intent.bodyNeed, weight: 0.42 },
+      { value: intent.safe, weight: 0.35 },
+      { value: intent.glue, weight: 0.23 },
+    ]);
+    const lookaheadScore = weightedScore([
+      { value: intent.control, weight: 0.45 },
+      { value: intent.exciting, weight: 0.28 },
+      { value: intent.loud, weight: 0.17 },
+      { value: intent.punch, weight: 0.1 },
+    ]);
+
+    return {
+      stressTypeDiodeClipping: {
+        settingId:
+          intent.color >= 82
+            ? "polish-white"
+            : intent.color >= 66
+              ? "glue"
+              : intent.color >= 44
+                ? "smash"
+                : intent.clean >= 78
+                  ? "float"
+                  : "velvet",
+      },
+      diodeHardness: {
+        value: thresholdPick(intent.color, [
+          { below: 18, value: "0.5" },
+          { below: 32, value: "1.0" },
+          { below: 48, value: "1.5" },
+          { below: 64, value: "2" },
+          { below: 78, value: "3" },
+          { below: 90, value: "5" },
+          { below: 101, value: "6" },
+        ]),
+      },
+      stressCrossoverPhase: {
+        settingId:
+          intent.stable >= 72
+            ? "linear-freq"
+            : intent.movement >= 72
+              ? "crossover-b"
+              : intent.color >= 65
+                ? "crossover-a"
+                : "low-freq-par",
+      },
+      sidechainHighFrequencyEmphasis: deriveSidechainSelection(
+        intent,
+        useCaseId
+      ),
+      detector: deriveDetectorSelection(intent),
+      crestFactorShaping: {
+        value: thresholdPick(crestScore, [
+          { below: 22, value: "0.5" },
+          { below: 38, value: "1.0" },
+          { below: 54, value: "1.5" },
+          { below: 68, value: "2" },
+          { below: 80, value: "3" },
+          { below: 90, value: "4" },
+          { below: 101, value: "5" },
+        ]),
+      },
+      stereoMonoSidechainLinking: {
+        value: thresholdPick(intent.stable, [
+          { below: 22, value: "0.5" },
+          { below: 45, value: "1.0" },
+          { below: 70, value: "1.5" },
+          { below: 88, value: "2" },
+          { below: 101, value: "3" },
+        ]),
+      },
+      ratio: {
+        value: thresholdPick(ratioScore, [
+          { below: 14, value: "1.0" },
+          { below: 28, value: "1.5" },
+          { below: 42, value: "2" },
+          { below: 58, value: "3" },
+          { below: 70, value: "4" },
+          { below: 82, value: "6" },
+          { below: 101, value: "8" },
+        ]),
+      },
+      knee: {
+        value: thresholdPick(kneeScore, [
+          { below: 18, value: "0.5" },
+          { below: 34, value: "1.0" },
+          { below: 50, value: "1.5" },
+          { below: 66, value: "2" },
+          { below: 82, value: "3" },
+          { below: 94, value: "4" },
+          { below: 101, value: "5" },
+        ]),
+      },
+      attackWeighting: {
+        value: thresholdPick(attackClampScore, [
+          { below: 25, value: "6" },
+          { below: 40, value: "5" },
+          { below: 55, value: "4" },
+          { below: 70, value: "3" },
+          { below: 84, value: "2" },
+          { below: 101, value: "1.5" },
+        ]),
+      },
+      releaseWeighting: {
+        value: thresholdPick(releaseScore, [
+          { below: 18, value: "1.5" },
+          { below: 32, value: "2" },
+          { below: 48, value: "3" },
+          { below: 64, value: "4" },
+          { below: 80, value: "5" },
+          { below: 101, value: "6" },
+        ]),
+      },
+      hold: {
+        value: thresholdPick(holdScore, [
+          { below: 28, value: "0.5" },
+          { below: 54, value: "1.0" },
+          { below: 76, value: "1.5" },
+          { below: 90, value: "2" },
+          { below: 101, value: "3" },
+        ]),
+      },
+      lookahead: {
+        value: thresholdPick(lookaheadScore, [
+          { below: 25, value: "0.5" },
+          { below: 48, value: "1.0" },
+          { below: 66, value: "1.5" },
+          { below: 80, value: "3" },
+          { below: 92, value: "4" },
+          { below: 101, value: "5" },
+        ]),
+      },
+      ledBrightness: { value: "4" },
+    };
+  }
+
   function getArchetypesForUseCase(useCaseId) {
     return ARCHETYPES.filter((archetype) => archetype.useCaseId === useCaseId);
   }
@@ -1326,10 +1606,22 @@
       ) ||
       ARCHETYPES[0];
 
+    const predictiveSelections = hasCustomCompressionControls(state.controls)
+      ? deriveCompressionSelectionsFromControls(
+          state.controls,
+          requestedUseCaseId
+        )
+      : {};
+    const selected = {
+      ...archetype.selected,
+      ...predictiveSelections,
+      ...(state.parameterSelections || {}),
+    };
+
     const parameters = Object.fromEntries(
       Object.entries(ENIGMA_PARAMETERS).map(([id, definition]) => [
         id,
-        cloneParameterWithSelection(definition, archetype.selected[id]),
+        cloneParameterWithSelection(definition, selected[id]),
       ])
     );
 
@@ -1354,6 +1646,7 @@
     ARCHETYPES,
     DEFAULT_STATE,
     getArchetypesForUseCase,
+    deriveCompressionSelectionsFromControls,
     getGeneratedPreset,
   };
 
