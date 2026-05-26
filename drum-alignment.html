@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drum Alignment | Dirt Cat Records</title>
+    <meta
+      name="description"
+      content="Browser-only drum alignment workbench for local audio files, overhead references, waveform movement, and DAW-ready offsets."
+    />
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
+    <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
+    <link rel="stylesheet" href="style.css?v=4" />
+  </head>
+  <body class="brick-lane-lab-page studio-tools-page">
+    <nav id="main-nav">
+      <ul>
+        <li><a href="index.html#hero-container">Home</a></li>
+        <li><a href="index.html#services">Offers</a></li>
+        <li><a href="index.html#listen">Listen</a></li>
+        <li><a href="studio-tools.html">Studio Tools</a></li>
+        <li><a href="checkout.html">Checkout</a></li>
+        <li><a href="portal.html">Portal</a></li>
+        <li><a href="support.html">Support</a></li>
+        <li><a href="index.html#fat-footer">Contact</a></li>
+      </ul>
+    </nav>
+
+    <main
+      class="brick-lane-shell studio-tools-shell"
+      aria-label="Drum Alignment"
+    >
+      <header class="brick-lane-topbar studio-tools-topbar">
+        <div>
+          <p class="brick-lane-kicker">Dirt Cat Records</p>
+          <h1>Drum Alignment</h1>
+          <p class="brick-lane-subhead">
+            Load local drum recordings, choose the kit image reference, inspect
+            alignment offsets, and copy a DAW-ready report without uploading
+            audio.
+          </p>
+        </div>
+        <div class="brick-lane-actions">
+          <a href="studio-tools.html" class="btn-secondary">All Tools</a>
+        </div>
+      </header>
+
+      <section
+        id="drum-alignment-workbench"
+        class="studio-workbench-section"
+        aria-label="Drum Alignment Workbench"
+      >
+        <div
+          id="drum-alignment-app"
+          class="drum-align-shell"
+          data-local-audio-workbench
+        >
+          <article class="drum-align-dropzone">
+            <span class="studio-workbench-label">Local Audio Intake</span>
+            <h3>Load Drum Files</h3>
+            <label for="drum-alignment-files">Audio files</label>
+            <input
+              id="drum-alignment-files"
+              type="file"
+              accept="audio/*"
+              multiple
+            />
+            <div
+              id="drum-alignment-dropzone"
+              tabindex="0"
+              role="button"
+              aria-describedby="drum-alignment-status"
+            >
+              Drop drum tracks here or press Enter to choose files.
+            </div>
+          </article>
+          <article class="drum-align-controls">
+            <span class="studio-workbench-label">Reference Strategy</span>
+            <h3>Kit Image Reference</h3>
+            <label for="drum-reference-selector">Reference</label>
+            <select id="drum-reference-selector">
+              <option value="auto">Recommended reference</option>
+            </select>
+            <button type="button" id="drum-analyze-button" class="btn-primary">
+              Analyze Alignment
+            </button>
+            <button
+              type="button"
+              id="drum-copy-report-button"
+              class="btn-secondary"
+            >
+              Copy Report
+            </button>
+          </article>
+          <article class="drum-align-track-list">
+            <span class="studio-workbench-label">Decoded Tracks</span>
+            <h3>Roles And Manual Markers</h3>
+            <div id="drum-track-list"></div>
+          </article>
+          <article class="drum-align-waveform-stage">
+            <span class="studio-workbench-label">Before / After Movement</span>
+            <h3>Waveform Overlay</h3>
+            <div id="drum-waveform-mount"></div>
+          </article>
+          <article class="drum-align-correlation-grid">
+            <span class="studio-workbench-label">Phase Confidence</span>
+            <h3>Correlation Checks</h3>
+            <div id="drum-correlation-panel"></div>
+          </article>
+          <article class="drum-align-report">
+            <span class="studio-workbench-label">DAW Notes</span>
+            <h3>Alignment Report</h3>
+            <pre><code id="drum-report-panel">Run analysis to generate a DAW-ready report.</code></pre>
+          </article>
+          <p
+            id="drum-alignment-status"
+            class="drum-align-status"
+            role="status"
+            aria-live="polite"
+          >
+            Ready. Audio stays in this browser.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script src="nav.js"></script>
+    <script src="lib/lab/drum-alignment-engine.js"></script>
+    <script src="lib/lab/drum-waveform-renderer.js"></script>
+    <script src="drum-alignment.js"></script>
+  </body>
+</html>

@@ -6,7 +6,7 @@
 
 **Design Spec:** `docs/superpowers/specs/2026-05-26-drum-alignment-workbench-v1-design.md`
 
-**Architecture:** Static browser app hosted from `studio-tools.html`. Audio stays local. Testable alignment logic lives in `lib/lab/drum-alignment-engine.js`; browser-only orchestration lives in `drum-alignment.js`; rendering lives in `lib/lab/drum-waveform-renderer.js`. No new Vercel Functions.
+**Architecture:** Static browser app hosted from `drum-alignment.html` and linked from the `studio-tools.html` launcher. Audio stays local. Testable alignment logic lives in `lib/lab/drum-alignment-engine.js`; browser-only orchestration lives in `drum-alignment.js`; rendering lives in `lib/lab/drum-waveform-renderer.js`. No new Vercel Functions.
 
 **Tech Stack:** Static HTML/CSS/JS, browser Web Audio API, Canvas, Node built-in test runner.
 
@@ -112,12 +112,14 @@ Core result shape:
 **Files:**
 
 - Add: `drum-alignment.js`
-- Modify: `studio-tools.html`
+- Add/modify: `drum-alignment.html`
+- Modify: `studio-tools.html` only for launcher links
 - Modify: `package.json`
 
 **Scope:**
 
-- Add Drum Alignment operational UI inside the existing `drum-alignment-workbench` section.
+- Add Drum Alignment operational UI inside the dedicated `drum-alignment.html` page.
+- Keep `studio-tools.html` as a launcher so Logic Auto Bounce and Drum Alignment can move independently.
 - Add file input and drag/drop area.
 - Decode files with Web Audio API.
 - Maintain track state, roles, reference selection, and manual markers.
@@ -214,7 +216,8 @@ Core result shape:
 ### Slice 1: Skeleton And Contract
 
 - [ ] Add engine module with classification/reference/report stubs and tests.
-- [ ] Add Drum Alignment operational shell in `studio-tools.html`.
+- [ ] Add Drum Alignment operational shell in `drum-alignment.html`.
+- [ ] Link Drum Alignment from `studio-tools.html` without loading Drum Alignment scripts there.
 - [ ] Add `drum-alignment.js` boot guard that does nothing when the section is absent.
 - [ ] Add script tags and `check:js` entries.
 
