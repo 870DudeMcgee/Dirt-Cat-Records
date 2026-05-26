@@ -10,7 +10,8 @@ const {
   renderHardwareFaceplate,
   renderRecallCards,
   renderControls,
-  renderProblemPresets,
+  renderUseAreas,
+  renderPresetBrowser,
 } = require("../brick-lane-lab");
 const { ENIGMA_PARAMETERS, getGeneratedPreset } = require("../brick-lane-data");
 
@@ -136,7 +137,8 @@ test("copy recall text includes Enigma guide labels for users", () => {
 
 test("copy recall why text uses saturation language outside hardware labels", () => {
   const preset = getGeneratedPreset({
-    archetypeId: "modern-finished-bus",
+    useAreaId: "bus-master",
+    presetId: "modern-finished-bus",
   });
   const text = createCopyText(preset);
 
@@ -209,7 +211,8 @@ test("renderPrintSheet carries plain-language mode and saturation guidance", () 
 
 test("renderPrintSheet why text avoids lowercase stress wording", () => {
   const preset = getGeneratedPreset({
-    archetypeId: "aggressive-energy-bus",
+    useAreaId: "bus-master",
+    presetId: "aggressive-energy-bus",
   });
   const html = renderPrintSheet(preset);
 
@@ -259,15 +262,39 @@ test("renderControls replaces six separate knob cards with one compression field
   assert.doesNotMatch(html, /brick-lane-dial/);
 });
 
-test("renderProblemPresets shows actionable common problems instead of static source tiles", () => {
-  const html = renderProblemPresets({
-    problemPresetId: "sibilant-uneven-vocal",
+test("renderUseAreas renders workflow tabs", () => {
+  const html = renderUseAreas({ useAreaId: "mixing" });
+
+  assert.match(html, /data-use-area-id="tracking"/);
+  assert.match(html, /data-use-area-id="mixing"/);
+  assert.match(html, /data-use-area-id="bus-master"/);
+  assert.match(html, />Tracking</);
+  assert.match(html, />Mixing</);
+  assert.match(html, />Bus \/ Master</);
+  assert.match(
+    html,
+    /data-use-area-id="mixing"[^>]*is-active|is-active[^>]*data-use-area-id="mixing"/
+  );
+});
+
+test("renderPresetBrowser groups presets by source under selected workflow area", () => {
+  const html = renderPresetBrowser({
+    useAreaId: "mixing",
+    presetId: "vocal-de-esser",
   });
 
-  assert.match(html, /data-problem-preset-id="sibilant-uneven-vocal"/);
-  assert.match(html, /Sibilant Uneven Vocal/);
-  assert.match(html, /Low-End Pumping Mix/);
-  assert.match(html, /class="brick-lane-problem-card is-active"/);
+  assert.match(html, /brick-lane-source-section/);
+  assert.match(html, />Vocals</);
+  assert.match(html, />Bass</);
+  assert.match(html, />Drums</);
+  assert.match(html, />Guitar</);
+  assert.match(html, /data-preset-id="vocal-de-esser"/);
+  assert.match(html, /Vocal De-Esser/);
+  assert.match(html, /Controls sharp sibilance/);
+  assert.match(html, /brick-lane-preset-row is-active/);
+  assert.match(html, /brick-lane-preset-tag/);
+  assert.doesNotMatch(html, /data-problem-preset-id/);
+  assert.doesNotMatch(html, /data-archetype-id/);
   assert.doesNotMatch(html, /brick-lane-source-tile/);
   assert.doesNotMatch(html, /Signal Generator/i);
 });
