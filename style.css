@@ -3825,6 +3825,725 @@ footer {
   border-color: rgba(94, 231, 255, 0.28);
 }
 
+/* Drum Alignment Workbench */
+#drum-alignment-workbench {
+  --drum-align-panel: rgba(8, 9, 16, 0.76);
+  --drum-align-rail: rgba(255, 255, 255, 0.08);
+  --drum-align-border: rgba(255, 255, 255, 0.14);
+  --drum-align-focus: rgba(94, 231, 255, 0.48);
+  --drum-align-caution: rgba(255, 213, 73, 0.5);
+  --drum-align-danger: rgba(255, 58, 58, 0.5);
+  overflow: hidden;
+}
+
+#drum-alignment-workbench *,
+#drum-alignment-workbench *::before,
+#drum-alignment-workbench *::after {
+  min-width: 0;
+}
+
+#drum-alignment-workbench p,
+#drum-alignment-workbench li,
+#drum-alignment-workbench span,
+#drum-alignment-workbench label,
+#drum-alignment-workbench output,
+#drum-alignment-workbench button,
+#drum-alignment-workbench select,
+#drum-alignment-workbench input,
+#drum-alignment-workbench textarea {
+  text-shadow: none;
+}
+
+.drum-align-shell {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.74fr) minmax(430px, 1.42fr) minmax(
+      250px,
+      0.84fr
+    );
+  grid-template-areas:
+    "dropzone waveforms controls"
+    "tracks waveforms reference"
+    "tracks correlation report"
+    "status status actions";
+  gap: 0.72rem;
+  padding: 0.8rem;
+}
+
+.drum-align-dropzone,
+.drum-align-controls,
+.drum-align-track-list,
+.drum-align-waveform-stage,
+.drum-align-report,
+.drum-align-correlation-grid,
+.drum-align-reference-card,
+.drum-align-empty,
+.drum-align-status {
+  min-width: 0;
+  border: 1px solid var(--drum-align-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 32%),
+    var(--drum-align-panel);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 12px 28px rgba(0, 0, 0, 0.24);
+}
+
+.drum-align-dropzone {
+  grid-area: dropzone;
+  display: grid;
+  align-content: center;
+  gap: 0.45rem;
+  min-height: 156px;
+  padding: 0.85rem;
+  border-style: dashed;
+  border-color: rgba(94, 231, 255, 0.34);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(94, 231, 255, 0.06) 0 1px,
+      transparent 1px 14px
+    ),
+    rgba(94, 231, 255, 0.055);
+}
+
+.drum-align-dropzone:hover,
+.drum-align-dropzone:focus-within,
+.drum-align-dropzone.is-dragging {
+  border-color: rgba(94, 231, 255, 0.62);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(94, 231, 255, 0.08) 0 1px,
+      transparent 1px 14px
+    ),
+    rgba(94, 231, 255, 0.09);
+}
+
+.drum-align-dropzone h3,
+.drum-align-controls h3,
+.drum-align-track-list h3,
+.drum-align-waveform-stage h3,
+.drum-align-report h3,
+.drum-align-correlation-grid h3,
+.drum-align-reference-card h3,
+.drum-align-empty h3 {
+  margin: 0;
+  color: var(--brick-lane-text);
+  font-size: 0.92rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+.drum-align-dropzone p,
+.drum-align-controls p,
+.drum-align-track-card p,
+.drum-align-report p,
+.drum-align-reference-card p,
+.drum-align-empty p,
+.drum-align-status p {
+  margin: 0;
+  color: var(--brick-lane-muted);
+  font-size: 0.78rem;
+  line-height: 1.42;
+}
+
+.drum-align-controls {
+  grid-area: controls;
+  display: grid;
+  align-content: start;
+  gap: 0.64rem;
+  padding: 0.75rem;
+}
+
+.drum-align-controls label,
+.drum-align-reference-card label {
+  display: grid;
+  gap: 0.28rem;
+  color: rgba(235, 241, 255, 0.72);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.drum-align-controls select,
+.drum-align-controls input,
+.drum-align-controls button,
+.drum-align-reference-card select,
+.drum-align-reference-card input,
+.drum-align-reference-card button,
+.drum-align-action-row button,
+.drum-align-dropzone button {
+  width: 100%;
+  min-height: 34px;
+  max-width: 100%;
+  padding: 0.38rem 0.56rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  background: rgba(5, 6, 10, 0.9);
+  color: var(--brick-lane-text);
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.drum-align-controls button,
+.drum-align-reference-card button,
+.drum-align-action-row button,
+.drum-align-dropzone button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.drum-align-controls button:hover,
+.drum-align-controls button:focus-visible,
+.drum-align-reference-card button:hover,
+.drum-align-reference-card button:focus-visible,
+.drum-align-action-row button:hover,
+.drum-align-action-row button:focus-visible,
+.drum-align-dropzone button:hover,
+.drum-align-dropzone button:focus-visible {
+  border-color: var(--drum-align-focus);
+  background: rgba(94, 231, 255, 0.13);
+  color: var(--brick-lane-cyan);
+  outline: none;
+}
+
+.drum-align-track-list {
+  grid-area: tracks;
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  max-height: 672px;
+  padding: 0.65rem;
+  overflow: auto;
+  scrollbar-color: rgba(94, 231, 255, 0.36) rgba(255, 255, 255, 0.08);
+}
+
+.drum-align-track-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 0.55rem;
+  align-items: center;
+  min-height: 78px;
+  padding: 0.62rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.drum-align-track-card.is-reference {
+  border-color: rgba(255, 213, 73, 0.42);
+  background:
+    linear-gradient(135deg, rgba(255, 213, 73, 0.12), transparent 70%),
+    rgba(255, 255, 255, 0.06);
+}
+
+.drum-align-track-card.is-error {
+  border-color: var(--drum-align-danger);
+  background: rgba(255, 58, 58, 0.1);
+}
+
+.drum-align-track-card h4,
+.drum-align-track-card strong {
+  margin: 0;
+  color: var(--brick-lane-text);
+  font-size: 0.84rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drum-align-track-card span,
+.drum-align-track-card output {
+  color: var(--brick-lane-cyan);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+}
+
+.drum-align-track-card select {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 30px;
+  padding: 0.25rem 0.42rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 5px;
+  background: #080910;
+  color: var(--brick-lane-text);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.drum-align-waveform-stage {
+  grid-area: waveforms;
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+  min-height: 520px;
+  padding: 0.7rem;
+  overflow: auto;
+}
+
+.drum-align-waveform-stage canvas,
+.drum-align-waveform-stage svg,
+.drum-align-waveform-stage [data-waveform-lane],
+.drum-align-waveform-stage .drum-align-waveform-lane {
+  display: block;
+  width: 100%;
+  height: 108px;
+  min-height: 108px;
+  max-height: 108px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background:
+    linear-gradient(rgba(94, 231, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    #05060a;
+  background-size:
+    100% 26px,
+    32px 100%,
+    auto;
+}
+
+.drum-align-waveform-stage .before,
+.drum-align-waveform-stage [data-layer="before"] {
+  color: rgba(235, 241, 255, 0.34);
+  opacity: 0.54;
+}
+
+.drum-align-waveform-stage .after,
+.drum-align-waveform-stage [data-layer="after"] {
+  color: var(--brick-lane-cyan);
+  filter: drop-shadow(0 0 8px rgba(94, 231, 255, 0.28));
+}
+
+.drum-align-waveform-stage [data-marker="reference"],
+.drum-align-waveform-stage .reference-marker {
+  color: var(--brick-lane-yellow);
+}
+
+.drum-align-waveform-stage [data-marker="transient"],
+.drum-align-waveform-stage .transient-marker {
+  color: var(--brick-lane-magenta);
+}
+
+.drum-align-reference-card {
+  grid-area: reference;
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-color: rgba(255, 213, 73, 0.32);
+}
+
+.drum-align-reference-card strong,
+.drum-align-reference-card output {
+  color: var(--brick-lane-yellow);
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.drum-align-correlation-grid {
+  grid-area: correlation;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  align-content: start;
+  padding: 0.65rem;
+}
+
+.drum-align-correlation-grid h3,
+.drum-align-correlation-grid > p {
+  grid-column: 1 / -1;
+}
+
+.drum-align-meter {
+  display: grid;
+  gap: 0.32rem;
+  min-height: 76px;
+  padding: 0.58rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.drum-align-meter strong,
+.drum-align-meter span,
+.drum-align-meter output {
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.drum-align-meter strong {
+  color: var(--brick-lane-text);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.drum-align-meter span,
+.drum-align-meter output {
+  color: var(--brick-lane-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.drum-align-meter::after,
+.drum-align-meter [role="meter"] {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--brick-lane-red),
+      var(--brick-lane-yellow),
+      var(--brick-lane-green)
+    ),
+    rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 10px rgba(94, 231, 255, 0.16);
+}
+
+.drum-align-meter[data-confidence="strong"],
+.drum-align-meter.is-strong {
+  border-color: rgba(49, 220, 120, 0.42);
+}
+
+.drum-align-meter[data-confidence="check"],
+.drum-align-meter.is-check {
+  border-color: var(--drum-align-caution);
+}
+
+.drum-align-meter[data-confidence="issue"],
+.drum-align-meter.is-issue {
+  border-color: var(--drum-align-danger);
+}
+
+.drum-align-report {
+  grid-area: report;
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  padding: 0.75rem;
+}
+
+.drum-align-report textarea,
+.drum-align-report pre,
+.drum-align-report code {
+  width: 100%;
+  max-width: 100%;
+  min-height: 168px;
+  max-height: 280px;
+  margin: 0;
+  padding: 0.65rem;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: #040407;
+  color: rgba(235, 241, 255, 0.88);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.drum-align-status {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 46px;
+  padding: 0.62rem 0.75rem;
+  border-color: rgba(94, 231, 255, 0.24);
+}
+
+.drum-align-status::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brick-lane-cyan);
+  box-shadow: 0 0 10px rgba(94, 231, 255, 0.62);
+}
+
+.drum-align-status[data-tone="warning"]::before,
+.drum-align-status.is-warning::before {
+  background: var(--brick-lane-yellow);
+  box-shadow: 0 0 10px rgba(255, 213, 73, 0.5);
+}
+
+.drum-align-status[data-tone="error"]::before,
+.drum-align-status.is-error::before {
+  background: var(--brick-lane-red);
+  box-shadow: 0 0 10px rgba(255, 58, 58, 0.5);
+}
+
+.drum-align-action-row {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.drum-align-action-row button {
+  width: auto;
+  min-width: 112px;
+  max-width: 100%;
+  flex: 0 1 auto;
+}
+
+.drum-align-empty {
+  display: grid;
+  place-items: center;
+  gap: 0.38rem;
+  min-height: 172px;
+  padding: 1rem;
+  text-align: center;
+  border-style: dashed;
+}
+
+/* Logic Auto Bounce Preferences Layout */
+.bounce-panel-full {
+  grid-column: span 3;
+}
+
+.bounce-preset-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(255, 213, 73, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 213, 73, 0.04);
+}
+
+.bounce-preset-toolbar label {
+  color: var(--brick-lane-yellow);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.bounce-preset-toolbar select {
+  min-height: 34px;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: #080910;
+  color: var(--brick-lane-text);
+  font-weight: 700;
+  outline: none;
+}
+
+.badge-modified {
+  display: inline-block;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  background: var(--brick-lane-yellow);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Button variants */
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  min-height: 34px;
+  padding: 0.42rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+.btn-primary {
+  background: var(--brick-lane-cyan);
+  border-color: rgba(94, 231, 255, 0.5);
+  color: #000;
+}
+.btn-primary:hover {
+  background: #84eeff;
+  box-shadow: 0 0 10px rgba(94, 231, 255, 0.3);
+}
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--brick-lane-text);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.btn-danger {
+  background: rgba(255, 84, 84, 0.16);
+  border-color: rgba(255, 84, 84, 0.4);
+  color: #ff8484;
+}
+.btn-danger:hover {
+  background: rgba(255, 84, 84, 0.28);
+}
+
+/* Formspec rows */
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+.form-row label {
+  color: var(--brick-lane-muted);
+  font-size: 0.86rem;
+}
+.form-row select {
+  min-height: 32px;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  background: #080910;
+  color: var(--brick-lane-text);
+  outline: none;
+}
+.static-value-label {
+  font-weight: 900;
+  color: var(--brick-lane-cyan);
+  font-size: 0.95rem;
+}
+
+/* Toggle Switches */
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+.switch-label {
+  color: var(--brick-lane-text);
+  font-size: 0.86rem;
+}
+.switch-container {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 22px;
+}
+.switch-container input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.neon-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 34px;
+  transition: 0.2s;
+}
+.neon-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--brick-lane-muted);
+  border-radius: 50%;
+  transition: 0.2s;
+}
+input:checked + .neon-slider {
+  background-color: rgba(94, 231, 255, 0.16);
+  border-color: rgba(94, 231, 255, 0.6);
+}
+input:checked + .neon-slider:before {
+  transform: translateX(22px);
+  background-color: var(--brick-lane-cyan);
+  box-shadow: 0 0 8px var(--brick-lane-cyan);
+}
+
+/* Tracks Table */
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+}
+.bounce-tracks-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.bounce-tracks-table th,
+.bounce-tracks-table td {
+  padding: 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.86rem;
+}
+.bounce-tracks-table th {
+  color: var(--brick-lane-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+.bounce-tracks-table select {
+  min-height: 28px;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  background: #080910;
+  color: var(--brick-lane-text);
+  font-size: 0.8rem;
+  outline: none;
+}
+
+/* Recipe Preview JSON */
+.recipe-preview-card pre {
+  margin: 0.5rem 0;
+  padding: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: #040407;
+  overflow-x: auto;
+  max-height: 220px;
+}
+.recipe-preview-card code {
+  color: #a5d6ff;
+  font-family: monospace;
+  font-size: 0.82rem;
+}
+.recipe-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
 .brick-lane-grid {
   display: grid;
   grid-template-columns: 210px minmax(380px, 0.85fr) minmax(540px, 1.15fr);
@@ -4870,6 +5589,24 @@ footer {
   .brick-lane-hardware {
     max-width: 420px;
   }
+
+  .drum-align-shell {
+    grid-template-columns: minmax(220px, 0.78fr) minmax(0, 1.22fr);
+    grid-template-areas:
+      "dropzone controls"
+      "tracks reference"
+      "waveforms waveforms"
+      "correlation report"
+      "status actions";
+  }
+
+  .drum-align-track-list {
+    max-height: 420px;
+  }
+
+  .drum-align-waveform-stage {
+    min-height: 432px;
+  }
 }
 
 @media (max-width: 760px) {
@@ -4903,6 +5640,63 @@ footer {
 
   .studio-workbench-grid {
     grid-template-columns: 1fr;
+  }
+
+  .drum-align-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "dropzone"
+      "controls"
+      "reference"
+      "tracks"
+      "waveforms"
+      "correlation"
+      "report"
+      "status"
+      "actions";
+    padding: 0.6rem;
+  }
+
+  .drum-align-dropzone,
+  .drum-align-controls,
+  .drum-align-track-list,
+  .drum-align-waveform-stage,
+  .drum-align-report,
+  .drum-align-correlation-grid,
+  .drum-align-reference-card,
+  .drum-align-empty,
+  .drum-align-status {
+    padding: 0.68rem;
+  }
+
+  .drum-align-track-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .drum-align-waveform-stage {
+    min-height: 344px;
+  }
+
+  .drum-align-waveform-stage canvas,
+  .drum-align-waveform-stage svg,
+  .drum-align-waveform-stage [data-waveform-lane],
+  .drum-align-waveform-stage .drum-align-waveform-lane {
+    height: 96px;
+    min-height: 96px;
+    max-height: 96px;
+  }
+
+  .drum-align-action-row {
+    justify-content: stretch;
+  }
+
+  .drum-align-action-row button {
+    flex: 1 1 132px;
+  }
+
+  .bounce-panel-full {
+    grid-column: span 1 !important;
   }
 
   .brick-lane-controls,
@@ -5234,6 +6028,37 @@ footer {
   .brick-lane-cards-grid,
   .brick-lane-cards-grid.is-dense {
     grid-template-columns: 1fr;
+  }
+
+  .drum-align-shell {
+    gap: 0.55rem;
+    padding: 0.5rem;
+  }
+
+  .drum-align-correlation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .drum-align-track-card {
+    grid-template-columns: 1fr;
+  }
+
+  .drum-align-track-card h4,
+  .drum-align-track-card strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .drum-align-action-row button {
+    flex-basis: 100%;
+    width: 100%;
+  }
+
+  .drum-align-report textarea,
+  .drum-align-report pre,
+  .drum-align-report code {
+    min-height: 136px;
+    font-size: 0.68rem;
   }
 
   .brick-lane-field-readouts {

@@ -24,10 +24,9 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
     const page = await browser.newPage({
       viewport: { width: 1440, height: 1200 },
     });
-    await page.goto(
-      "http://127.0.0.1:4174/studio-tools.html#brick-lane-sonic-lab",
-      { waitUntil: "networkidle" }
-    );
+    await page.goto("http://127.0.0.1:4174/brick-lane-lab.html", {
+      waitUntil: "networkidle",
+    });
 
     const hardware = await page.locator(".brick-lane-hardware").boundingBox();
     const topRackEar = await page
@@ -214,10 +213,9 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
     );
 
     await page.setViewportSize({ width: 390, height: 1000 });
-    await page.goto(
-      "http://127.0.0.1:4174/studio-tools.html#brick-lane-sonic-lab",
-      { waitUntil: "networkidle" }
-    );
+    await page.goto("http://127.0.0.1:4174/brick-lane-lab.html", {
+      waitUntil: "networkidle",
+    });
 
     const mobileHardware = await page
       .locator(".brick-lane-hardware")
@@ -256,7 +254,7 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
     }));
     assert.ok(
       mobileLayout.scrollWidth <= mobileLayout.viewportWidth,
-      `mobile Studio Tools should not create horizontal overflow, got scrollWidth ${mobileLayout.scrollWidth} for viewport ${mobileLayout.viewportWidth}`
+      `mobile Brick Lane Sonic Lab should not create horizontal overflow, got scrollWidth ${mobileLayout.scrollWidth} for viewport ${mobileLayout.viewportWidth}`
     );
   } finally {
     if (browser) {

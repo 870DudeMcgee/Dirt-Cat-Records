@@ -72,7 +72,7 @@ Default behavior:
 
 ## Primary Workflow
 
-1. User opens `studio-tools.html` and enters Drum Alignment Workbench.
+1. User opens `drum-alignment.html` from the Studio Tools launcher.
 2. User loads local audio files with a file picker or drag-and-drop.
 3. Tool decodes audio in the browser with Web Audio APIs.
 4. Tool classifies tracks into families and displays editable role selectors.

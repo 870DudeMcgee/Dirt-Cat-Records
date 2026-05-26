@@ -3,22 +3,96 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brick Lane Sonic Lab moved to Studio Tools | Dirt Cat Records</title>
+    <title>Brick Lane Sonic Lab | Dirt Cat Records</title>
     <meta
-      http-equiv="refresh"
-      content="0; url=studio-tools.html#brick-lane-sonic-lab"
+      name="description"
+      content="Interactive Brick Lane 500 recall generator for Dirt Cat Records studio decisions."
     />
-    <link rel="canonical" href="studio-tools.html#brick-lane-sonic-lab" />
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
     <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
+    <link rel="stylesheet" href="style.css?v=4" />
   </head>
-  <body>
-    <p>
-      Brick Lane Sonic Lab moved to
-      <a href="studio-tools.html#brick-lane-sonic-lab">Studio Tools</a>.
-    </p>
-    <script>
-      window.location.replace("studio-tools.html#brick-lane-sonic-lab");
-    </script>
+  <body class="brick-lane-lab-page studio-tools-page">
+    <nav id="main-nav">
+      <ul>
+        <li><a href="index.html#hero-container">Home</a></li>
+        <li><a href="index.html#services">Offers</a></li>
+        <li><a href="index.html#listen">Listen</a></li>
+        <li><a href="studio-tools.html">Studio Tools</a></li>
+        <li><a href="checkout.html">Checkout</a></li>
+        <li><a href="portal.html">Portal</a></li>
+        <li><a href="support.html">Support</a></li>
+        <li><a href="index.html#fat-footer">Contact</a></li>
+      </ul>
+    </nav>
+
+    <main
+      class="brick-lane-shell studio-tools-shell"
+      aria-label="Brick Lane Sonic Lab"
+    >
+      <header class="brick-lane-topbar studio-tools-topbar">
+        <div>
+          <p class="brick-lane-kicker">Dirt Cat Records</p>
+          <h1>Brick Lane Sonic Lab</h1>
+          <p class="brick-lane-subhead">
+            Generate exact Brick Lane 500 recall from source context and sonic
+            compromises.
+          </p>
+        </div>
+        <div class="brick-lane-actions">
+          <a href="studio-tools.html" class="btn-secondary">All Tools</a>
+          <button type="button" id="brick-lane-copy">Copy Recall</button>
+          <button
+            type="button"
+            id="brick-lane-print"
+            class="brick-lane-primary"
+          >
+            Cheat Sheet
+          </button>
+        </div>
+      </header>
+
+      <section
+        id="brick-lane-sonic-lab"
+        class="studio-tools-active-tool"
+        aria-label="Brick Lane Sonic Lab"
+      >
+        <section class="brick-lane-grid">
+          <aside class="brick-lane-panel brick-lane-browser">
+            <h2>Use Case</h2>
+            <div id="brick-lane-use-cases"></div>
+            <h2>Archetype</h2>
+            <div id="brick-lane-archetypes"></div>
+            <h2>Problem Presets</h2>
+            <div id="brick-lane-context"></div>
+          </aside>
+
+          <section
+            class="brick-lane-panel brick-lane-faceplate"
+            aria-label="Generated hardware recall"
+          >
+            <div id="brick-lane-faceplate"></div>
+            <div id="brick-lane-controls" class="brick-lane-controls"></div>
+          </section>
+
+          <aside class="brick-lane-panel brick-lane-recall">
+            <div id="brick-lane-preset-summary"></div>
+            <div id="brick-lane-parameters"></div>
+          </aside>
+        </section>
+      </section>
+
+      <section
+        id="brick-lane-print-sheet"
+        class="brick-lane-print-sheet"
+        hidden
+      ></section>
+    </main>
+
+    <script src="nav.js"></script>
+    <script src="brick-lane-data.js"></script>
+    <script src="lib/lab/state-machine.js"></script>
+    <script src="lib/lab/brick-lane-resolver.js"></script>
+    <script src="brick-lane-lab.js"></script>
   </body>
 </html>

@@ -48,6 +48,8 @@ A broader future-product brainstorm now exists for Dirt Cat growth tools, lead m
 
 Drum Alignment Workbench V1 now has an approved design and implementation plan. The planned first operational version is browser-only, keeps audio local, recommends overheads as the reference, compares close mics directly to an internal overhead event envelope, treats toms as first-class tracks, renders before/after waveform movement, reports offsets in samples/ms, and includes correlation confidence while deferring spectral phase alignment.
 
+Studio Tools page ownership has been split for safer parallel work: `studio-tools.html` is now the launcher, `brick-lane-lab.html` owns Brick Lane Sonic Lab, `drum-alignment.html` owns Drum Alignment, and `logic-auto-bounce.html` owns Logic Auto Bounce. Keep future feature edits on the dedicated page and feature script instead of recombining workbenches inside `studio-tools.html`.
+
 Current constraints that matter before new feature work:
 
 - Do not continue using dirty local Vercel deploys as the shared preview alias; that is now treated as a workflow defect, not a normal debugging shortcut.

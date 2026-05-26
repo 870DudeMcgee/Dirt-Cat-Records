@@ -38,6 +38,14 @@ See [docs/agent-handoff.md](docs/agent-handoff.md) for the current next action a
 - Protected follow-up cron for stale missing-file, pending-quote, balance-due, and final-approval states.
 - Vercel Hobby function-limit guardrails to keep the API surface deployable.
 
+### Studio Tools
+
+- `studio-tools.html` is the launcher for separate tool pages.
+- `brick-lane-lab.html` owns the Brick Lane Sonic Lab UI and scripts.
+- `drum-alignment.html` owns the browser-only Drum Alignment Workbench.
+- `logic-auto-bounce.html` owns the Logic Auto Bounce workbench.
+- Keep new tool work isolated to its page and feature files so parallel feature work does not collide in one large HTML surface.
+
 ## Tech Stack
 
 - Static HTML, CSS, and browser JavaScript for the public pages, checkout, portal, support, and admin UI.
@@ -171,6 +179,7 @@ The app is currently designed to stay within the Vercel Hobby limit of 12 Server
 ## Repo Map
 
 - `index.html`, `checkout.html`, `success.html`, `portal.html`, `support.html`, `admin.html`: primary browser surfaces.
+- `studio-tools.html`, `brick-lane-lab.html`, `drum-alignment.html`, `logic-auto-bounce.html`: studio tool launcher and separated tool workbenches.
 - `style.css`, `nav.js`, `spells.js`, `checkout.js`, `success.js`, `portal.js`, `portal-view.js`, `support.js`, `admin.js`: shared styling and page behavior.
 - `api/`: Vercel Functions for public, portal, admin, cron, and webhook routes.
 - `lib/`: PayPal, Supabase, Google Drive, Resend, auth, portal policy, checkout pricing, and automation modules.

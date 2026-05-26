@@ -1,0 +1,687 @@
+(function initDrumAlignmentWorkbench(globalScope) {
+  const engine = globalScope.DrumAlignmentEngine || null;
+  const waveformRenderer = globalScope.DrumWaveformRenderer || null;
+
+  const ROLE_OPTIONS = [
+    { value: "overhead", label: "Overhead" },
+    { value: "kick", label: "Kick" },
+    { value: "snare", label: "Snare" },
+    { value: "tom", label: "Tom" },
+    { value: "room", label: "Room" },
+    { value: "hat", label: "Hi-hat" },
+    { value: "ride", label: "Ride" },
+    { value: "percussion", label: "Percussion" },
+    { value: "unknown", label: "Unknown" },
+  ];
+
+  const state = {
+    audioContext: null,
+    tracks: [],
+    referenceValue: "auto",
+    recommendation: null,
+    result: null,
+    lastReportText: "",
+    booted: false,
+  };
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function formatDuration(seconds) {
+    const value = Number(seconds);
+    if (!Number.isFinite(value)) return "--";
+    return `${value.toFixed(2)}s`;
+  }
+
+  function formatOffset(track) {
+    if (!track) return "Pending";
+    const offsetSamples = Number(track.offsetSamples || 0);
+    const offsetMs = Number(track.offsetMs || 0);
+    if (!Number.isFinite(offsetSamples) || !Number.isFinite(offsetMs)) {
+      return "Pending";
+    }
+    return `${offsetSamples >= 0 ? "+" : ""}${offsetSamples} samples / ${offsetMs >= 0 ? "+" : ""}${offsetMs.toFixed(2)} ms`;
+  }
+
+  function getFamilyForRole(role) {
+    if (["overhead", "kick", "snare", "tom", "room"].includes(role)) {
+      return role;
+    }
+    return "other";
+  }
+
+  function normalizeRoleForWorkbench(role, family) {
+    const roleValues = ROLE_OPTIONS.map((option) => option.value);
+    if (roleValues.includes(role)) return role;
+    if (roleValues.includes(family)) return family;
+    return "unknown";
+  }
+
+  function inferRoleLocally(fileName) {
+    const name = String(fileName || "").toLowerCase();
+    if (/\b(oh|overhead|cymbal)s?\b/.test(name)) return "overhead";
+    if (/\bkick|bd\b|bass drum/.test(name)) return "kick";
+    if (/\bsnare|sn\b/.test(name)) return "snare";
+    if (/\btom|rack|floor/.test(name)) return "tom";
+    if (/\broom|crush|ambience|ambient/.test(name)) return "room";
+    if (/\bhat|hihat|hi-hat/.test(name)) return "hat";
+    if (/\bride\b/.test(name)) return "ride";
+    if (/perc|shaker|tamb/.test(name)) return "percussion";
+    return "unknown";
+  }
+
+  function normalizeClassification(fileName) {
+    if (engine && typeof engine.classifyTrackName === "function") {
+      try {
+        const classification = engine.classifyTrackName(fileName);
+        if (typeof classification === "string") {
+          return {
+            role: classification,
+            family: getFamilyForRole(classification),
+          };
+        }
+        if (classification && typeof classification === "object") {
+          const family =
+            classification.family || getFamilyForRole(classification.role);
+          const role = normalizeRoleForWorkbench(classification.role, family);
+          return {
+            role,
+            family: family === "other" ? getFamilyForRole(role) : family,
+          };
+        }
+      } catch (_error) {
+        // Fall through to local filename inference.
+      }
+    }
+
+    const role = inferRoleLocally(fileName);
+    return { role, family: getFamilyForRole(role) };
+  }
+
+  function getAudioContext() {
+    if (state.audioContext) return state.audioContext;
+    const AudioContextConstructor =
+      globalScope.AudioContext || globalScope.webkitAudioContext;
+    if (!AudioContextConstructor) {
+      throw new Error("This browser does not support Web Audio decoding.");
+    }
+    state.audioContext = new AudioContextConstructor();
+    return state.audioContext;
+  }
+
+  function getTrackChannelData(audioBuffer) {
+    return Array.from({ length: audioBuffer.numberOfChannels }, (_, index) =>
+      audioBuffer.getChannelData(index)
+    );
+  }
+
+  function toEngineTrack(track) {
+    return {
+      id: track.id,
+      fileName: track.fileName,
+      role: track.role,
+      family: track.family,
+      sampleRate: track.sampleRate,
+      duration: track.duration,
+      channelData: track.channelData,
+      channels: track.channelData,
+      audioBuffer: track.audioBuffer,
+      transientSample: track.transientSample,
+      manualTransientSample: track.manualTransientSample,
+    };
+  }
+
+  function getDecodedTrackResult(track, result) {
+    return (result?.tracks || []).find(
+      (candidate) => candidate.id === track.id
+    );
+  }
+
+  function getRecommendedReference(tracks) {
+    if (engine && typeof engine.recommendReference === "function") {
+      try {
+        const recommendation = engine.recommendReference(
+          tracks.map(toEngineTrack)
+        );
+        if (recommendation) return recommendation;
+      } catch (_error) {
+        // Local fallback keeps the UI useful if the engine is missing or strict.
+      }
+    }
+
+    const overheadTracks = tracks.filter((track) => track.role === "overhead");
+    if (overheadTracks.length > 0) {
+      return {
+        type: "group",
+        trackIds: overheadTracks.map((track) => track.id),
+        label:
+          overheadTracks.length === 1
+            ? `Overhead: ${overheadTracks[0].fileName}`
+            : `Overheads (${overheadTracks.length})`,
+        reason: "Overheads usually hold the kit image and timing reference.",
+      };
+    }
+
+    const firstTrack = tracks[0];
+    return firstTrack
+      ? {
+          type: "track",
+          trackIds: [firstTrack.id],
+          label: firstTrack.fileName,
+          reason:
+            "No overheads detected, so the first loaded track is selected.",
+        }
+      : null;
+  }
+
+  function getReferenceFromValue(value) {
+    if (value === "auto") {
+      return state.recommendation || getRecommendedReference(state.tracks);
+    }
+
+    if (value.startsWith("group:")) {
+      const family = value.slice("group:".length);
+      const trackIds = state.tracks
+        .filter((track) => track.role === family || track.family === family)
+        .map((track) => track.id);
+      return {
+        type: "group",
+        trackIds,
+        label: `${family.charAt(0).toUpperCase()}${family.slice(1)} group`,
+        reason: "Manual reference override.",
+      };
+    }
+
+    if (value.startsWith("track:")) {
+      const trackId = value.slice("track:".length);
+      const track = state.tracks.find((candidate) => candidate.id === trackId);
+      return track
+        ? {
+            type: "track",
+            trackIds: [track.id],
+            label: track.fileName,
+            reason: "Manual reference override.",
+          }
+        : null;
+    }
+
+    return null;
+  }
+
+  function setStatus(nodes, message) {
+    if (nodes.status) nodes.status.textContent = message;
+  }
+
+  function renderReferenceSelector(nodes) {
+    if (!nodes.referenceSelector) return;
+    const previousValue = state.referenceValue;
+    const hasOverheads = state.tracks.some(
+      (track) => track.role === "overhead"
+    );
+    const hasRooms = state.tracks.some((track) => track.role === "room");
+    const recommendation = state.recommendation;
+
+    const options = [
+      `<option value="auto">Recommended${recommendation?.label ? `: ${escapeHtml(recommendation.label)}` : ""}</option>`,
+    ];
+
+    if (hasOverheads) {
+      options.push('<option value="group:overhead">Overhead group</option>');
+    }
+    if (hasRooms) {
+      options.push('<option value="group:room">Room group</option>');
+    }
+
+    state.tracks.forEach((track) => {
+      options.push(
+        `<option value="track:${escapeHtml(track.id)}">${escapeHtml(track.fileName)}</option>`
+      );
+    });
+
+    nodes.referenceSelector.innerHTML = options.join("");
+    const validValues = Array.from(nodes.referenceSelector.options).map(
+      (option) => option.value
+    );
+    state.referenceValue = validValues.includes(previousValue)
+      ? previousValue
+      : "auto";
+    nodes.referenceSelector.value = state.referenceValue;
+  }
+
+  function renderTrackList(nodes) {
+    if (!nodes.trackList) return;
+    if (state.tracks.length === 0) {
+      nodes.trackList.innerHTML =
+        '<article class="drum-align-empty"><p>No drum audio files loaded yet.</p></article>';
+      return;
+    }
+
+    nodes.trackList.innerHTML = state.tracks
+      .map((track) => {
+        const resultTrack = getDecodedTrackResult(track, state.result) || track;
+        const manualValue =
+          track.manualTransientSample === null ||
+          track.manualTransientSample === undefined
+            ? ""
+            : track.manualTransientSample;
+        const options = ROLE_OPTIONS.map(
+          (option) =>
+            `<option value="${option.value}" ${track.role === option.value ? "selected" : ""}>${option.label}</option>`
+        ).join("");
+
+        return `<article class="drum-align-track-card" data-drum-track-id="${escapeHtml(track.id)}">
+          <span class="studio-workbench-label">${escapeHtml(track.fileName)}</span>
+          <h4>${escapeHtml(track.role)} / ${escapeHtml(track.family)}</h4>
+          <p>${escapeHtml(track.channelsLabel)} | ${track.sampleRate} Hz | ${formatDuration(track.duration)}</p>
+          <label for="drum-role-${escapeHtml(track.id)}">Role</label>
+          <select id="drum-role-${escapeHtml(track.id)}" data-drum-role>
+            ${options}
+          </select>
+          <label for="drum-manual-${escapeHtml(track.id)}">Manual transient sample</label>
+          <input id="drum-manual-${escapeHtml(track.id)}" data-drum-manual-transient type="number" min="0" step="1" inputmode="numeric" placeholder="Auto" value="${escapeHtml(manualValue)}" />
+          <p>${escapeHtml(formatOffset(resultTrack))}</p>
+        </article>`;
+      })
+      .join("");
+  }
+
+  function renderCorrelationPanel(nodes) {
+    if (!nodes.correlationPanel) return;
+    const correlations = state.result?.correlations || [];
+    if (correlations.length === 0) {
+      nodes.correlationPanel.innerHTML =
+        '<article class="drum-align-empty"><p>Analyze tracks to see correlation confidence.</p></article>';
+      return;
+    }
+
+    nodes.correlationPanel.innerHTML = correlations
+      .map((correlation) => {
+        const value = Number(correlation.value);
+        const valueLabel = Number.isFinite(value) ? value.toFixed(3) : "--";
+        const confidence =
+          value >= 0.82 ? "strong" : value >= 0.55 ? "check" : "issue";
+        return `<article class="drum-align-meter" data-confidence="${confidence}">
+          <span class="studio-workbench-label">${escapeHtml(correlation.family || "Correlation")}</span>
+          <strong>${escapeHtml(correlation.label || "Check by ear")}</strong>
+          <p>${escapeHtml((correlation.trackIds || []).join(" vs "))}</p>
+          <p>Value: ${escapeHtml(valueLabel)}</p>
+          ${correlation.warning ? `<p>${escapeHtml(correlation.warning)}</p>` : ""}
+        </article>`;
+      })
+      .join("");
+  }
+
+  function createFallbackReport(result, reference) {
+    const lines = [
+      "Dirt Cat Records Drum Alignment Report",
+      `Reference: ${reference?.label || "Not selected"}`,
+      "",
+    ];
+
+    (result?.tracks || state.tracks).forEach((track) => {
+      lines.push(
+        `${track.fileName}: ${track.role || "unknown"} | ${formatOffset(track)}`
+      );
+    });
+
+    return lines.join("\n");
+  }
+
+  function resolveReportText(result, reference) {
+    if (result?.reportText) return result.reportText;
+    if (engine && typeof engine.createAlignmentReport === "function") {
+      try {
+        return engine.createAlignmentReport(result);
+      } catch (_error) {
+        return createFallbackReport(result, reference);
+      }
+    }
+    return createFallbackReport(result, reference);
+  }
+
+  function renderReport(nodes) {
+    if (!nodes.reportPanel) return;
+    nodes.reportPanel.textContent =
+      state.lastReportText || "Run analysis to generate a DAW-ready report.";
+  }
+
+  function renderWaveforms(nodes) {
+    if (!nodes.waveformMount) return;
+    nodes.waveformMount.innerHTML = "";
+
+    if (waveformRenderer) {
+      const tracks = state.tracks.map((track) => {
+        const resultTrack = getDecodedTrackResult(track, state.result) || {};
+        return {
+          ...toEngineTrack(track),
+          ...resultTrack,
+          channelData: track.channelData,
+          channels: track.channelData,
+          audioBuffer: track.audioBuffer,
+        };
+      });
+      const renderState = {
+        tracks,
+        sampleRate: state.tracks[0]?.sampleRate,
+        referenceEvent: state.result?.referenceEvent,
+        correlations: state.result?.correlations || [],
+      };
+
+      try {
+        if (
+          typeof waveformRenderer.renderDrumAlignmentWaveforms === "function"
+        ) {
+          waveformRenderer.renderDrumAlignmentWaveforms(
+            nodes.waveformMount,
+            renderState,
+            {
+              windowSeconds: 1.5,
+            }
+          );
+          return;
+        }
+        if (typeof waveformRenderer.renderAlignmentWaveforms === "function") {
+          waveformRenderer.renderAlignmentWaveforms({
+            mount: nodes.waveformMount,
+            ...renderState,
+            reference: getReferenceFromValue(state.referenceValue),
+          });
+          return;
+        }
+        if (typeof waveformRenderer.renderWaveforms === "function") {
+          waveformRenderer.renderWaveforms({
+            mount: nodes.waveformMount,
+            ...renderState,
+            reference: getReferenceFromValue(state.referenceValue),
+          });
+          return;
+        }
+        if (typeof waveformRenderer.render === "function") {
+          waveformRenderer.render({
+            mount: nodes.waveformMount,
+            ...renderState,
+            reference: getReferenceFromValue(state.referenceValue),
+          });
+          return;
+        }
+      } catch (_error) {
+        nodes.waveformMount.innerHTML =
+          '<p class="studio-workbench-label">Waveform renderer could not draw this session.</p>';
+        return;
+      }
+    }
+
+    if (state.tracks.length === 0) {
+      nodes.waveformMount.innerHTML =
+        '<article class="drum-align-empty"><p>Waveforms appear after local files are decoded.</p></article>';
+      return;
+    }
+
+    nodes.waveformMount.innerHTML = state.tracks
+      .map((track) => {
+        const resultTrack = getDecodedTrackResult(track, state.result) || track;
+        return `<article class="drum-align-empty">
+          <span class="studio-workbench-label">Waveform lane</span>
+          <h3>${escapeHtml(track.fileName)}</h3>
+          <p>Renderer pending. ${escapeHtml(formatOffset(resultTrack))}</p>
+        </article>`;
+      })
+      .join("");
+  }
+
+  function render(nodes) {
+    state.recommendation = getRecommendedReference(state.tracks);
+    renderReferenceSelector(nodes);
+    renderTrackList(nodes);
+    renderCorrelationPanel(nodes);
+    renderReport(nodes);
+    renderWaveforms(nodes);
+  }
+
+  async function decodeFile(file, index) {
+    const audioContext = getAudioContext();
+    const buffer = await file.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(buffer.slice(0));
+    const classification = normalizeClassification(file.name);
+    const channelData = getTrackChannelData(audioBuffer);
+
+    return {
+      id: `drum-track-${Date.now()}-${index}`,
+      fileName: file.name,
+      file,
+      audioBuffer,
+      channelData,
+      sampleRate: audioBuffer.sampleRate,
+      duration: audioBuffer.duration,
+      role: classification.role,
+      family: classification.family,
+      channelsLabel:
+        audioBuffer.numberOfChannels === 1
+          ? "mono"
+          : `${audioBuffer.numberOfChannels} channels`,
+      transientSample: null,
+      manualTransientSample: null,
+    };
+  }
+
+  async function handleFiles(files, nodes) {
+    const audioFiles = Array.from(files || []).filter(isAudioFile);
+
+    if (audioFiles.length === 0) {
+      setStatus(nodes, "Choose local audio files to start alignment.");
+      return;
+    }
+
+    setStatus(nodes, `Decoding ${audioFiles.length} local audio file(s)...`);
+    const results = await Promise.allSettled(audioFiles.map(decodeFile));
+    const decodedTracks = [];
+    const failures = [];
+
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        decodedTracks.push(result.value);
+      } else {
+        failures.push(
+          `${audioFiles[index].name}: ${result.reason?.message || "decode failed"}`
+        );
+      }
+    });
+
+    state.tracks = decodedTracks;
+    state.result = null;
+    state.lastReportText = "";
+    state.referenceValue = "auto";
+    render(nodes);
+
+    if (decodedTracks.length === 0) {
+      setStatus(nodes, `No files decoded. ${failures.join(" ")}`.trim());
+      return;
+    }
+
+    const statusParts = [`Decoded ${decodedTracks.length} local file(s).`];
+    if (failures.length > 0) {
+      statusParts.push(`${failures.length} file(s) could not be decoded.`);
+    }
+    const recommendation = state.recommendation;
+    if (recommendation?.label) {
+      statusParts.push(`Recommended reference: ${recommendation.label}.`);
+    }
+    setStatus(nodes, statusParts.join(" "));
+  }
+
+  function isAudioFile(file) {
+    if (String(file?.type || "").startsWith("audio/")) return true;
+    return /\.(aif|aiff|flac|m4a|mp3|ogg|wav)$/i.test(file?.name || "");
+  }
+
+  async function analyze(nodes) {
+    if (state.tracks.length === 0) {
+      setStatus(nodes, "Load local drum audio files before analysis.");
+      return;
+    }
+    if (!engine || typeof engine.calculateAlignment !== "function") {
+      state.result = {
+        tracks: state.tracks.map(toEngineTrack),
+        correlations: [],
+      };
+      const reference = getReferenceFromValue(state.referenceValue);
+      state.lastReportText = createFallbackReport(state.result, reference);
+      render(nodes);
+      setStatus(
+        nodes,
+        "Files are decoded locally. Alignment engine is not loaded in this workspace yet."
+      );
+      return;
+    }
+
+    const sampleRate = state.tracks[0]?.sampleRate || 44100;
+    const reference = getReferenceFromValue(state.referenceValue);
+    setStatus(nodes, "Analyzing transients and correlation locally...");
+
+    try {
+      state.result = await Promise.resolve(
+        engine.calculateAlignment({
+          tracks: state.tracks.map(toEngineTrack),
+          reference,
+          sampleRate,
+        })
+      );
+      state.lastReportText = resolveReportText(state.result, reference);
+      render(nodes);
+      setStatus(nodes, "Analysis complete. Offsets and report are ready.");
+    } catch (error) {
+      setStatus(nodes, `Analysis failed: ${error.message || error}`);
+    }
+  }
+
+  async function copyReport(nodes) {
+    const reportText =
+      state.lastReportText || nodes.reportPanel?.textContent || "";
+    if (!reportText.trim()) {
+      setStatus(nodes, "Run analysis before copying a report.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(reportText);
+      setStatus(nodes, "Alignment report copied to the clipboard.");
+    } catch (_error) {
+      setStatus(
+        nodes,
+        "Clipboard copy failed. Select the report text manually."
+      );
+    }
+  }
+
+  function bindEvents(nodes) {
+    nodes.fileInput.addEventListener("change", (event) => {
+      handleFiles(event.target.files, nodes);
+    });
+
+    ["dragenter", "dragover"].forEach((eventName) => {
+      nodes.dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        nodes.dropzone.classList.add("is-dragging");
+      });
+    });
+
+    ["dragleave", "drop"].forEach((eventName) => {
+      nodes.dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        nodes.dropzone.classList.remove("is-dragging");
+      });
+    });
+
+    nodes.dropzone.addEventListener("drop", (event) => {
+      handleFiles(event.dataTransfer.files, nodes);
+    });
+
+    nodes.dropzone.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        nodes.fileInput.click();
+      }
+    });
+
+    nodes.referenceSelector.addEventListener("change", (event) => {
+      state.referenceValue = event.target.value;
+      state.result = null;
+      state.lastReportText = "";
+      render(nodes);
+      setStatus(
+        nodes,
+        "Reference override updated. Run analysis to refresh offsets."
+      );
+    });
+
+    nodes.trackList.addEventListener("change", (event) => {
+      const trackCard = event.target.closest("[data-drum-track-id]");
+      if (!trackCard) return;
+      const track = state.tracks.find(
+        (candidate) => candidate.id === trackCard.dataset.drumTrackId
+      );
+      if (!track) return;
+
+      if (event.target.matches("[data-drum-role]")) {
+        track.role = event.target.value;
+        track.family = getFamilyForRole(track.role);
+      }
+      if (event.target.matches("[data-drum-manual-transient]")) {
+        const numericValue = Number(event.target.value);
+        track.manualTransientSample = Number.isFinite(numericValue)
+          ? Math.max(0, Math.round(numericValue))
+          : null;
+      }
+
+      state.result = null;
+      state.lastReportText = "";
+      render(nodes);
+      setStatus(nodes, "Track edit saved. Run analysis to refresh offsets.");
+    });
+
+    nodes.analyzeButton.addEventListener("click", () => analyze(nodes));
+    nodes.copyButton.addEventListener("click", () => copyReport(nodes));
+  }
+
+  function init() {
+    if (state.booted) return;
+    const root = document.getElementById("drum-alignment-workbench");
+    if (!root) return;
+
+    const nodes = {
+      root,
+      fileInput: document.getElementById("drum-alignment-files"),
+      dropzone: document.getElementById("drum-alignment-dropzone"),
+      trackList: document.getElementById("drum-track-list"),
+      referenceSelector: document.getElementById("drum-reference-selector"),
+      analyzeButton: document.getElementById("drum-analyze-button"),
+      copyButton: document.getElementById("drum-copy-report-button"),
+      waveformMount: document.getElementById("drum-waveform-mount"),
+      correlationPanel: document.getElementById("drum-correlation-panel"),
+      reportPanel: document.getElementById("drum-report-panel"),
+      status: document.getElementById("drum-alignment-status"),
+    };
+
+    const missingNode = Object.keys(nodes).find((key) => !nodes[key]);
+    if (missingNode) return;
+
+    state.booted = true;
+    bindEvents(nodes);
+    render(nodes);
+    setStatus(
+      nodes,
+      "Ready. Audio stays in this browser; no upload or backend analysis is used."
+    );
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})(typeof globalThis !== "undefined" ? globalThis : window);

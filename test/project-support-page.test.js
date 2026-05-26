@@ -27,6 +27,9 @@ test("primary pages expose visible portal and support navigation links", () => {
     "support.html",
     "admin.html",
     "studio-tools.html",
+    "brick-lane-lab.html",
+    "drum-alignment.html",
+    "logic-auto-bounce.html",
   ];
 
   pageNames.forEach((pageName) => {
@@ -47,6 +50,9 @@ test("primary pages load the shared responsive navigation script", () => {
     "support.html",
     "admin.html",
     "studio-tools.html",
+    "brick-lane-lab.html",
+    "drum-alignment.html",
+    "logic-auto-bounce.html",
   ];
 
   pageNames.forEach((pageName) => {
@@ -56,7 +62,7 @@ test("primary pages load the shared responsive navigation script", () => {
   });
 });
 
-test("studio tools page hosts the Brick Lane lab and live workbench", () => {
+test("studio tools page links to separate tool workbenches", () => {
   const html = readFileSync(join(root, "studio-tools.html"), "utf8");
 
   assert.match(html, /<title>Studio Tools \| Dirt Cat Records<\/title>/);
@@ -64,19 +70,59 @@ test("studio tools page hosts the Brick Lane lab and live workbench", () => {
   assert.match(html, /Brick Lane Sonic Lab/);
   assert.match(html, /Drum Alignment/);
   assert.match(html, /Logic Auto Bounce/);
-  assert.match(html, /id="drum-alignment-workbench"/);
-  assert.match(html, /id="logic-auto-bounce-workbench"/);
-  assert.match(html, /One stable live URL/);
-  assert.match(html, /Current Branch/);
-  assert.match(html, /wip\/studio-tools-live-workspace/);
+  assert.match(html, /href="brick-lane-lab\.html"/);
+  assert.match(html, /href="drum-alignment\.html"/);
+  assert.match(html, /href="logic-auto-bounce\.html"/);
+  assert.doesNotMatch(html, /brick-lane-lab\.js/);
+  assert.doesNotMatch(html, /drum-alignment\.js/);
+  assert.doesNotMatch(html, /logic-auto-bounce\.js/);
+});
+
+test("brick lane sonic lab owns its dedicated page", () => {
+  const html = readFileSync(join(root, "brick-lane-lab.html"), "utf8");
+
+  assert.match(
+    html,
+    /<title>Brick Lane Sonic Lab \| Dirt Cat Records<\/title>/
+  );
+  assert.match(html, /<h1>Brick Lane Sonic Lab<\/h1>/);
+  assert.match(html, /id="brick-lane-sonic-lab"/);
+  assert.match(html, /id="brick-lane-use-cases"/);
+  assert.match(html, /id="brick-lane-faceplate"/);
+  assert.match(html, /id="brick-lane-print-sheet"/);
   assert.match(html, /brick-lane-data\.js/);
+  assert.match(html, /lib\/lab\/state-machine\.js/);
   assert.match(html, /brick-lane-lab\.js/);
 });
 
-test("studio tools page hosts the Logic Auto Bounce preferences dialogue", () => {
-  const html = readFileSync(join(root, "studio-tools.html"), "utf8");
+test("drum alignment owns its dedicated page", () => {
+  const html = readFileSync(join(root, "drum-alignment.html"), "utf8");
 
-  // Verify elements exist
+  assert.match(html, /<title>Drum Alignment \| Dirt Cat Records<\/title>/);
+  assert.match(html, /<h1>Drum Alignment<\/h1>/);
+  assert.match(html, /id="drum-alignment-workbench"/);
+  assert.match(html, /id="drum-alignment-files"/);
+  assert.match(html, /id="drum-alignment-dropzone"/);
+  assert.match(html, /id="drum-track-list"/);
+  assert.match(html, /id="drum-reference-selector"/);
+  assert.match(html, /id="drum-analyze-button"/);
+  assert.match(html, /id="drum-copy-report-button"/);
+  assert.match(html, /id="drum-waveform-mount"/);
+  assert.match(html, /id="drum-correlation-panel"/);
+  assert.match(html, /id="drum-report-panel"/);
+  assert.match(html, /id="drum-alignment-status"/);
+  assert.match(html, /Audio stays in this browser/);
+  assert.match(html, /lib\/lab\/drum-alignment-engine\.js/);
+  assert.match(html, /lib\/lab\/drum-waveform-renderer\.js/);
+  assert.match(html, /drum-alignment\.js/);
+  assert.doesNotMatch(html, /logic-auto-bounce\.js/);
+});
+
+test("logic auto bounce owns its dedicated page", () => {
+  const html = readFileSync(join(root, "logic-auto-bounce.html"), "utf8");
+
+  assert.match(html, /<title>Logic Auto Bounce \| Dirt Cat Records<\/title>/);
+  assert.match(html, /<h1>Logic Auto Bounce<\/h1>/);
   assert.match(html, /id="logic-bounce-preferences"/);
   assert.match(html, /id="bounce-preset-selector"/);
   assert.match(html, /id="toggle-inserts-active"/);
@@ -87,13 +133,7 @@ test("studio tools page hosts the Logic Auto Bounce preferences dialogue", () =>
   assert.match(html, /id="btn-copy-recipe"/);
   assert.match(html, /id="btn-download-recipe"/);
   assert.match(html, /src="logic-auto-bounce\.js"/);
-});
-
-test("legacy Brick Lane lab URL points to Studio Tools", () => {
-  const html = readFileSync(join(root, "brick-lane-lab.html"), "utf8");
-
-  assert.match(html, /url=studio-tools\.html#brick-lane-sonic-lab/);
-  assert.match(html, /href="studio-tools\.html#brick-lane-sonic-lab"/);
+  assert.doesNotMatch(html, /drum-alignment\.js/);
 });
 
 test("responsive navigation styling supports a hamburger menu", () => {

@@ -26,10 +26,9 @@ test("Logic Auto Bounce interactive preferences dialogue validation", async () =
     });
 
     // 1. Navigate to the workbench
-    await page.goto(
-      "http://127.0.0.1:4175/studio-tools.html#logic-auto-bounce-workbench",
-      { waitUntil: "networkidle" }
-    );
+    await page.goto("http://127.0.0.1:4175/logic-auto-bounce.html", {
+      waitUntil: "networkidle",
+    });
 
     // 2. Verify all UI containers and buttons exist
     const prefDialogue = page.locator("#logic-bounce-preferences");
@@ -121,10 +120,9 @@ test("Logic Auto Bounce interactive preferences dialogue validation", async () =
 
     // 7. Verify no horizontal overflow in mobile layout
     await page.setViewportSize({ width: 390, height: 800 });
-    await page.goto(
-      "http://127.0.0.1:4175/studio-tools.html#logic-auto-bounce-workbench",
-      { waitUntil: "networkidle" }
-    );
+    await page.goto("http://127.0.0.1:4175/logic-auto-bounce.html", {
+      waitUntil: "networkidle",
+    });
 
     const mobileLayout = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,
