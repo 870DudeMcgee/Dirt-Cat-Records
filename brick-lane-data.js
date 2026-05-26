@@ -1428,12 +1428,30 @@
     "loudness-prep": "modern-finished-bus",
   };
 
+  function cloneSelectionMap(baseSelections = {}, overrideSelections = {}) {
+    return Object.fromEntries(
+      Object.entries({ ...baseSelections, ...overrideSelections }).map(
+        ([id, selection]) => [
+          id,
+          selection &&
+          typeof selection === "object" &&
+          !Array.isArray(selection)
+            ? { ...selection }
+            : selection,
+        ]
+      )
+    );
+  }
+
   function createPresetFromBase(basePreset, overrides) {
     return {
       ...basePreset,
       ...overrides,
-      selected: { ...basePreset.selected, ...(overrides.selected || {}) },
-      controls: { ...DEFAULT_CONTROL_VALUES, ...(overrides.controls || {}) },
+      selected: cloneSelectionMap(basePreset.selected, overrides.selected),
+      controls: {
+        ...(basePreset.controls || DEFAULT_CONTROL_VALUES),
+        ...(overrides.controls || {}),
+      },
       context: { ...(basePreset.context || {}), ...(overrides.context || {}) },
       frontPanelValues: {
         ...basePreset.frontPanelValues,
@@ -1800,7 +1818,7 @@
   }
 
   function deriveSidechainSelection(intent, useCaseId) {
-    if (useCaseId === "tracking-vocal") {
+    if (useCaseId === "tracking-vocal" || useCaseId === "tracking") {
       if (intent.safe >= 76 && intent.clean >= 62) {
         return { settingId: "de-ess-hard" };
       }
@@ -2027,10 +2045,21 @@
       PRESETS.find((candidate) => candidate.useCaseId === requestedUseCaseId) ||
       PRESETS[0];
 
+    const generatedControls = {
+      ...(preset.controls || DEFAULT_STATE.controls),
+      ...(state.controls || {}),
+    };
+    const generatedContext = {
+      ...(preset.context || DEFAULT_STATE.context),
+      ...(state.context || {}),
+    };
+    const derivationUseCaseId =
+      state.useAreaId || preset.useAreaId || requestedUseCaseId;
+
     const predictiveSelections = hasCustomCompressionControls(state.controls)
       ? deriveCompressionSelectionsFromControls(
-          state.controls,
-          requestedUseCaseId
+          generatedControls,
+          derivationUseCaseId
         )
       : {};
     const selected = {
@@ -2048,8 +2077,8 @@
 
     return {
       ...preset,
-      controls: { ...DEFAULT_STATE.controls, ...(state.controls || {}) },
-      context: { ...DEFAULT_STATE.context, ...(state.context || {}) },
+      controls: generatedControls,
+      context: generatedContext,
       parameters,
       parameterOrder: [...PARAMETER_ORDER],
     };

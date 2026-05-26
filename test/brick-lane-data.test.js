@@ -176,6 +176,46 @@ test("preset helpers filter and group presets by source under a workflow area", 
   );
 });
 
+test("derived presets do not share mutable recall objects with base presets", () => {
+  const basePreset = getPresetById("safe-vocal-catcher");
+  const derivedPreset = getPresetById("vocal-de-esser");
+
+  assert.notEqual(
+    basePreset.selected.detector,
+    derivedPreset.selected.detector
+  );
+  assert.notEqual(basePreset.frontPanel, derivedPreset.frontPanel);
+  assert.notEqual(basePreset.frontPanelValues, derivedPreset.frontPanelValues);
+  assert.notEqual(basePreset.controls, derivedPreset.controls);
+  assert.notEqual(basePreset.context, derivedPreset.context);
+});
+
+test("generated preset uses the resolved preset context before state overrides", () => {
+  const preset = getPresetById("low-end-pumping-mix");
+  const generated = getGeneratedPreset({ presetId: "low-end-pumping-mix" });
+
+  assert.equal(generated.targetGainReduction, preset.targetGainReduction);
+  assert.deepEqual(generated.context, preset.context);
+  assert.notEqual(generated.context.vocalStyle, "rap-singing");
+  assert.equal(generated.context.targetGainReduction, "1-2 dB");
+});
+
+test("bus-master custom controls do not use tracking vocal sidechain behavior", () => {
+  const generated = getGeneratedPreset({
+    presetId: "invisible-mix-glue",
+    controls: {
+      ...DEFAULT_CONTROL_VALUES,
+      cleanColor: 20,
+      safeExciting: 90,
+    },
+  });
+
+  assert.notDeepEqual(
+    generated.parameters.sidechainHighFrequencyEmphasis.selection,
+    { settingId: "de-ess-hard" }
+  );
+});
+
 test("generated preset returns exact selected rung labels", () => {
   const preset = getGeneratedPreset({
     useCaseId: "tracking-vocal",
