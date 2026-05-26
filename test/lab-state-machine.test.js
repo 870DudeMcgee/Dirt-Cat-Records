@@ -5,6 +5,7 @@ const {
   labStateReducer,
   mapCompressionPointToControls,
 } = require("../lib/lab/state-machine");
+const { getPresetById } = require("../brick-lane-data");
 
 test("state machine returns complete initial preset browser state", () => {
   const state = getInitialState();
@@ -13,6 +14,10 @@ test("state machine returns complete initial preset browser state", () => {
   assert.ok(state.controls);
   assert.ok(state.context);
   assert.ok(state.frontPanelValues);
+  assert.deepEqual(
+    state.frontPanelValues,
+    getPresetById("safe-vocal-catcher").frontPanelValues
+  );
   assert.deepEqual(state.parameterSelections, {});
   assert.equal(state.activeTab, "primary");
   assert.equal(state.monitorParam, "VU");
@@ -36,6 +41,16 @@ test("state machine handles SET_USE_AREA action", () => {
   assert.equal(nextState.presetId, "invisible-mix-glue");
   assert.equal(nextState.modified, false);
   assert.notEqual(nextState.frontPanelValues, initialState.frontPanelValues);
+});
+
+test("state machine ignores invalid SET_USE_AREA action", () => {
+  const initialState = getInitialState();
+  const nextState = labStateReducer(initialState, {
+    type: "SET_USE_AREA",
+    payload: { useAreaId: "not-a-real-area" },
+  });
+
+  assert.equal(nextState, initialState);
 });
 
 test("state machine handles SET_PRESET action", () => {
@@ -66,6 +81,22 @@ test("state machine selects a migrated problem-solving preset as a normal preset
   assert.equal(nextState.activeTab, "primary");
   assert.equal(nextState.monitorParam, "VU");
   assert.equal(nextState.modified, false);
+});
+
+test("state machine resets modified when selecting a preset", () => {
+  const initialState = getInitialState();
+  const editedState = labStateReducer(initialState, {
+    type: "UPDATE_CONTROL",
+    payload: { controlId: "punchSmooth", value: 85 },
+  });
+
+  const presetState = labStateReducer(editedState, {
+    type: "SET_PRESET",
+    payload: { presetId: "character-vocal-print" },
+  });
+
+  assert.equal(editedState.modified, true);
+  assert.equal(presetState.modified, false);
 });
 
 test("state machine handles UPDATE_CONTROL action", () => {
@@ -186,4 +217,22 @@ test("state machine marks selected preset modified after user edits", () => {
     payload: { parameterId: "ratio", selection: { value: "4" } },
   });
   assert.equal(parameterState.modified, true);
+
+  const compressionPointState = labStateReducer(initialState, {
+    type: "UPDATE_COMPRESSION_POINT",
+    payload: { x: 72, y: 28 },
+  });
+  assert.equal(compressionPointState.modified, true);
+
+  const rungState = labStateReducer(initialState, {
+    type: "TOGGLE_PARAMETER_RUNG",
+    payload: { parameterId: "ratio", value: "4" },
+  });
+  assert.equal(rungState.modified, true);
+
+  const contextState = labStateReducer(initialState, {
+    type: "UPDATE_CONTEXT",
+    payload: { key: "brightness", value: "dark" },
+  });
+  assert.equal(contextState.modified, true);
 });
