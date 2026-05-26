@@ -15,6 +15,28 @@ This file is the current handoff for Dirt Cat Records. Keep it compact and curre
 Do not reset, discard, or restage blindly. Start from the live worktree, treat historical preview URLs in older docs as history rather than config, and re-check PayPal/Vercel settings before changing preview protection again.
 If `main` is dirty when a new implementation slice starts, recover by branching or moving the work into a task worktree before continuing.
 
+## Parallel Agent Notice: Studio Tools
+
+This is the first section Antigravity/Copilot should check before working on Brick Lane Sonic Lab, Logic Auto Bounce, or Drum Alignment.
+
+At last handoff, the safe working model is:
+
+- `studio-tools.html` is launcher-only. Do not rebuild shared tool workbenches inside it.
+- `brick-lane-lab.html` plus Brick Lane scripts own Brick Lane Sonic Lab.
+- `logic-auto-bounce.html`, `logic-auto-bounce.js`, `logic-auto-bounce.css`, and the Logic visual/static tests own Logic Auto Bounce.
+- `drum-alignment.html`, `drum-alignment.js`, `lib/lab/drum-alignment-engine.js`, `lib/lab/drum-waveform-renderer.js`, and `test/drum-alignment-engine.test.js` own Drum Alignment.
+- Work on Logic Auto Bounce and Drum Alignment in separate branches or separate `git worktree` checkouts. Do not mix their uncommitted edits in the same worktree.
+- Before editing, run `git branch --show-current` and `git status -sb`. Trust that output over older docs.
+- If the active worktree has Logic Auto Bounce edits, do not add Drum Alignment experiments there. Switch to the Drum branch or create a dedicated Drum worktree first.
+- The experimental Drum Alignment browser test that used `page.setInputFiles` plus Web Audio decoding was removed after it became an untracked disabled artifact. The page itself boots correctly under Playwright when using `page.goto(..., { waitUntil: "commit" })` and locator waits.
+- Do not reintroduce that browser test unless it uses a deterministic seam or the `commit` plus locator-wait pattern. Keep focused Drum coverage on the engine test unless the browser test is stable and fast.
+
+Current Studio Tools next actions:
+
+1. Finish and verify the active Logic Auto Bounce slice in its own branch/worktree.
+2. For Drum Alignment follow-up, use an isolated branch/worktree based on `wip/studio-tools-separated-drum-alignment` or the latest branch that contains the separated Studio Tools pages.
+3. Keep page ownership separate: launcher edits only for navigation, feature edits only on that feature's page/script/style/test surface.
+
 ## Read First
 
 1. `README.md`

@@ -3,6 +3,7 @@
 This document tracks the staged work needed to turn the current site, checkout, portal, and automation foundation into a reliable studio operations system.
 
 For current handoff context, see [`docs/agent-handoff.md`](agent-handoff.md).
+For current parallel-agent Studio Tools ownership and Antigravity/Copilot safety notes, start with the "Parallel Agent Notice: Studio Tools" section in [`docs/agent-handoff.md`](agent-handoff.md).
 For architecture language and decisions, see [`CONTEXT.md`](../CONTEXT.md) and [`docs/adr/`](adr).
 For the durable architecture gap register and anti-drift rules, see [`docs/superpowers/specs/2026-05-20-architecture-readiness-review.md`](superpowers/specs/2026-05-20-architecture-readiness-review.md).
 
