@@ -434,6 +434,19 @@ test("render module does not inject signal generator UI", () => {
   assert.doesNotMatch(source, /brick-lane-scope/);
 });
 
+test("render module no longer exposes legacy archetype or problem preset browser attributes", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "brick-lane-lab.js"),
+    "utf8"
+  );
+
+  assert.doesNotMatch(source, /data-archetype-id/);
+  assert.doesNotMatch(source, /data-problem-preset-id/);
+  assert.doesNotMatch(source, /renderProblemPresets/);
+});
+
 test("detector card renders valid setting name and exact LED pattern", () => {
   const preset = getGeneratedPreset({
     useAreaId: "tracking",
