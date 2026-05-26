@@ -416,21 +416,19 @@ test("LED Brightness remains a simple stepped scale", () => {
   ]);
 });
 
-test("archetype Enigma selections use canonical object selections", () => {
-  const { ARCHETYPES, PARAMETER_ORDER } = require("../brick-lane-data");
-
-  for (const archetype of ARCHETYPES) {
+test("preset Enigma selections use canonical object selections", () => {
+  for (const preset of PRESETS) {
     for (const parameterId of PARAMETER_ORDER) {
-      const selection = archetype.selected[parameterId];
+      const selection = preset.selected[parameterId];
       assert.equal(
         Array.isArray(selection),
         false,
-        `${archetype.id}.${parameterId} still uses a legacy raw rung array`
+        `${preset.id}.${parameterId} still uses a legacy raw rung array`
       );
       assert.equal(
         typeof selection,
         "object",
-        `${archetype.id}.${parameterId} selection must be an object`
+        `${preset.id}.${parameterId} selection must be an object`
       );
     }
   }
