@@ -1458,7 +1458,7 @@
         ...(overrides.frontPanelValues || {}),
       },
       frontPanel: { ...basePreset.frontPanel, ...(overrides.frontPanel || {}) },
-      tags: [...overrides.tags],
+      tags: [...(overrides.tags || basePreset.tags || [])],
       why: [...(overrides.why || basePreset.why || [])],
     };
   }
@@ -2063,9 +2063,8 @@
         )
       : {};
     const selected = {
-      ...preset.selected,
-      ...predictiveSelections,
-      ...(state.parameterSelections || {}),
+      ...cloneSelectionMap(preset.selected, predictiveSelections),
+      ...cloneSelectionMap({}, state.parameterSelections || {}),
     };
 
     const parameters = Object.fromEntries(
@@ -2077,8 +2076,13 @@
 
     return {
       ...preset,
+      selected,
       controls: generatedControls,
       context: generatedContext,
+      frontPanelValues: { ...(preset.frontPanelValues || {}) },
+      frontPanel: { ...(preset.frontPanel || {}) },
+      tags: [...(preset.tags || [])],
+      why: [...(preset.why || [])],
       parameters,
       parameterOrder: [...PARAMETER_ORDER],
     };

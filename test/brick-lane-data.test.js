@@ -216,6 +216,27 @@ test("bus-master custom controls do not use tracking vocal sidechain behavior", 
   );
 });
 
+test("generated preset mutable fields do not mutate canonical preset data", () => {
+  const generated = getGeneratedPreset({ presetId: "vocal-de-esser" });
+  const canonicalBefore = getPresetById("vocal-de-esser");
+  const originalInput = canonicalBefore.frontPanelValues.input;
+  const originalDetector = canonicalBefore.selected.detector.settingId;
+  const originalTags = [...canonicalBefore.tags];
+  const originalWhy = [...canonicalBefore.why];
+
+  generated.frontPanelValues.input = 99;
+  generated.selected.detector.settingId = "mutated-detector";
+  generated.tags.push("mutated-tag");
+  generated.why.push("mutated why");
+
+  const canonicalAfter = getPresetById("vocal-de-esser");
+
+  assert.equal(canonicalAfter.frontPanelValues.input, originalInput);
+  assert.equal(canonicalAfter.selected.detector.settingId, originalDetector);
+  assert.deepEqual(canonicalAfter.tags, originalTags);
+  assert.deepEqual(canonicalAfter.why, originalWhy);
+});
+
 test("generated preset returns exact selected rung labels", () => {
   const preset = getGeneratedPreset({
     useCaseId: "tracking-vocal",
