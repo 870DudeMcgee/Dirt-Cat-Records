@@ -271,6 +271,10 @@
     },
   ];
 
+  const DEFAULT_CONTROL_VALUES = Object.fromEntries(
+    CONTROL_DEFINITIONS.map((control) => [control.id, control.defaultValue])
+  );
+
   function evidence({ source = "manual", type, reference, note }) {
     return { source, type, reference, note };
   }
@@ -829,22 +833,104 @@
     "ledBrightness",
   ];
 
-  const USE_CASES = [
+  const USE_AREAS = [
     {
-      id: "tracking-vocal",
-      label: "Tracking Vocal",
+      id: "tracking",
+      label: "Tracking",
       description:
-        "Generate capture-safe or characterful vocal tracking starts.",
+        "Capture-safe starting points for recording through the Brick Lane.",
     },
     {
-      id: "mix-bus",
-      label: "Mix Bus",
+      id: "mixing",
+      label: "Mixing",
       description:
-        "Generate stereo bus glue, punch, control, or finishing starts.",
+        "Source-specific mixing starts for leveling, tone, and problem control.",
+    },
+    {
+      id: "bus-master",
+      label: "Bus / Master",
+      description:
+        "Mix bus, stem bus, parallel bus, and mastering/finishing starts.",
     },
   ];
 
-  const ARCHETYPES = [
+  const SOURCES = [
+    { id: "vocals", useAreaId: "tracking", label: "Vocals" },
+    { id: "bass", useAreaId: "tracking", label: "Bass" },
+    { id: "guitar", useAreaId: "tracking", label: "Guitar" },
+    { id: "drums", useAreaId: "tracking", label: "Drums" },
+    { id: "keys-synths", useAreaId: "tracking", label: "Keys / Synths" },
+    { id: "vocals", useAreaId: "mixing", label: "Vocals" },
+    { id: "bass", useAreaId: "mixing", label: "Bass" },
+    { id: "drums", useAreaId: "mixing", label: "Drums" },
+    { id: "guitar", useAreaId: "mixing", label: "Guitar" },
+    { id: "keys-synths", useAreaId: "mixing", label: "Keys / Synths" },
+    { id: "full-mix-repair", useAreaId: "mixing", label: "Full Mix Repair" },
+    { id: "mix-bus", useAreaId: "bus-master", label: "Mix Bus" },
+    { id: "drum-bus", useAreaId: "bus-master", label: "Drum Bus" },
+    { id: "vocal-bus", useAreaId: "bus-master", label: "Vocal Bus" },
+    { id: "parallel-bus", useAreaId: "bus-master", label: "Parallel Bus" },
+    { id: "mastering", useAreaId: "bus-master", label: "Mastering" },
+  ];
+
+  const PRESET_PLACEMENT = {
+    "safe-vocal-catcher": {
+      useAreaId: "tracking",
+      sourceId: "vocals",
+      intent: "starting-point",
+      tags: ["vocal", "tracking", "safe", "peak-control"],
+    },
+    "smooth-expensive-vocal": {
+      useAreaId: "tracking",
+      sourceId: "vocals",
+      intent: "starting-point",
+      tags: ["vocal", "tracking", "smooth", "color"],
+    },
+    "modern-controlled-vocal": {
+      useAreaId: "tracking",
+      sourceId: "vocals",
+      intent: "starting-point",
+      tags: ["vocal", "tracking", "control", "modern"],
+    },
+    "character-vocal-print": {
+      useAreaId: "tracking",
+      sourceId: "vocals",
+      intent: "starting-point",
+      tags: ["vocal", "tracking", "color", "print"],
+    },
+    "invisible-mix-glue": {
+      useAreaId: "bus-master",
+      sourceId: "mix-bus",
+      intent: "starting-point",
+      tags: ["mix-bus", "glue", "transparent"],
+    },
+    "thick-analog-bus": {
+      useAreaId: "bus-master",
+      sourceId: "mix-bus",
+      intent: "starting-point",
+      tags: ["mix-bus", "analog", "thick"],
+    },
+    "punch-preserving-bus": {
+      useAreaId: "bus-master",
+      sourceId: "mix-bus",
+      intent: "starting-point",
+      tags: ["mix-bus", "punch", "low-end"],
+    },
+    "modern-finished-bus": {
+      useAreaId: "bus-master",
+      sourceId: "mix-bus",
+      intent: "starting-point",
+      tags: ["mix-bus", "finish", "modern"],
+    },
+    "aggressive-energy-bus": {
+      useAreaId: "bus-master",
+      sourceId: "mix-bus",
+      intent: "starting-point",
+      tags: ["mix-bus", "energy", "color"],
+    },
+  };
+
+  const PRESETS = [
     {
       id: "safe-vocal-catcher",
       useCaseId: "tracking-vocal",
@@ -1286,15 +1372,23 @@
         scf: "100 Hz",
       },
     },
-  ];
+  ].map((preset) => ({
+    ...preset,
+    ...PRESET_PLACEMENT[preset.id],
+    controls: { ...DEFAULT_CONTROL_VALUES },
+    context: {
+      vocalStyle: "rap-singing",
+      brightness: "sibilant",
+      dynamics: "uneven",
+      targetGainReduction: "3-6 dB",
+    },
+  }));
 
   const DEFAULT_STATE = {
     useCaseId: "tracking-vocal",
     archetypeId: "safe-vocal-catcher",
     problemPresetId: "sibilant-uneven-vocal",
-    controls: Object.fromEntries(
-      CONTROL_DEFINITIONS.map((control) => [control.id, control.defaultValue])
-    ),
+    controls: { ...DEFAULT_CONTROL_VALUES },
     context: {
       vocalStyle: "rap-singing",
       brightness: "sibilant",
@@ -1303,127 +1397,297 @@
     },
   };
 
-  const PROBLEM_PRESETS = [
-    {
-      id: "sibilant-uneven-vocal",
-      label: "Sibilant Uneven Vocal",
-      description: "Catches sharp syllables without dragging the whole phrase.",
-      useCaseId: "tracking-vocal",
-      archetypeId: "safe-vocal-catcher",
+  const PRESET_BASES = {
+    "vocal-de-esser": "safe-vocal-catcher",
+    "vocal-leveler": "modern-controlled-vocal",
+    "harsh-vocal-smoother": "modern-controlled-vocal",
+    "dull-vocal-forward": "character-vocal-print",
+    "bass-di-leveler": "safe-vocal-catcher",
+    "bass-color-print": "character-vocal-print",
+    "guitar-di-safety": "safe-vocal-catcher",
+    "guitar-cab-print": "character-vocal-print",
+    "kick-snare-safety": "modern-controlled-vocal",
+    "room-mic-control": "character-vocal-print",
+    "bass-leveler": "punch-preserving-bus",
+    "low-end-bloom-control": "punch-preserving-bus",
+    "pick-attack-control": "modern-controlled-vocal",
+    "drum-crush": "aggressive-energy-bus",
+    "kick-weight-control": "punch-preserving-bus",
+    "snare-crack": "aggressive-energy-bus",
+    "room-pump": "aggressive-energy-bus",
+    "guitar-cab-tamer": "modern-controlled-vocal",
+    "harsh-guitar-smoother": "modern-controlled-vocal",
+    "rhythm-guitar-glue": "punch-preserving-bus",
+    "low-end-pumping-mix": "punch-preserving-bus",
+    "flat-lifeless-mix": "aggressive-energy-bus",
+    "harsh-bright-mix": "modern-finished-bus",
+    "drum-bus-glue": "punch-preserving-bus",
+    "parallel-drum-smash": "aggressive-energy-bus",
+    "vocal-bus-polish": "modern-finished-bus",
+    "gentle-master-control": "invisible-mix-glue",
+    "loudness-prep": "modern-finished-bus",
+  };
+
+  function createPresetFromBase(basePreset, overrides) {
+    return {
+      ...basePreset,
+      ...overrides,
+      selected: { ...basePreset.selected, ...(overrides.selected || {}) },
+      controls: { ...DEFAULT_CONTROL_VALUES, ...(overrides.controls || {}) },
+      context: { ...(basePreset.context || {}), ...(overrides.context || {}) },
+      frontPanelValues: {
+        ...basePreset.frontPanelValues,
+        ...(overrides.frontPanelValues || {}),
+      },
+      frontPanel: { ...basePreset.frontPanel, ...(overrides.frontPanel || {}) },
+      tags: [...overrides.tags],
+      why: [...(overrides.why || basePreset.why || [])],
+    };
+  }
+
+  const basePresetById = Object.fromEntries(
+    PRESETS.map((preset) => [preset.id, preset])
+  );
+
+  PRESETS.push(
+    createPresetFromBase(basePresetById[PRESET_BASES["vocal-de-esser"]], {
+      id: "vocal-de-esser",
+      useAreaId: "mixing",
+      sourceId: "vocals",
+      label: "Vocal De-Esser",
+      intent: "problem-solving",
+      tags: ["vocal", "de-ess", "bright", "control"],
+      summary: "Controls sharp sibilance without darkening the whole vocal.",
+      targetGainReduction: "2-5 dB",
       context: {
-        vocalStyle: "rap-singing",
+        vocalStyle: "lead vocal",
         brightness: "sibilant",
         dynamics: "uneven",
-        targetGainReduction: "3-6 dB",
+        targetGainReduction: "2-5 dB",
       },
-      controls: { ...DEFAULT_STATE.controls },
-    },
-    {
-      id: "dull-buried-vocal",
-      label: "Dull Buried Vocal",
-      description: "Adds forward color and presence while keeping the print usable.",
-      useCaseId: "tracking-vocal",
-      archetypeId: "character-vocal-print",
-      context: {
-        vocalStyle: "melodic vocal",
-        brightness: "dark",
-        dynamics: "flat",
-        targetGainReduction: "3-6 dB",
-      },
-      controls: {
-        punchSmooth: 62,
-        cleanColor: 68,
-        controlOpen: 58,
-        safeExciting: 38,
-        glueLoud: 34,
-        stableWide: 44,
-      },
-    },
-    {
-      id: "peaky-aggressive-vocal",
-      label: "Peaky Aggressive Vocal",
-      description: "Controls hard consonants and level jumps before they hit the chain.",
-      useCaseId: "tracking-vocal",
-      archetypeId: "modern-controlled-vocal",
-      context: {
-        vocalStyle: "aggressive lead",
-        brightness: "bright",
-        dynamics: "spiky",
-        targetGainReduction: "4-7 dB",
-      },
-      controls: {
-        punchSmooth: 84,
-        cleanColor: 24,
-        controlOpen: 88,
-        safeExciting: 74,
-        glueLoud: 52,
-        stableWide: 76,
-      },
-    },
-    {
-      id: "low-end-pumping-mix",
-      label: "Low-End Pumping Mix",
-      description: "Keeps kick and bass from over-driving bus compression.",
-      useCaseId: "mix-bus",
-      archetypeId: "punch-preserving-bus",
-      context: {
-        vocalStyle: "full mix",
-        brightness: "low-end heavy",
-        dynamics: "pumping",
-        targetGainReduction: "1-2 dB",
-      },
-      controls: {
-        punchSmooth: 72,
-        cleanColor: 22,
-        controlOpen: 54,
-        safeExciting: 62,
-        glueLoud: 42,
-        stableWide: 72,
-      },
-    },
-    {
-      id: "flat-lifeless-mix",
-      label: "Flat Lifeless Mix",
-      description: "Adds movement, harmonic attitude, and level confidence.",
-      useCaseId: "mix-bus",
-      archetypeId: "aggressive-energy-bus",
-      context: {
-        vocalStyle: "full mix",
-        brightness: "balanced",
-        dynamics: "flat",
-        targetGainReduction: "2-4 dB",
-      },
-      controls: {
-        punchSmooth: 78,
-        cleanColor: 76,
-        controlOpen: 72,
-        safeExciting: 28,
-        glueLoud: 22,
-        stableWide: 42,
-      },
-    },
-    {
-      id: "harsh-bright-mix",
-      label: "Harsh Bright Mix",
-      description: "Finishes the bus while reducing high-frequency overreaction.",
-      useCaseId: "mix-bus",
-      archetypeId: "modern-finished-bus",
-      context: {
-        vocalStyle: "full mix",
-        brightness: "harsh",
-        dynamics: "controlled",
-        targetGainReduction: "0.5-1.5 dB",
-      },
-      controls: {
-        punchSmooth: 48,
-        cleanColor: 18,
-        controlOpen: 62,
-        safeExciting: 78,
-        glueLoud: 36,
-        stableWide: 84,
-      },
-    },
+      controls: { ...DEFAULT_CONTROL_VALUES },
+    })
+  );
+
+  const USE_AREA_ID_BY_LABEL = {
+    Tracking: "tracking",
+    Mixing: "mixing",
+    "Bus / Master": "bus-master",
+  };
+
+  const ADDITIONAL_PRESETS = [
+    [
+      "vocal-leveler",
+      "Mixing",
+      "vocals",
+      "Vocal Leveler",
+      "Smooths phrase-to-phrase level movement while keeping articulation intact.",
+    ],
+    [
+      "harsh-vocal-smoother",
+      "Mixing",
+      "vocals",
+      "Harsh Vocal Smoother",
+      "Controls bright vocal edges without pulling the vocal backward.",
+    ],
+    [
+      "dull-vocal-forward",
+      "Mixing",
+      "vocals",
+      "Dull Vocal Forward",
+      "Adds density and forward motion to a vocal that feels buried.",
+    ],
+    [
+      "bass-di-leveler",
+      "Tracking",
+      "bass",
+      "Bass DI Leveler",
+      "Prints controlled bass DI level without over-committing color.",
+    ],
+    [
+      "bass-color-print",
+      "Tracking",
+      "bass",
+      "Bass Color Print",
+      "Adds harmonic confidence while tracking bass through the Brick Lane.",
+    ],
+    [
+      "guitar-di-safety",
+      "Tracking",
+      "guitar",
+      "Guitar DI Safety",
+      "Keeps guitar DI peaks contained before amp or cab processing.",
+    ],
+    [
+      "guitar-cab-print",
+      "Tracking",
+      "guitar",
+      "Guitar Cab Print",
+      "Prints guitar cabinet attitude with moderate compression movement.",
+    ],
+    [
+      "kick-snare-safety",
+      "Tracking",
+      "drums",
+      "Kick/Snare Safety",
+      "Catches close-mic drum peaks without flattening the transient.",
+    ],
+    [
+      "room-mic-control",
+      "Tracking",
+      "drums",
+      "Room Mic Control",
+      "Controls room mic swings while keeping the room lively.",
+    ],
+    [
+      "bass-leveler",
+      "Mixing",
+      "bass",
+      "Bass Leveler",
+      "Stabilizes bass sustain while preserving the note front.",
+    ],
+    [
+      "low-end-bloom-control",
+      "Mixing",
+      "bass",
+      "Low-End Bloom Control",
+      "Controls swollen low-end notes before they push the mix around.",
+    ],
+    [
+      "pick-attack-control",
+      "Mixing",
+      "bass",
+      "Pick Attack Control",
+      "Catches aggressive bass pick noise without dulling the low end.",
+    ],
+    [
+      "drum-crush",
+      "Mixing",
+      "drums",
+      "Drum Crush",
+      "Adds obvious drum attitude and compression movement.",
+    ],
+    [
+      "kick-weight-control",
+      "Mixing",
+      "drums",
+      "Kick Weight Control",
+      "Controls kick low-end weight without making the detector pump.",
+    ],
+    [
+      "snare-crack",
+      "Mixing",
+      "drums",
+      "Snare Crack",
+      "Brings snare impact forward with controlled transient edge.",
+    ],
+    [
+      "room-pump",
+      "Mixing",
+      "drums",
+      "Room Pump",
+      "Emphasizes room movement for energetic drum ambience.",
+    ],
+    [
+      "guitar-cab-tamer",
+      "Mixing",
+      "guitar",
+      "Guitar Cab Tamer",
+      "Smooths cabinet bite and upper-mid shove.",
+    ],
+    [
+      "harsh-guitar-smoother",
+      "Mixing",
+      "guitar",
+      "Harsh Guitar Smoother",
+      "Controls bright guitar harshness while keeping rhythm detail.",
+    ],
+    [
+      "rhythm-guitar-glue",
+      "Mixing",
+      "guitar",
+      "Rhythm Guitar Glue",
+      "Adds cohesion to layered rhythm guitars.",
+    ],
+    [
+      "low-end-pumping-mix",
+      "Bus / Master",
+      "mix-bus",
+      "Low-End Pumping Mix",
+      "Keeps kick and bass from over-driving bus compression.",
+    ],
+    [
+      "flat-lifeless-mix",
+      "Bus / Master",
+      "mix-bus",
+      "Flat Lifeless Mix",
+      "Adds movement, harmonic attitude, and level confidence.",
+    ],
+    [
+      "harsh-bright-mix",
+      "Bus / Master",
+      "mix-bus",
+      "Harsh Bright Mix",
+      "Finishes a bright mix while reducing high-frequency overreaction.",
+    ],
+    [
+      "drum-bus-glue",
+      "Bus / Master",
+      "drum-bus",
+      "Drum Bus Glue",
+      "Pulls the drum kit together while preserving impact.",
+    ],
+    [
+      "parallel-drum-smash",
+      "Bus / Master",
+      "parallel-bus",
+      "Parallel Drum Smash",
+      "Creates an aggressive crushed blend for parallel drum energy.",
+    ],
+    [
+      "vocal-bus-polish",
+      "Bus / Master",
+      "vocal-bus",
+      "Vocal Bus Polish",
+      "Adds smooth vocal-bus control after individual vocal processing.",
+    ],
+    [
+      "gentle-master-control",
+      "Bus / Master",
+      "mastering",
+      "Gentle Master Control",
+      "Applies light master control without obvious mix movement.",
+    ],
+    [
+      "loudness-prep",
+      "Bus / Master",
+      "mastering",
+      "Loudness Prep",
+      "Sets up a louder master path with clean peak-aware control.",
+    ],
   ];
+
+  PRESETS.push(
+    ...ADDITIONAL_PRESETS.map(([id, useAreaLabel, sourceId, label, summary]) =>
+      createPresetFromBase(basePresetById[PRESET_BASES[id]], {
+        id,
+        useAreaId: USE_AREA_ID_BY_LABEL[useAreaLabel],
+        sourceId,
+        label,
+        intent: "problem-solving",
+        tags: [sourceId, ...id.split("-").filter((part) => part !== sourceId)],
+        summary,
+        context: {
+          vocalStyle: sourceId === "vocals" ? "lead vocal" : sourceId,
+          brightness: "balanced",
+          dynamics: "uneven",
+          targetGainReduction:
+            basePresetById[PRESET_BASES[id]].targetGainReduction,
+        },
+        controls: { ...DEFAULT_CONTROL_VALUES },
+      })
+    )
+  );
 
   function cloneParameterWithSelection(parameterDefinition, selected) {
     return {
@@ -1450,7 +1714,8 @@
     const totalWeight = parts.reduce((sum, part) => sum + part.weight, 0);
     if (!totalWeight) return 50;
     return parts.reduce(
-      (sum, part) => sum + clampPercent(part.value) * (part.weight / totalWeight),
+      (sum, part) =>
+        sum + clampPercent(part.value) * (part.weight / totalWeight),
       0
     );
   }
@@ -1716,18 +1981,51 @@
     };
   }
 
-  function getArchetypesForUseCase(useCaseId) {
-    return ARCHETYPES.filter((archetype) => archetype.useCaseId === useCaseId);
+  function getUseAreaById(useAreaId) {
+    return USE_AREAS.find((area) => area.id === useAreaId) || null;
+  }
+
+  function getSourceById(useAreaId, sourceId) {
+    return (
+      SOURCES.find(
+        (source) => source.useAreaId === useAreaId && source.id === sourceId
+      ) || null
+    );
+  }
+
+  function getPresetById(presetId) {
+    return PRESETS.find((preset) => preset.id === presetId) || null;
+  }
+
+  function getPresetsForUseArea(useAreaId) {
+    return PRESETS.filter((preset) => preset.useAreaId === useAreaId);
+  }
+
+  function getPresetsGroupedBySource(useAreaId) {
+    return SOURCES.filter((source) => source.useAreaId === useAreaId)
+      .map((source) => ({
+        source,
+        presets: PRESETS.filter(
+          (preset) =>
+            preset.useAreaId === useAreaId && preset.sourceId === source.id
+        ),
+      }))
+      .filter((group) => group.presets.length > 0);
+  }
+
+  function getFirstPresetForUseArea(useAreaId) {
+    return getPresetsForUseArea(useAreaId)[0] || PRESETS[0];
   }
 
   function getGeneratedPreset(state = DEFAULT_STATE) {
     const requestedUseCaseId = state.useCaseId || DEFAULT_STATE.useCaseId;
-    const archetype =
-      ARCHETYPES.find((candidate) => candidate.id === state.archetypeId) ||
-      ARCHETYPES.find(
-        (candidate) => candidate.useCaseId === requestedUseCaseId
-      ) ||
-      ARCHETYPES[0];
+    const requestedUseAreaId = state.useAreaId || null;
+    const requestedPresetId = state.presetId || state.archetypeId;
+    const preset =
+      PRESETS.find((candidate) => candidate.id === requestedPresetId) ||
+      PRESETS.find((candidate) => candidate.useAreaId === requestedUseAreaId) ||
+      PRESETS.find((candidate) => candidate.useCaseId === requestedUseCaseId) ||
+      PRESETS[0];
 
     const predictiveSelections = hasCustomCompressionControls(state.controls)
       ? deriveCompressionSelectionsFromControls(
@@ -1736,7 +2034,7 @@
         )
       : {};
     const selected = {
-      ...archetype.selected,
+      ...preset.selected,
       ...predictiveSelections,
       ...(state.parameterSelections || {}),
     };
@@ -1749,7 +2047,7 @@
     );
 
     return {
-      ...archetype,
+      ...preset,
       controls: { ...DEFAULT_STATE.controls, ...(state.controls || {}) },
       context: { ...DEFAULT_STATE.context, ...(state.context || {}) },
       parameters,
@@ -1765,11 +2063,16 @@
     CONTROL_DEFINITIONS,
     ENIGMA_PARAMETERS,
     PARAMETER_ORDER,
-    USE_CASES,
-    ARCHETYPES,
-    PROBLEM_PRESETS,
+    USE_AREAS,
+    SOURCES,
+    PRESETS,
     DEFAULT_STATE,
-    getArchetypesForUseCase,
+    getUseAreaById,
+    getSourceById,
+    getPresetById,
+    getPresetsForUseArea,
+    getPresetsGroupedBySource,
+    getFirstPresetForUseArea,
     deriveCompressionSelectionsFromControls,
     getGeneratedPreset,
   };
