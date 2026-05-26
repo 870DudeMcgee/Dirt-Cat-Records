@@ -11,6 +11,7 @@
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
     <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
     <link rel="stylesheet" href="style.css?v=4" />
+    <link rel="stylesheet" href="logic-auto-bounce.css" />
   </head>
   <body class="brick-lane-lab-page studio-tools-page">
     <nav id="main-nav">
@@ -170,6 +171,93 @@
               >Discovered Session Tracks</span
             >
             <h3>Sidechain & Track Mappings</h3>
+
+            <div class="track-action-bar">
+              <button
+                type="button"
+                id="btn-add-track-toggle"
+                class="btn-secondary btn-track-action"
+              >
+                Add Track
+              </button>
+              <button
+                type="button"
+                id="btn-paste-tracks-toggle"
+                class="btn-secondary btn-track-action"
+              >
+                Paste Track List
+              </button>
+              <button
+                type="button"
+                id="btn-reset-tracks"
+                class="btn-danger btn-track-action"
+              >
+                Reset Tracks
+              </button>
+            </div>
+
+            <!-- Inline Add Track Form (Hidden by default) -->
+            <div id="add-track-form-panel" class="add-track-form-panel" hidden>
+              <div class="form-row inline-form-row">
+                <input
+                  type="text"
+                  id="new-track-name"
+                  placeholder="Track Name (e.g. Sub Bass)"
+                  aria-label="Track Name"
+                />
+                <select id="new-track-type" aria-label="Track Type">
+                  <option value="Audio">Audio</option>
+                  <option value="Software Instrument">
+                    Software Instrument
+                  </option>
+                  <option value="Aux">Aux</option>
+                </select>
+                <select id="new-track-sidechain" aria-label="Sidechain Input">
+                  <option value="none">No Sidechain</option>
+                </select>
+                <button
+                  type="button"
+                  id="btn-submit-add-track"
+                  class="btn-primary"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            <!-- Paste Track List Modal (Hidden by default) -->
+            <div id="paste-tracks-modal" class="paste-modal-overlay" hidden>
+              <div class="paste-modal-content">
+                <span class="studio-workbench-label">Batch Intake</span>
+                <h3>Paste Track List</h3>
+                <p>
+                  Paste track names here (one per line). We'll identify types
+                  and defaults.
+                </p>
+                <textarea
+                  id="paste-tracks-textarea"
+                  placeholder="Kick Out&#10;Snare Top&#10;Bass Synth&#10;Lead Vocal"
+                  aria-label="Track Names List"
+                ></textarea>
+                <div class="modal-actions">
+                  <button
+                    type="button"
+                    id="btn-close-paste-modal"
+                    class="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-submit-paste-tracks"
+                    class="btn-primary"
+                  >
+                    Import Tracks
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div class="table-wrapper">
               <table class="bounce-tracks-table">
                 <thead>
@@ -178,6 +266,7 @@
                     <th>Type</th>
                     <th>Sidechain Input</th>
                     <th>Sidechain Policy</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="bounce-tracks-body"></tbody>

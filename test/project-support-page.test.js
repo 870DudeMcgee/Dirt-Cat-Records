@@ -134,6 +134,18 @@ test("logic auto bounce owns its dedicated page", () => {
   assert.match(html, /id="btn-download-recipe"/);
   assert.match(html, /src="logic-auto-bounce\.js"/);
   assert.doesNotMatch(html, /drum-alignment\.js/);
+
+  // Assert new interactive track management layout elements
+  assert.match(html, /id="btn-add-track-toggle"/);
+  assert.match(html, /id="btn-paste-tracks-toggle"/);
+  assert.match(html, /id="btn-reset-tracks"/);
+  assert.match(html, /id="add-track-form-panel"/);
+  assert.match(html, /id="paste-tracks-modal"/);
+  assert.match(html, /id="new-track-name"/);
+  assert.match(html, /id="new-track-type"/);
+  assert.match(html, /id="new-track-sidechain"/);
+  assert.match(html, /id="btn-submit-add-track"/);
+  assert.match(html, /id="paste-tracks-textarea"/);
 });
 
 test("responsive navigation styling supports a hamburger menu", () => {

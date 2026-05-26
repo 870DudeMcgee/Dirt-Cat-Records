@@ -118,6 +118,122 @@ test("Logic Auto Bounce interactive preferences dialogue validation", async () =
       "Download recipe button should render"
     );
 
+    // 6.5. Verify interactive track management additions and changes
+    const btnAddToggle = page.locator("#btn-add-track-toggle");
+    const btnPasteToggle = page.locator("#btn-paste-tracks-toggle");
+    const btnResetTracks = page.locator("#btn-reset-tracks");
+
+    assert.ok(
+      await btnAddToggle.isVisible(),
+      "Add Track toggle button should render"
+    );
+    assert.ok(
+      await btnPasteToggle.isVisible(),
+      "Paste Track List button should render"
+    );
+    assert.ok(
+      await btnResetTracks.isVisible(),
+      "Reset Tracks button should render"
+    );
+
+    // Add a single track
+    await btnAddToggle.click({ force: true });
+    const addFormPanel = page.locator("#add-track-form-panel");
+    assert.ok(
+      await addFormPanel.isVisible(),
+      "Add track inline form panel should be visible"
+    );
+
+    await page.fill("#new-track-name", "Sub Bass");
+    await page.selectOption("#new-track-type", "Software Instrument");
+    await page.selectOption("#new-track-sidechain", "Kick Out");
+    await page.click("#btn-submit-add-track", { force: true });
+
+    await page.waitForTimeout(100);
+
+    // Assert it appears in the table
+    const subBassRow = page.locator("tbody#bounce-tracks-body tr", {
+      hasText: "Sub Bass",
+    });
+    assert.ok(
+      await subBassRow.isVisible(),
+      "New track 'Sub Bass' should be visible in table"
+    );
+
+    // Assert it is compiled in the recipe JSON
+    let addedTrackRecipeJSON = JSON.parse(await recipePreview.innerText());
+    let subBassPolicy = addedTrackRecipeJSON.trackPolicies.find(
+      (t) => t.trackName === "Sub Bass"
+    );
+    assert.ok(subBassPolicy, "Sub Bass policy should be present in the recipe");
+    assert.equal(subBassPolicy.type, "Software Instrument");
+    assert.equal(subBassPolicy.sidechain, "Kick Out");
+    assert.equal(subBassPolicy.policy, "preserve-pump");
+
+    // Batch paste tracks import
+    await btnPasteToggle.click({ force: true });
+    const pasteModal = page.locator("#paste-tracks-modal");
+    assert.ok(
+      await pasteModal.isVisible(),
+      "Paste tracks modal should be visible"
+    );
+
+    await page.fill("#paste-tracks-textarea", "Guitar L\nGuitar R");
+    await page.click("#btn-submit-paste-tracks", { force: true });
+
+    await page.waitForTimeout(100);
+
+    // Assert guitar tracks appear in the table
+    const guitarLRow = page.locator("tbody#bounce-tracks-body tr", {
+      hasText: "Guitar L",
+    });
+    const guitarRRow = page.locator("tbody#bounce-tracks-body tr", {
+      hasText: "Guitar R",
+    });
+    assert.ok(await guitarLRow.isVisible(), "Guitar L should be in the table");
+    assert.ok(await guitarRRow.isVisible(), "Guitar R should be in the table");
+
+    // Delete a track (Guitar L)
+    const guitarLDeleteBtn = guitarLRow.locator(".btn-delete-track");
+    await guitarLDeleteBtn.click({ force: true });
+    await page.waitForTimeout(100);
+
+    // Assert Guitar L is gone, but Guitar R remains
+    assert.equal(
+      await guitarLRow.isVisible(),
+      false,
+      "Guitar L should be deleted"
+    );
+    assert.ok(await guitarRRow.isVisible(), "Guitar R should remain");
+
+    // Reset tracks back to default
+    page.once("dialog", async (dialog) => {
+      assert.equal(
+        dialog.message(),
+        "Are you sure you want to reset all tracks to the default session tracks?"
+      );
+      await dialog.accept();
+    });
+    await btnResetTracks.click({ force: true });
+    await page.waitForTimeout(150);
+
+    // Verify it reset back to default tracks (i.e. Bass Synth is present, Guitar R is gone)
+    const guitarRRowAfterReset = page.locator("tbody#bounce-tracks-body tr", {
+      hasText: "Guitar R",
+    });
+    assert.equal(
+      await guitarRRowAfterReset.isVisible(),
+      false,
+      "Guitar R should be gone after reset"
+    );
+    const bassSynthRowAfterReset = page.locator("tbody#bounce-tracks-body tr", {
+      hasText: "Bass Synth",
+    });
+    assert.ok(
+      await bassSynthRowAfterReset.isVisible(),
+      "Bass Synth should remain after reset"
+    );
+
     // 7. Verify no horizontal overflow in mobile layout
     await page.setViewportSize({ width: 390, height: 800 });
     await page.goto("http://127.0.0.1:4175/logic-auto-bounce.html", {

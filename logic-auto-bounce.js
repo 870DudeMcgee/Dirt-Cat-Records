@@ -86,6 +86,7 @@
   let activePresetId = "mix-prep-dry";
   let presets = loadPresets();
   let selectedTrackPolicies = {};
+  let currentTracks = [];
 
   // Setup DOM elements
   const presetSelector = document.getElementById("bounce-preset-selector");
@@ -118,7 +119,6 @@
     if (!presetSelector) return; // Guard for pages without the preferences DOM
 
     renderPresetDropdown();
-    renderTracksTable();
     loadActivePreset(activePresetId);
 
     // Bind Events
@@ -147,6 +147,57 @@
     btnDelete.addEventListener("click", deleteActivePreset);
     btnCopy.addEventListener("click", copyRecipeToClipboard);
     btnDownload.addEventListener("click", downloadRecipeFile);
+
+    // Bind track actions
+    const btnAddToggle = document.getElementById("btn-add-track-toggle");
+    const btnPasteToggle = document.getElementById("btn-paste-tracks-toggle");
+    const btnReset = document.getElementById("btn-reset-tracks");
+
+    const addTrackPanel = document.getElementById("add-track-form-panel");
+    const pasteModal = document.getElementById("paste-tracks-modal");
+
+    const btnSubmitAdd = document.getElementById("btn-submit-add-track");
+    const btnSubmitPaste = document.getElementById("btn-submit-paste-tracks");
+    const btnClosePaste = document.getElementById("btn-close-paste-modal");
+    const pasteTextarea = document.getElementById("paste-tracks-textarea");
+
+    if (btnAddToggle) {
+      btnAddToggle.addEventListener("click", () => {
+        addTrackPanel.hidden = !addTrackPanel.hidden;
+      });
+    }
+
+    if (btnPasteToggle) {
+      btnPasteToggle.addEventListener("click", () => {
+        pasteModal.hidden = false;
+        if (pasteTextarea) pasteTextarea.focus();
+      });
+    }
+
+    if (btnClosePaste) {
+      btnClosePaste.addEventListener("click", () => {
+        pasteModal.hidden = true;
+        if (pasteTextarea) pasteTextarea.value = "";
+      });
+    }
+
+    if (btnSubmitAdd) {
+      btnSubmitAdd.addEventListener("click", handleAddSingleTrack);
+    }
+
+    if (btnSubmitPaste) {
+      btnSubmitPaste.addEventListener("click", () => {
+        if (pasteTextarea) {
+          handleBatchImport(pasteTextarea.value);
+          pasteTextarea.value = "";
+        }
+        pasteModal.hidden = true;
+      });
+    }
+
+    if (btnReset) {
+      btnReset.addEventListener("click", resetTracksToDefault);
+    }
   }
 
   function loadPresets() {
@@ -198,19 +249,31 @@
     togglePrintSubgroups.checked = p.toggles.printSubgroups;
 
     badgeModified.hidden = true;
+
+    // Load custom tracks if present, otherwise fall back to defaults
+    if (p.tracks && Array.isArray(p.tracks)) {
+      currentTracks = JSON.parse(JSON.stringify(p.tracks));
+    } else {
+      currentTracks = JSON.parse(JSON.stringify(DISCOVERED_TRACKS));
+    }
+
+    renderTracksTable();
     updateTrackPoliciesForPreset(p);
     updateRecipeJSON();
+    refreshSidechainSelectors();
   }
 
   function updateTrackPoliciesForPreset(preset) {
     selectedTrackPolicies = {};
-    DISCOVERED_TRACKS.forEach((track) => {
-      if (track.sidechain !== "none") {
-        // default based on preset style
+    currentTracks.forEach((track) => {
+      if (track.policy && track.policy !== "none") {
+        selectedTrackPolicies[track.name] = track.policy;
+      } else if (track.sidechain && track.sidechain !== "none") {
         if (preset.id === "mix-prep-dry") {
           selectedTrackPolicies[track.name] = "bypass-sidechain";
         } else {
-          selectedTrackPolicies[track.name] = track.defaultPolicy;
+          selectedTrackPolicies[track.name] =
+            track.defaultPolicy || "preserve-pump";
         }
       } else {
         selectedTrackPolicies[track.name] = "none";
@@ -220,8 +283,9 @@
   }
 
   function renderTracksTable() {
+    if (!tracksBody) return;
     tracksBody.innerHTML = "";
-    DISCOVERED_TRACKS.forEach((track) => {
+    currentTracks.forEach((track) => {
       const tr = document.createElement("tr");
 
       const tdName = document.createElement("td");
@@ -233,7 +297,7 @@
       tr.appendChild(tdType);
 
       const tdSidechain = document.createElement("td");
-      if (track.sidechain !== "none") {
+      if (track.sidechain && track.sidechain !== "none") {
         tdSidechain.innerHTML = `<span style="color: var(--brick-lane-yellow);">⚡ sidechain from ${track.sidechain}</span>`;
       } else {
         tdSidechain.textContent = "-";
@@ -241,7 +305,7 @@
       tr.appendChild(tdSidechain);
 
       const tdPolicy = document.createElement("td");
-      if (track.sidechain !== "none") {
+      if (track.sidechain && track.sidechain !== "none") {
         const select = document.createElement("select");
         select.dataset.track = track.name;
 
@@ -266,11 +330,25 @@
       }
       tr.appendChild(tdPolicy);
 
+      // Actions Column
+      const tdAction = document.createElement("td");
+      const btnDelete = document.createElement("button");
+      btnDelete.type = "button";
+      btnDelete.className = "btn-delete-track";
+      btnDelete.innerHTML = "🗑️";
+      btnDelete.title = "Delete track";
+      btnDelete.addEventListener("click", () => {
+        deleteTrack(track.name);
+      });
+      tdAction.appendChild(btnDelete);
+      tr.appendChild(tdAction);
+
       tracksBody.appendChild(tr);
     });
   }
 
   function updateTracksTableDropdowns() {
+    if (!tracksBody) return;
     const selects = tracksBody.querySelectorAll("select");
     selects.forEach((select) => {
       const trackName = select.dataset.track;
@@ -278,6 +356,155 @@
         select.value = selectedTrackPolicies[trackName];
       }
     });
+  }
+
+  function refreshSidechainSelectors() {
+    const selector = document.getElementById("new-track-sidechain");
+    if (!selector) return;
+
+    selector.innerHTML = '<option value="none">No Sidechain</option>';
+    currentTracks.forEach((track) => {
+      const opt = document.createElement("option");
+      opt.value = track.name;
+      opt.textContent = track.name;
+      selector.appendChild(opt);
+    });
+  }
+
+  function handleAddSingleTrack() {
+    const nameInput = document.getElementById("new-track-name");
+    const typeSelect = document.getElementById("new-track-type");
+    const sidechainSelect = document.getElementById("new-track-sidechain");
+
+    if (!nameInput || !nameInput.value.trim()) {
+      alert("Please enter a track name.");
+      return;
+    }
+
+    const trackName = nameInput.value.trim();
+    if (
+      currentTracks.some(
+        (t) => t.name.toLowerCase() === trackName.toLowerCase()
+      )
+    ) {
+      alert("A track with this name already exists.");
+      return;
+    }
+
+    const trackType = typeSelect.value;
+    const sidechain = sidechainSelect.value;
+
+    const newTrack = {
+      name: trackName,
+      type: trackType,
+      sidechain: sidechain,
+      defaultPolicy: sidechain !== "none" ? "preserve-pump" : "none",
+    };
+
+    currentTracks.push(newTrack);
+    selectedTrackPolicies[trackName] =
+      sidechain !== "none" ? "preserve-pump" : "none";
+
+    nameInput.value = "";
+    sidechainSelect.value = "none";
+
+    markModified();
+    renderTracksTable();
+    updateTracksTableDropdowns();
+    refreshSidechainSelectors();
+  }
+
+  function handleBatchImport(text) {
+    if (!text || !text.trim()) return;
+
+    const lines = text.split("\n");
+    let addedCount = 0;
+
+    lines.forEach((line) => {
+      const trackName = line.trim();
+      if (!trackName) return;
+
+      if (
+        currentTracks.some(
+          (t) => t.name.toLowerCase() === trackName.toLowerCase()
+        )
+      ) {
+        return;
+      }
+
+      let type = "Audio";
+      const lower = trackName.toLowerCase();
+      if (
+        lower.includes("aux") ||
+        lower.includes("reverb") ||
+        lower.includes("delay") ||
+        lower.includes("send") ||
+        lower.includes("bus")
+      ) {
+        type = "Aux";
+      } else if (
+        lower.includes("synth") ||
+        lower.includes("inst") ||
+        lower.includes("midi") ||
+        lower.includes("piano") ||
+        lower.includes("keys")
+      ) {
+        type = "Software Instrument";
+      }
+
+      currentTracks.push({
+        name: trackName,
+        type: type,
+        sidechain: "none",
+        defaultPolicy: "none",
+      });
+
+      selectedTrackPolicies[trackName] = "none";
+      addedCount += 1;
+    });
+
+    if (addedCount > 0) {
+      markModified();
+      renderTracksTable();
+      updateTracksTableDropdowns();
+      refreshSidechainSelectors();
+    }
+  }
+
+  function deleteTrack(trackName) {
+    currentTracks = currentTracks.filter((t) => t.name !== trackName);
+
+    currentTracks.forEach((t) => {
+      if (t.sidechain === trackName) {
+        t.sidechain = "none";
+        t.defaultPolicy = "none";
+      }
+    });
+
+    delete selectedTrackPolicies[trackName];
+
+    markModified();
+    renderTracksTable();
+    updateTracksTableDropdowns();
+    refreshSidechainSelectors();
+  }
+
+  function resetTracksToDefault() {
+    if (
+      !confirm(
+        "Are you sure you want to reset all tracks to the default session tracks?"
+      )
+    ) {
+      return;
+    }
+    currentTracks = JSON.parse(JSON.stringify(DISCOVERED_TRACKS));
+    selectedTrackPolicies = {};
+
+    markModified();
+    renderTracksTable();
+    updateTrackPoliciesForPreset(presets[activePresetId]);
+    updateRecipeJSON();
+    refreshSidechainSelectors();
   }
 
   function markModified() {
@@ -312,6 +539,7 @@
         printFxAuxes: togglePrintFx.checked,
         printSubgroups: togglePrintSubgroups.checked,
       },
+      tracks: JSON.parse(JSON.stringify(currentTracks)),
     };
 
     activePresetId = id;
@@ -335,6 +563,11 @@
       printFxAuxes: togglePrintFx.checked,
       printSubgroups: togglePrintSubgroups.checked,
     };
+
+    p.tracks = currentTracks.map((t) => ({
+      ...t,
+      policy: selectedTrackPolicies[t.name] || "none",
+    }));
 
     savePresetsToStorage();
     badgeModified.hidden = true;
@@ -364,10 +597,10 @@
 
   function compileRecipe() {
     const p = presets[activePresetId];
-    const trackPoliciesList = DISCOVERED_TRACKS.map((track) => ({
+    const trackPoliciesList = currentTracks.map((track) => ({
       trackName: track.name,
       type: track.type,
-      sidechain: track.sidechain,
+      sidechain: track.sidechain || "none",
       policy: selectedTrackPolicies[track.name] || "none",
     }));
 
