@@ -57,8 +57,8 @@ test("throws on stepped value outside display scale", () => {
 
 test("resolves a generated preset into display-ready Enigma selections", () => {
   const preset = data.getGeneratedPreset({
-    useCaseId: "tracking-vocal",
-    archetypeId: "safe-vocal-catcher",
+    useAreaId: "tracking",
+    presetId: "safe-vocal-catcher",
   });
 
   const resolved = resolver.resolvePresetEnigmaSelections(preset);

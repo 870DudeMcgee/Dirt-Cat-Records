@@ -10,7 +10,8 @@ const {
   renderHardwareFaceplate,
   renderRecallCards,
   renderControls,
-  renderProblemPresets,
+  renderUseAreas,
+  renderPresetBrowser,
 } = require("../brick-lane-lab");
 const { ENIGMA_PARAMETERS, getGeneratedPreset } = require("../brick-lane-data");
 
@@ -88,6 +89,33 @@ test("preset summary explains hardware mode with plain-language compressor famil
   assert.doesNotMatch(html, /Stress:/);
 });
 
+test("preset summary shows workflow and source path", () => {
+  const preset = getGeneratedPreset({
+    useAreaId: "mixing",
+    presetId: "vocal-de-esser",
+  });
+  const html = renderPresetSummary(preset);
+
+  assert.match(html, /Mixing \/ Vocals/);
+  assert.match(html, /Vocal De-Esser/);
+});
+
+test("summary and copy append Modified for edited presets", () => {
+  const preset = getGeneratedPreset({
+    useAreaId: "mixing",
+    presetId: "vocal-de-esser",
+    modified: true,
+  });
+  const html = renderPresetSummary(preset);
+  const text = createCopyText(preset);
+
+  assert.match(html, /Vocal De-Esser Modified/);
+  assert.match(
+    text,
+    /Brick Lane Sonic Lab - Mixing \/ Vocals - Tame: Vocal De-Esser Modified/
+  );
+});
+
 test("parameter cards show hardware labels and plain-language meanings", () => {
   const html = renderParameterCard({
     ...ENIGMA_PARAMETERS.stressTypeDiodeClipping,
@@ -136,7 +164,8 @@ test("copy recall text includes Enigma guide labels for users", () => {
 
 test("copy recall why text uses saturation language outside hardware labels", () => {
   const preset = getGeneratedPreset({
-    archetypeId: "modern-finished-bus",
+    useAreaId: "bus-master",
+    presetId: "modern-finished-bus",
   });
   const text = createCopyText(preset);
 
@@ -209,7 +238,8 @@ test("renderPrintSheet carries plain-language mode and saturation guidance", () 
 
 test("renderPrintSheet why text avoids lowercase stress wording", () => {
   const preset = getGeneratedPreset({
-    archetypeId: "aggressive-energy-bus",
+    useAreaId: "bus-master",
+    presetId: "aggressive-energy-bus",
   });
   const html = renderPrintSheet(preset);
 
@@ -218,6 +248,17 @@ test("renderPrintSheet why text avoids lowercase stress wording", () => {
     /Higher saturation and firmer diode behavior add attitude/i
   );
   assert.doesNotMatch(html, /\bHigher stress\b/i);
+});
+
+test("print sheet shows workflow and source path", () => {
+  const preset = getGeneratedPreset({
+    useAreaId: "bus-master",
+    presetId: "invisible-mix-glue",
+  });
+  const html = renderPrintSheet(preset);
+
+  assert.match(html, /Bus \/ Master \/ Mix Bus/);
+  assert.doesNotMatch(html, /Use:<\/strong> tracking-vocal/);
 });
 
 test("renderHardwareFaceplate matches physical front-panel anatomy", () => {
@@ -259,15 +300,39 @@ test("renderControls replaces six separate knob cards with one compression field
   assert.doesNotMatch(html, /brick-lane-dial/);
 });
 
-test("renderProblemPresets shows actionable common problems instead of static source tiles", () => {
-  const html = renderProblemPresets({
-    problemPresetId: "sibilant-uneven-vocal",
+test("renderUseAreas renders workflow tabs", () => {
+  const html = renderUseAreas({ useAreaId: "mixing" });
+
+  assert.match(html, /data-use-area-id="tracking"/);
+  assert.match(html, /data-use-area-id="mixing"/);
+  assert.match(html, /data-use-area-id="bus-master"/);
+  assert.match(html, />Tracking</);
+  assert.match(html, />Mixing</);
+  assert.match(html, />Bus \/ Master</);
+  assert.match(
+    html,
+    /data-use-area-id="mixing"[^>]*is-active|is-active[^>]*data-use-area-id="mixing"/
+  );
+});
+
+test("renderPresetBrowser groups presets by source under selected workflow area", () => {
+  const html = renderPresetBrowser({
+    useAreaId: "mixing",
+    presetId: "vocal-de-esser",
   });
 
-  assert.match(html, /data-problem-preset-id="sibilant-uneven-vocal"/);
-  assert.match(html, /Sibilant Uneven Vocal/);
-  assert.match(html, /Low-End Pumping Mix/);
-  assert.match(html, /class="brick-lane-problem-card is-active"/);
+  assert.match(html, /brick-lane-source-section/);
+  assert.match(html, />Vocals</);
+  assert.match(html, />Bass</);
+  assert.match(html, />Drums</);
+  assert.match(html, />Guitar</);
+  assert.match(html, /data-preset-id="vocal-de-esser"/);
+  assert.match(html, /Vocal De-Esser/);
+  assert.match(html, /Controls sharp sibilance/);
+  assert.match(html, /brick-lane-preset-row is-active/);
+  assert.match(html, /brick-lane-preset-tag/);
+  assert.doesNotMatch(html, /data-problem-preset-id/);
+  assert.doesNotMatch(html, /data-archetype-id/);
   assert.doesNotMatch(html, /brick-lane-source-tile/);
   assert.doesNotMatch(html, /Signal Generator/i);
 });
@@ -369,10 +434,23 @@ test("render module does not inject signal generator UI", () => {
   assert.doesNotMatch(source, /brick-lane-scope/);
 });
 
+test("render module no longer exposes legacy archetype or problem preset browser attributes", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "brick-lane-lab.js"),
+    "utf8"
+  );
+
+  assert.doesNotMatch(source, /data-archetype-id/);
+  assert.doesNotMatch(source, /data-problem-preset-id/);
+  assert.doesNotMatch(source, /renderProblemPresets/);
+});
+
 test("detector card renders valid setting name and exact LED pattern", () => {
   const preset = getGeneratedPreset({
-    useCaseId: "tracking-vocal",
-    archetypeId: "safe-vocal-catcher",
+    useAreaId: "tracking",
+    presetId: "safe-vocal-catcher",
   });
   const html = renderParameterCard(preset.parameters.detector);
 

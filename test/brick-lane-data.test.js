@@ -9,9 +9,13 @@ const {
   BRICK_LANE_COLORS,
   ENIGMA_PARAMETERS,
   PARAMETER_ORDER,
-  USE_CASES,
-  ARCHETYPES,
-  PROBLEM_PRESETS,
+  USE_AREAS,
+  SOURCES,
+  PRESETS,
+  DEFAULT_CONTROL_VALUES,
+  getPresetsForUseArea,
+  getPresetsGroupedBySource,
+  getPresetById,
   getGeneratedPreset,
 } = require("../brick-lane-data");
 
@@ -56,47 +60,57 @@ test("critical Enigma parameters preserve exact names, sides, and colors", () =>
   assert.equal(BRICK_LANE_COLORS.magenta, "#f52ee6");
 });
 
-test("first build exposes Tracking Vocal and Mix Bus use cases", () => {
+test("Brick Lane preset browser exposes workflow areas, sources, and one preset list", () => {
   assert.deepEqual(
-    USE_CASES.map((useCase) => useCase.id),
-    ["tracking-vocal", "mix-bus"]
-  );
-  assert.ok(
-    ARCHETYPES.some((archetype) => archetype.id === "safe-vocal-catcher")
-  );
-  assert.ok(
-    ARCHETYPES.some((archetype) => archetype.id === "invisible-mix-glue")
-  );
-});
-
-test("problem presets model common source problems as real preset state", () => {
-  assert.deepEqual(
-    PROBLEM_PRESETS.map((preset) => preset.id),
-    [
-      "sibilant-uneven-vocal",
-      "dull-buried-vocal",
-      "peaky-aggressive-vocal",
-      "low-end-pumping-mix",
-      "flat-lifeless-mix",
-      "harsh-bright-mix",
-    ]
+    USE_AREAS.map((area) => area.id),
+    ["tracking", "mixing", "bus-master"]
   );
 
-  for (const problemPreset of PROBLEM_PRESETS) {
+  assert.ok(
+    SOURCES.some(
+      (source) =>
+        source.id === "vocals" &&
+        source.useAreaId === "tracking" &&
+        source.label === "Vocals"
+    )
+  );
+  assert.ok(
+    SOURCES.some(
+      (source) =>
+        source.id === "mix-bus" &&
+        source.useAreaId === "bus-master" &&
+        source.label === "Mix Bus"
+    )
+  );
+
+  assert.ok(PRESETS.length >= 26);
+  assert.equal(getPresetById("safe-vocal-catcher").useAreaId, "tracking");
+  assert.equal(getPresetById("safe-vocal-catcher").sourceId, "vocals");
+  assert.equal(getPresetById("vocal-de-esser").useAreaId, "mixing");
+  assert.equal(getPresetById("vocal-de-esser").sourceId, "vocals");
+  assert.equal(getPresetById("invisible-mix-glue").useAreaId, "bus-master");
+  assert.equal(getPresetById("invisible-mix-glue").sourceId, "mix-bus");
+
+  for (const preset of PRESETS) {
     assert.ok(
-      USE_CASES.some((useCase) => useCase.id === problemPreset.useCaseId),
-      `${problemPreset.id} should reference a valid use case`
+      USE_AREAS.some((area) => area.id === preset.useAreaId),
+      `${preset.id} should reference a valid use area`
     );
     assert.ok(
-      ARCHETYPES.some(
-        (archetype) => archetype.id === problemPreset.archetypeId
+      SOURCES.some(
+        (source) =>
+          source.id === preset.sourceId && source.useAreaId === preset.useAreaId
       ),
-      `${problemPreset.id} should reference a valid archetype`
+      `${preset.id} should reference a valid source in its use area`
     );
-    assert.ok(problemPreset.context.brightness);
-    assert.ok(problemPreset.context.dynamics);
-    assert.ok(problemPreset.context.targetGainReduction);
-    assert.deepEqual(Object.keys(problemPreset.controls), [
+    assert.ok(Array.isArray(preset.tags), `${preset.id} should have tags`);
+    assert.ok(
+      preset.tags.length > 0,
+      `${preset.id} should have at least one tag`
+    );
+    assert.ok(preset.summary, `${preset.id} should have a summary`);
+    assert.ok(preset.selected, `${preset.id} should have Enigma selections`);
+    assert.deepEqual(Object.keys(preset.controls), [
       "punchSmooth",
       "cleanColor",
       "controlOpen",
@@ -107,10 +121,126 @@ test("problem presets model common source problems as real preset state", () => 
   }
 });
 
+test("Brick Lane preset model exports reusable default control values", () => {
+  assert.deepEqual(DEFAULT_CONTROL_VALUES, {
+    punchSmooth: 58,
+    cleanColor: 32,
+    controlOpen: 76,
+    safeExciting: 64,
+    glueLoud: 44,
+    stableWide: 38,
+  });
+});
+
+test("preset helpers filter and group presets by source under a workflow area", () => {
+  assert.deepEqual(
+    getPresetsForUseArea("tracking")
+      .filter((preset) => preset.sourceId === "vocals")
+      .map((preset) => preset.id),
+    [
+      "safe-vocal-catcher",
+      "smooth-expensive-vocal",
+      "modern-controlled-vocal",
+      "character-vocal-print",
+    ]
+  );
+
+  const mixingGroups = getPresetsGroupedBySource("mixing");
+  assert.deepEqual(
+    mixingGroups
+      .find((group) => group.source.id === "vocals")
+      .presets.map((preset) => preset.id),
+    [
+      "vocal-de-esser",
+      "vocal-leveler",
+      "harsh-vocal-smoother",
+      "dull-vocal-forward",
+    ]
+  );
+
+  const busGroups = getPresetsGroupedBySource("bus-master");
+  assert.deepEqual(
+    busGroups
+      .find((group) => group.source.id === "mix-bus")
+      .presets.map((preset) => preset.id),
+    [
+      "invisible-mix-glue",
+      "thick-analog-bus",
+      "punch-preserving-bus",
+      "modern-finished-bus",
+      "aggressive-energy-bus",
+      "low-end-pumping-mix",
+      "flat-lifeless-mix",
+      "harsh-bright-mix",
+    ]
+  );
+});
+
+test("derived presets do not share mutable recall objects with base presets", () => {
+  const basePreset = getPresetById("safe-vocal-catcher");
+  const derivedPreset = getPresetById("vocal-de-esser");
+
+  assert.notEqual(
+    basePreset.selected.detector,
+    derivedPreset.selected.detector
+  );
+  assert.notEqual(basePreset.frontPanel, derivedPreset.frontPanel);
+  assert.notEqual(basePreset.frontPanelValues, derivedPreset.frontPanelValues);
+  assert.notEqual(basePreset.controls, derivedPreset.controls);
+  assert.notEqual(basePreset.context, derivedPreset.context);
+});
+
+test("generated preset uses the resolved preset context before state overrides", () => {
+  const preset = getPresetById("low-end-pumping-mix");
+  const generated = getGeneratedPreset({ presetId: "low-end-pumping-mix" });
+
+  assert.equal(generated.targetGainReduction, preset.targetGainReduction);
+  assert.deepEqual(generated.context, preset.context);
+  assert.notEqual(generated.context.vocalStyle, "rap-singing");
+  assert.equal(generated.context.targetGainReduction, "1-2 dB");
+});
+
+test("bus-master custom controls do not use tracking vocal sidechain behavior", () => {
+  const generated = getGeneratedPreset({
+    presetId: "invisible-mix-glue",
+    controls: {
+      ...DEFAULT_CONTROL_VALUES,
+      cleanColor: 20,
+      safeExciting: 90,
+    },
+  });
+
+  assert.notDeepEqual(
+    generated.parameters.sidechainHighFrequencyEmphasis.selection,
+    { settingId: "de-ess-hard" }
+  );
+});
+
+test("generated preset mutable fields do not mutate canonical preset data", () => {
+  const generated = getGeneratedPreset({ presetId: "vocal-de-esser" });
+  const canonicalBefore = getPresetById("vocal-de-esser");
+  const originalInput = canonicalBefore.frontPanelValues.input;
+  const originalDetector = canonicalBefore.selected.detector.settingId;
+  const originalTags = [...canonicalBefore.tags];
+  const originalWhy = [...canonicalBefore.why];
+
+  generated.frontPanelValues.input = 99;
+  generated.selected.detector.settingId = "mutated-detector";
+  generated.tags.push("mutated-tag");
+  generated.why.push("mutated why");
+
+  const canonicalAfter = getPresetById("vocal-de-esser");
+
+  assert.equal(canonicalAfter.frontPanelValues.input, originalInput);
+  assert.equal(canonicalAfter.selected.detector.settingId, originalDetector);
+  assert.deepEqual(canonicalAfter.tags, originalTags);
+  assert.deepEqual(canonicalAfter.why, originalWhy);
+});
+
 test("generated preset returns exact selected rung labels", () => {
   const preset = getGeneratedPreset({
-    useCaseId: "tracking-vocal",
-    archetypeId: "safe-vocal-catcher",
+    useAreaId: "tracking",
+    presetId: "safe-vocal-catcher",
     controls: {
       punchSmooth: 58,
       cleanColor: 32,
@@ -140,8 +270,8 @@ test("generated preset returns exact selected rung labels", () => {
 
 test("generated preset derives Enigma selections from desired compression controls", () => {
   const smoothSafe = getGeneratedPreset({
-    useCaseId: "tracking-vocal",
-    archetypeId: "safe-vocal-catcher",
+    useAreaId: "tracking",
+    presetId: "safe-vocal-catcher",
     controls: {
       punchSmooth: 18,
       cleanColor: 12,
@@ -153,8 +283,8 @@ test("generated preset derives Enigma selections from desired compression contro
   });
 
   const punchyControlled = getGeneratedPreset({
-    useCaseId: "tracking-vocal",
-    archetypeId: "safe-vocal-catcher",
+    useAreaId: "tracking",
+    presetId: "safe-vocal-catcher",
     controls: {
       punchSmooth: 92,
       cleanColor: 84,
@@ -181,6 +311,21 @@ test("generated preset derives Enigma selections from desired compression contro
   assert.deepEqual(punchyControlled.parameters.releaseWeighting.selection, {
     value: "1.5",
   });
+});
+
+test("generated preset includes workflow and source metadata", () => {
+  const preset = getGeneratedPreset({
+    useAreaId: "mixing",
+    presetId: "vocal-de-esser",
+  });
+
+  assert.equal(preset.id, "vocal-de-esser");
+  assert.equal(preset.useAreaId, "mixing");
+  assert.equal(preset.sourceId, "vocals");
+  assert.equal(preset.useAreaLabel, "Mixing");
+  assert.equal(preset.sourceLabel, "Vocals");
+  assert.equal(preset.label, "Vocal De-Esser");
+  assert.ok(preset.tags.includes("de-ess"));
 });
 
 test("existing business config imports still work beside the new root module", () => {
@@ -359,21 +504,19 @@ test("LED Brightness remains a simple stepped scale", () => {
   ]);
 });
 
-test("archetype Enigma selections use canonical object selections", () => {
-  const { ARCHETYPES, PARAMETER_ORDER } = require("../brick-lane-data");
-
-  for (const archetype of ARCHETYPES) {
+test("preset Enigma selections use canonical object selections", () => {
+  for (const preset of PRESETS) {
     for (const parameterId of PARAMETER_ORDER) {
-      const selection = archetype.selected[parameterId];
+      const selection = preset.selected[parameterId];
       assert.equal(
         Array.isArray(selection),
         false,
-        `${archetype.id}.${parameterId} still uses a legacy raw rung array`
+        `${preset.id}.${parameterId} still uses a legacy raw rung array`
       );
       assert.equal(
         typeof selection,
         "object",
-        `${archetype.id}.${parameterId} selection must be an object`
+        `${preset.id}.${parameterId} selection must be an object`
       );
     }
   }

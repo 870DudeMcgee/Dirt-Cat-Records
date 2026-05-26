@@ -3654,7 +3654,7 @@ footer {
 
 .brick-lane-actions button,
 .brick-lane-option,
-.brick-lane-problem-card,
+.brick-lane-preset-row,
 .brick-lane-copy-button {
   min-height: 38px;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -3920,15 +3920,30 @@ footer {
   color: #fff;
 }
 
-.brick-lane-problem-list {
+.brick-lane-source-section {
   display: grid;
-  gap: 0.48rem;
+  gap: 0.42rem;
+  margin-bottom: 0.78rem;
 }
 
-.brick-lane-problem-card {
+.brick-lane-source-section h3 {
+  margin: 0.2rem 0 0;
+  color: rgba(247, 248, 255, 0.72);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.brick-lane-preset-list {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.brick-lane-preset-row {
   display: grid;
   width: 100%;
-  gap: 0.22rem;
+  gap: 0.38rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 7px;
   padding: 0.55rem;
@@ -3938,28 +3953,51 @@ footer {
   text-align: left;
 }
 
-.brick-lane-problem-card.is-active {
+.brick-lane-preset-row.is-active {
   border-color: rgba(94, 231, 255, 0.56);
   background:
     linear-gradient(135deg, rgba(94, 231, 255, 0.14), transparent 70%),
     rgba(255, 255, 255, 0.07);
 }
 
-.brick-lane-problem-label {
+.brick-lane-preset-main {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.brick-lane-preset-label {
   color: #fff;
   font-size: 0.78rem;
   font-weight: 900;
 }
 
-.brick-lane-problem-description {
+.brick-lane-preset-description {
   line-height: 1.28;
 }
 
-.brick-lane-problem-meta {
+.brick-lane-preset-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.24rem;
+}
+
+.brick-lane-preset-tag {
+  border: 1px solid rgba(94, 231, 255, 0.2);
+  border-radius: 999px;
+  padding: 0.12rem 0.34rem;
   color: var(--brick-lane-cyan);
-  font-size: 0.66rem;
+  font-size: 0.61rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.brick-lane-preset-path {
+  margin: 0 0 0.2rem;
+  color: var(--brick-lane-cyan);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 

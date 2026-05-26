@@ -178,6 +178,14 @@
     </article>`;
   }
 
+  function presetDisplayLabel(preset) {
+    return `${preset.label}${preset.isModified ? " Modified" : ""}`;
+  }
+
+  function presetPathLabel(preset) {
+    return `${preset.useAreaLabel || preset.useAreaId} / ${preset.sourceLabel || preset.sourceId}`;
+  }
+
   function renderPresetSummary(preset) {
     const frontPanel = preset.frontPanel;
     const modeGuide = getModeGuide(preset.mode);
@@ -188,7 +196,8 @@
       : "";
     return `<section class="brick-lane-summary-card">
       <p class="brick-lane-kicker">Generated Preset</p>
-      <h2>${escapeHtml(preset.mode)}: ${escapeHtml(preset.label)}</h2>
+      <p class="brick-lane-preset-path">${escapeHtml(presetPathLabel(preset))}</p>
+      <h2>${escapeHtml(preset.mode)}: ${escapeHtml(presetDisplayLabel(preset))}</h2>
       ${modeFamily}
       <p>${escapeHtml(preset.summary)}</p>
       <p class="brick-lane-saturation-note">${escapeHtml(saturationSummary)}</p>
@@ -219,7 +228,7 @@
   function createCopyText(preset) {
     const saturation = data.ENIGMA_DEMYSTIFIER.saturation;
     const lines = [
-      `Brick Lane Sonic Lab - ${preset.mode}: ${preset.label}`,
+      `Brick Lane Sonic Lab - ${presetPathLabel(preset)} - ${preset.mode}: ${presetDisplayLabel(preset)}`,
       `Mode: ${formatModeLabel(preset.mode)}`,
       `Target GR: ${preset.targetGainReduction}`,
       `Input: ${preset.frontPanel.input}`,
@@ -312,12 +321,13 @@
       <header class="brick-lane-print-header">
         <div>
           <h2>Brick Lane 500 - Generated Preset Cheat Sheet</h2>
-          <p>${escapeHtml(preset.mode)}: ${escapeHtml(preset.label)}</p>
+          <p>${escapeHtml(preset.mode)}: ${escapeHtml(presetDisplayLabel(preset))}</p>
+          <p>${escapeHtml(presetPathLabel(preset))}</p>
           ${modeGuide ? `<p class="brick-lane-mode-family">${escapeHtml(modeLabel)}</p>` : ""}
         </div>
         <div class="brick-lane-print-meta">
           <strong>Target GR:</strong> ${escapeHtml(preset.targetGainReduction)}<br>
-          <strong>Use:</strong> ${escapeHtml(preset.useCaseId)}
+          <strong>Path:</strong> ${escapeHtml(presetPathLabel(preset))}
         </div>
       </header>
       <section class="brick-lane-print-front-panel">
@@ -343,36 +353,46 @@
     </article>`;
   }
 
-  function renderUseCases(state) {
-    return data.USE_CASES.map((useCase) => {
-      const activeClass = useCase.id === state.useCaseId ? " is-active" : "";
-      return `<button class="brick-lane-option${activeClass}" type="button" data-use-case-id="${escapeHtml(useCase.id)}"><span>${escapeHtml(useCase.label)}</span></button>`;
+  function renderUseAreas(state) {
+    return data.USE_AREAS.map((useArea) => {
+      const activeClass = useArea.id === state.useAreaId ? " is-active" : "";
+      return `<button class="brick-lane-option${activeClass}" type="button" data-use-area-id="${escapeHtml(useArea.id)}"><span>${escapeHtml(useArea.label)}</span></button>`;
     }).join("");
   }
 
-  function renderArchetypes(state) {
-    return data
-      .getArchetypesForUseCase(state.useCaseId)
-      .map((archetype) => {
-        const activeClass =
-          archetype.id === state.archetypeId ? " is-active" : "";
-        return `<button class="brick-lane-option${activeClass}" type="button" data-archetype-id="${escapeHtml(archetype.id)}"><span>${escapeHtml(archetype.label)}</span></button>`;
+  function renderPresetBrowser(state = {}) {
+    const useAreaId = state.useAreaId || data.DEFAULT_STATE.useAreaId;
+    const groups = data.getPresetsGroupedBySource(useAreaId);
+
+    return groups
+      .map((group) => {
+        const rows = group.presets
+          .map((preset) => {
+            const activeClass =
+              preset.id === state.presetId ? " is-active" : "";
+            const tags = preset.tags
+              .map(
+                (tag) =>
+                  `<span class="brick-lane-preset-tag">${escapeHtml(tag)}</span>`
+              )
+              .join("");
+
+            return `<button class="brick-lane-preset-row${activeClass}" type="button" data-preset-id="${escapeHtml(preset.id)}">
+              <span class="brick-lane-preset-main">
+                <span class="brick-lane-preset-label">${escapeHtml(preset.label)}</span>
+                <span class="brick-lane-preset-description">${escapeHtml(preset.summary)}</span>
+              </span>
+              <span class="brick-lane-preset-tags">${tags}</span>
+            </button>`;
+          })
+          .join("");
+
+        return `<section class="brick-lane-source-section">
+          <h3>${escapeHtml(group.source.label)}</h3>
+          <div class="brick-lane-preset-list">${rows}</div>
+        </section>`;
       })
       .join("");
-  }
-
-  function renderProblemPresets(state = {}) {
-    return `<div class="brick-lane-problem-list">${data.PROBLEM_PRESETS.map(
-      (preset) => {
-        const activeClass =
-          preset.id === state.problemPresetId ? " is-active" : "";
-        return `<button class="brick-lane-problem-card${activeClass}" type="button" data-problem-preset-id="${escapeHtml(preset.id)}">
-          <span class="brick-lane-problem-label">${escapeHtml(preset.label)}</span>
-          <span class="brick-lane-problem-description">${escapeHtml(preset.description)}</span>
-          <span class="brick-lane-problem-meta">${escapeHtml(preset.context.brightness)} / ${escapeHtml(preset.context.dynamics)} / ${escapeHtml(preset.context.targetGainReduction)}</span>
-        </button>`;
-      }
-    ).join("")}</div>`;
   }
 
   function knobAngle(value) {
@@ -675,8 +695,8 @@
     if (!root) return;
 
     const nodes = {
-      useCases: document.getElementById("brick-lane-use-cases"),
-      archetypes: document.getElementById("brick-lane-archetypes"),
+      useAreas: document.getElementById("brick-lane-use-cases"),
+      presetBrowser: document.getElementById("brick-lane-archetypes"),
       context: document.getElementById("brick-lane-context"),
       faceplate: document.getElementById("brick-lane-faceplate"),
       controls: document.getElementById("brick-lane-controls"),
@@ -689,14 +709,6 @@
 
     let state = stateMachine.getInitialState();
 
-    function setUseCase(useCaseId) {
-      state = stateMachine.labStateReducer(state, {
-        type: "SET_USE_CASE",
-        payload: { useCaseId },
-      });
-      render();
-    }
-
     function renderGeneratedPanels(renderState) {
       const preset = data.getGeneratedPreset(renderState);
       nodes.summary.innerHTML = renderPresetSummary(preset);
@@ -706,9 +718,9 @@
 
     function render() {
       const preset = renderGeneratedPanels(state);
-      nodes.useCases.innerHTML = renderUseCases(state);
-      nodes.archetypes.innerHTML = renderArchetypes(state);
-      nodes.context.innerHTML = renderProblemPresets(state);
+      nodes.useAreas.innerHTML = renderUseAreas(state);
+      nodes.presetBrowser.innerHTML = renderPresetBrowser(state);
+      nodes.context.innerHTML = "";
       nodes.faceplate.innerHTML = renderHardwareFaceplate(preset, state);
       nodes.controls.innerHTML = renderControls(state);
     }
@@ -965,29 +977,24 @@
       playShortClick(600, 0.03);
     }
 
-    nodes.useCases.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-use-case-id]");
-      if (button) setUseCase(button.dataset.useCaseId);
-    });
-
-    nodes.archetypes.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-archetype-id]");
+    nodes.useAreas.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-use-area-id]");
       if (!button) return;
 
       state = stateMachine.labStateReducer(state, {
-        type: "SET_ARCHETYPE",
-        payload: { archetypeId: button.dataset.archetypeId },
+        type: "SET_USE_AREA",
+        payload: { useAreaId: button.dataset.useAreaId },
       });
       render();
     });
 
-    nodes.context.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-problem-preset-id]");
+    nodes.presetBrowser.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-preset-id]");
       if (!button) return;
 
       state = stateMachine.labStateReducer(state, {
-        type: "APPLY_PROBLEM_PRESET",
-        payload: { problemPresetId: button.dataset.problemPresetId },
+        type: "SET_PRESET",
+        payload: { presetId: button.dataset.presetId },
       });
       render();
       playShortClick(660, 0.07);
@@ -1037,7 +1044,8 @@
     renderHardwareFaceplate,
     renderFaceplate: renderHardwareFaceplate,
     renderControls,
-    renderProblemPresets,
+    renderUseAreas,
+    renderPresetBrowser,
     renderRecallCards,
     initDom,
   };
