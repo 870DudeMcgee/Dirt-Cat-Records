@@ -89,6 +89,33 @@ test("preset summary explains hardware mode with plain-language compressor famil
   assert.doesNotMatch(html, /Stress:/);
 });
 
+test("preset summary shows workflow and source path", () => {
+  const preset = getGeneratedPreset({
+    useAreaId: "mixing",
+    presetId: "vocal-de-esser",
+  });
+  const html = renderPresetSummary(preset);
+
+  assert.match(html, /Mixing \/ Vocals/);
+  assert.match(html, /Vocal De-Esser/);
+});
+
+test("summary and copy append Modified for edited presets", () => {
+  const preset = getGeneratedPreset({
+    useAreaId: "mixing",
+    presetId: "vocal-de-esser",
+    modified: true,
+  });
+  const html = renderPresetSummary(preset);
+  const text = createCopyText(preset);
+
+  assert.match(html, /Vocal De-Esser Modified/);
+  assert.match(
+    text,
+    /Brick Lane Sonic Lab - Mixing \/ Vocals - Tame: Vocal De-Esser Modified/
+  );
+});
+
 test("parameter cards show hardware labels and plain-language meanings", () => {
   const html = renderParameterCard({
     ...ENIGMA_PARAMETERS.stressTypeDiodeClipping,
@@ -221,6 +248,17 @@ test("renderPrintSheet why text avoids lowercase stress wording", () => {
     /Higher saturation and firmer diode behavior add attitude/i
   );
   assert.doesNotMatch(html, /\bHigher stress\b/i);
+});
+
+test("print sheet shows workflow and source path", () => {
+  const preset = getGeneratedPreset({
+    useAreaId: "bus-master",
+    presetId: "invisible-mix-glue",
+  });
+  const html = renderPrintSheet(preset);
+
+  assert.match(html, /Bus \/ Master \/ Mix Bus/);
+  assert.doesNotMatch(html, /Use:<\/strong> tracking-vocal/);
 });
 
 test("renderHardwareFaceplate matches physical front-panel anatomy", () => {
@@ -398,8 +436,8 @@ test("render module does not inject signal generator UI", () => {
 
 test("detector card renders valid setting name and exact LED pattern", () => {
   const preset = getGeneratedPreset({
-    useCaseId: "tracking-vocal",
-    archetypeId: "safe-vocal-catcher",
+    useAreaId: "tracking",
+    presetId: "safe-vocal-catcher",
   });
   const html = renderParameterCard(preset.parameters.detector);
 

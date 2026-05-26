@@ -178,6 +178,14 @@
     </article>`;
   }
 
+  function presetDisplayLabel(preset) {
+    return `${preset.label}${preset.isModified ? " Modified" : ""}`;
+  }
+
+  function presetPathLabel(preset) {
+    return `${preset.useAreaLabel || preset.useAreaId} / ${preset.sourceLabel || preset.sourceId}`;
+  }
+
   function renderPresetSummary(preset) {
     const frontPanel = preset.frontPanel;
     const modeGuide = getModeGuide(preset.mode);
@@ -188,7 +196,8 @@
       : "";
     return `<section class="brick-lane-summary-card">
       <p class="brick-lane-kicker">Generated Preset</p>
-      <h2>${escapeHtml(preset.mode)}: ${escapeHtml(preset.label)}</h2>
+      <p class="brick-lane-preset-path">${escapeHtml(presetPathLabel(preset))}</p>
+      <h2>${escapeHtml(preset.mode)}: ${escapeHtml(presetDisplayLabel(preset))}</h2>
       ${modeFamily}
       <p>${escapeHtml(preset.summary)}</p>
       <p class="brick-lane-saturation-note">${escapeHtml(saturationSummary)}</p>
@@ -219,7 +228,7 @@
   function createCopyText(preset) {
     const saturation = data.ENIGMA_DEMYSTIFIER.saturation;
     const lines = [
-      `Brick Lane Sonic Lab - ${preset.mode}: ${preset.label}`,
+      `Brick Lane Sonic Lab - ${presetPathLabel(preset)} - ${preset.mode}: ${presetDisplayLabel(preset)}`,
       `Mode: ${formatModeLabel(preset.mode)}`,
       `Target GR: ${preset.targetGainReduction}`,
       `Input: ${preset.frontPanel.input}`,
@@ -312,12 +321,13 @@
       <header class="brick-lane-print-header">
         <div>
           <h2>Brick Lane 500 - Generated Preset Cheat Sheet</h2>
-          <p>${escapeHtml(preset.mode)}: ${escapeHtml(preset.label)}</p>
+          <p>${escapeHtml(preset.mode)}: ${escapeHtml(presetDisplayLabel(preset))}</p>
+          <p>${escapeHtml(presetPathLabel(preset))}</p>
           ${modeGuide ? `<p class="brick-lane-mode-family">${escapeHtml(modeLabel)}</p>` : ""}
         </div>
         <div class="brick-lane-print-meta">
           <strong>Target GR:</strong> ${escapeHtml(preset.targetGainReduction)}<br>
-          <strong>Use:</strong> ${escapeHtml(preset.useCaseId)}
+          <strong>Path:</strong> ${escapeHtml(presetPathLabel(preset))}
         </div>
       </header>
       <section class="brick-lane-print-front-panel">
