@@ -4368,9 +4368,9 @@ footer {
 }
 
 /* Button variants */
-.btn-primary,
-.btn-secondary,
-.btn-danger {
+.brick-lane-lab-page .btn-primary,
+.brick-lane-lab-page .btn-secondary,
+.brick-lane-lab-page .btn-danger {
   min-height: 34px;
   padding: 0.42rem 0.8rem;
   border-radius: 6px;
@@ -4380,30 +4380,30 @@ footer {
   border: 1px solid transparent;
   transition: all 0.2s ease;
 }
-.btn-primary {
+.brick-lane-lab-page .btn-primary {
   background: var(--brick-lane-cyan);
   border-color: rgba(94, 231, 255, 0.5);
   color: #000;
 }
-.btn-primary:hover {
+.brick-lane-lab-page .btn-primary:hover {
   background: #84eeff;
   box-shadow: 0 0 10px rgba(94, 231, 255, 0.3);
 }
-.btn-secondary {
+.brick-lane-lab-page .btn-secondary {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
   color: var(--brick-lane-text);
 }
-.btn-secondary:hover {
+.brick-lane-lab-page .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.3);
 }
-.btn-danger {
+.brick-lane-lab-page .btn-danger {
   background: rgba(255, 84, 84, 0.16);
   border-color: rgba(255, 84, 84, 0.4);
   color: #ff8484;
 }
-.btn-danger:hover {
+.brick-lane-lab-page .btn-danger:hover {
   background: rgba(255, 84, 84, 0.28);
 }
 

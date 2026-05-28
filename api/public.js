@@ -49,10 +49,18 @@ router.use(async (req, res, next) => {
     next();
   } catch (error) {
     const statusCode = error.statusCode || 500;
-    res.status(statusCode).json({ error: error.message || "Internal server error" });
+    res
+      .status(statusCode)
+      .json({ error: error.message || "Internal server error" });
   }
 });
 
 registerGatewayRoutes("/api/public");
+registerGatewayRoutes("/api/create-paypal-order");
+registerGatewayRoutes("/api/capture-paypal-order");
+registerGatewayRoutes("/api/checkout-config");
+registerGatewayRoutes("/api/public/free-review");
+registerGatewayRoutes("/api/public/project-support");
+registerGatewayRoutes("/api/webhooks/paypal");
 
 module.exports = router.handler();

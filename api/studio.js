@@ -44,10 +44,17 @@ router.use(async (req, res, next) => {
     next();
   } catch (error) {
     const statusCode = error.statusCode || 500;
-    res.status(statusCode).json({ error: error.message || "Internal server error" });
+    res
+      .status(statusCode)
+      .json({ error: error.message || "Internal server error" });
   }
 });
 
 registerGatewayRoutes("/api/studio");
+registerGatewayRoutes("/api/portal/actions");
+registerGatewayRoutes("/api/admin/overview");
+registerGatewayRoutes("/api/admin/projects");
+registerGatewayRoutes("/api/admin/quotes");
+registerGatewayRoutes("/api/admin/setup-wizard");
 
 module.exports = router.handler();
