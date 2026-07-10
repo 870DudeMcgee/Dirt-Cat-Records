@@ -31,8 +31,34 @@ test("resolves stepped-scale values without inventing rung names", () => {
 
   assert.equal(resolved.parameterId, "ledBrightness");
   assert.equal(resolved.behavior, "stepped-scale");
-  assert.equal(resolved.label, "4");
+  assert.equal(resolved.label, "LED 4 · relative setting");
   assert.deepEqual(resolved.activeLedValues, ["4"]);
+});
+
+test("resolves attack and release weighting against detector context", () => {
+  const attack = resolver.resolveParameterSelection(
+    data.ENIGMA_PARAMETERS.attackWeighting,
+    { value: "2" },
+    { detectorSettingId: "peak-rms-slow" }
+  );
+  const release = resolver.resolveParameterSelection(
+    data.ENIGMA_PARAMETERS.releaseWeighting,
+    { value: "3" },
+    { detectorSettingId: "peak-rms-slow-variable" }
+  );
+
+  assert.equal(attack.label, "20 ms · fixed RMS detector");
+  assert.equal(release.label, "3.545x · RMS pot variable");
+});
+
+test("manufacturer-documented detector variable modes include the RMS pot LED", () => {
+  const resolved = resolver.resolveParameterSelection(
+    data.ENIGMA_PARAMETERS.detector,
+    { settingId: "peak-rms-slow-variable" }
+  );
+
+  assert.deepEqual(resolved.activeLedValues, ["0.5", "1.5", "3", "15"]);
+  assert.equal(resolved.timingModel, "variable");
 });
 
 test("throws on unknown pattern setting IDs", () => {

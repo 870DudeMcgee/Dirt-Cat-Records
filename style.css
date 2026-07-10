@@ -6692,3 +6692,1957 @@ input:checked + .neon-slider:before {
     width: auto;
   }
 }
+
+/* Brick Lane guided workflow refresh */
+.brick-lane-lab-page .brick-lane-shell {
+  width: min(1220px, calc(100vw - 2rem));
+  padding-top: 2rem;
+}
+
+.brick-lane-hero {
+  min-height: 210px;
+  padding: clamp(1.25rem, 3vw, 2.35rem);
+  border-radius: 18px 18px 0 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(94, 231, 255, 0.12), transparent 34%),
+    radial-gradient(circle at 86% 22%, rgba(245, 46, 230, 0.12), transparent 32%),
+    rgba(8, 8, 16, 0.88);
+}
+
+.brick-lane-hero h1 {
+  max-width: 760px;
+  margin-top: 0.35rem;
+  font-size: clamp(2.65rem, 6vw, 5.25rem);
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+}
+
+.brick-lane-hero .brick-lane-subhead {
+  max-width: 650px;
+  margin-top: 0.8rem;
+  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+  line-height: 1.55;
+}
+
+.brick-lane-progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.05rem clamp(1rem, 3vw, 2rem);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(4, 4, 10, 0.76);
+}
+
+.brick-lane-progress button {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 54px;
+  padding: 0.65rem 0;
+  border: 0;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: rgba(235, 241, 255, 0.56);
+  text-align: left;
+  cursor: pointer;
+}
+
+.brick-lane-progress button span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 50%;
+  font: 800 0.78rem/1 "JetBrains Mono", monospace;
+}
+
+.brick-lane-progress button strong {
+  font-size: 0.9rem;
+}
+
+.brick-lane-progress button.is-active {
+  border-color: var(--brick-lane-cyan);
+  color: #fff;
+}
+
+.brick-lane-progress button.is-active span {
+  border-color: var(--brick-lane-cyan);
+  color: var(--brick-lane-cyan);
+  box-shadow: 0 0 18px rgba(94, 231, 255, 0.18);
+}
+
+.brick-lane-workflow-stage {
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+  background:
+    linear-gradient(135deg, rgba(94, 231, 255, 0.035), transparent 38%),
+    rgba(3, 3, 8, 0.76);
+}
+
+.brick-lane-workflow-stage[hidden] {
+  display: none;
+}
+
+.brick-lane-stage-header {
+  max-width: 780px;
+  margin: 0 auto 1.5rem;
+  text-align: center;
+}
+
+.brick-lane-stage-kicker {
+  margin: 0 0 0.45rem;
+  color: var(--brick-lane-yellow);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.brick-lane-stage-header h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  letter-spacing: -0.035em;
+}
+
+.brick-lane-stage-header > p:last-child {
+  max-width: 640px;
+  margin: 0.55rem auto 0;
+  color: var(--brick-lane-muted);
+  line-height: 1.55;
+}
+
+.brick-lane-chooser-grid,
+.brick-lane-recall-grid {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.34fr) minmax(0, 1.66fr);
+  gap: 0.85rem;
+}
+
+.brick-lane-chooser-grid .brick-lane-panel,
+.brick-lane-recall-grid .brick-lane-panel,
+.brick-lane-enigma-workbench {
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.065), transparent 30%),
+    rgba(8, 9, 16, 0.8);
+}
+
+.brick-lane-browser h3,
+.brick-lane-preset-picker h3,
+.brick-lane-enigma-toolbar h3 {
+  margin: 0.2rem 0 0;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.brick-lane-section-heading,
+.brick-lane-enigma-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.brick-lane-section-heading > p {
+  max-width: 380px;
+  margin: 0;
+  color: var(--brick-lane-muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+  text-align: right;
+}
+
+#brick-lane-archetypes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+#brick-lane-archetypes .brick-lane-source-section {
+  align-content: start;
+  margin: 0;
+}
+
+.brick-lane-preset-row {
+  min-height: 96px;
+  padding: 0.72rem;
+}
+
+.brick-lane-preset-label {
+  font-size: 0.86rem;
+}
+
+.brick-lane-preset-description {
+  font-size: 0.72rem;
+  line-height: 1.38;
+}
+
+.brick-lane-fine-tune {
+  margin-top: 0.9rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.brick-lane-fine-tune summary {
+  color: var(--brick-lane-cyan);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.brick-lane-fine-tune > p {
+  margin: 0.45rem 0 0;
+  color: var(--brick-lane-muted);
+  font-size: 0.8rem;
+}
+
+.brick-lane-stage-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.brick-lane-stage-actions.is-end {
+  justify-content: flex-end;
+}
+
+.brick-lane-stage-actions button {
+  min-height: 42px;
+  padding: 0.62rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.brick-lane-recall-grid {
+  grid-template-columns: minmax(300px, 0.85fr) minmax(390px, 1.15fr);
+  align-items: start;
+}
+
+.brick-lane-summary-card {
+  margin: 0;
+  padding: 1rem;
+  background:
+    linear-gradient(145deg, rgba(94, 231, 255, 0.1), transparent 55%),
+    rgba(6, 15, 22, 0.74);
+}
+
+.brick-lane-summary-card h2 {
+  margin: 0.45rem 0;
+  font-size: clamp(1.45rem, 3vw, 2.2rem);
+  line-height: 1.05;
+}
+
+.brick-lane-summary-card > p:not(.brick-lane-kicker):not(.brick-lane-preset-path):not(.brick-lane-mode-family) {
+  line-height: 1.5;
+}
+
+.brick-lane-front-panel {
+  margin-top: 1rem;
+}
+
+.brick-lane-front-panel div {
+  padding: 0.65rem;
+}
+
+.brick-lane-front-panel dd {
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.brick-lane-live-note {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.8rem;
+  padding: 0.85rem;
+  border-left: 3px solid var(--brick-lane-yellow);
+  background: rgba(255, 213, 73, 0.07);
+}
+
+.brick-lane-live-note span {
+  color: var(--brick-lane-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.brick-lane-enigma-access {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.brick-lane-enigma-access > div {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.brick-lane-access-number {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(94, 231, 255, 0.12);
+  color: var(--brick-lane-cyan);
+  font-weight: 900;
+}
+
+.brick-lane-enigma-access p {
+  margin: 0;
+  color: var(--brick-lane-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.brick-lane-enigma-access strong {
+  color: #fff;
+}
+
+.brick-lane-stereo-warning {
+  margin: 0.75rem 0;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(255, 213, 73, 0.26);
+  border-radius: 8px;
+  background: rgba(255, 213, 73, 0.07);
+  color: var(--brick-lane-muted);
+  font-size: 0.8rem;
+}
+
+.brick-lane-enigma-workbench {
+  padding: 1rem;
+}
+
+.brick-lane-enigma-toolbar {
+  align-items: center;
+}
+
+.brick-lane-monitor-control {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--brick-lane-muted);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brick-lane-select {
+  min-width: 260px;
+  min-height: 38px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.76rem;
+}
+
+.brick-lane-enigma-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+  gap: 0.85rem;
+  align-items: start;
+}
+
+.brick-lane-enigma-index {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.brick-lane-enigma-index section {
+  min-width: 0;
+}
+
+.brick-lane-enigma-index h4 {
+  margin: 0 0 0.4rem;
+  color: var(--brick-lane-muted);
+  font-size: 0.67rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brick-lane-enigma-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) minmax(120px, 0.85fr);
+  gap: 0.55rem;
+  align-items: center;
+  width: 100%;
+  min-height: 58px;
+  margin-bottom: 0.35rem;
+  padding: 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.brick-lane-enigma-row:hover,
+.brick-lane-enigma-row:focus-visible,
+.brick-lane-enigma-row.is-active {
+  border-color: color-mix(in srgb, var(--brick-lane-led), transparent 42%);
+  background: color-mix(in srgb, var(--brick-lane-led), transparent 92%);
+}
+
+.brick-lane-enigma-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brick-lane-led);
+  box-shadow: 0 0 9px color-mix(in srgb, var(--brick-lane-led), transparent 28%);
+}
+
+.brick-lane-enigma-row-copy,
+.brick-lane-enigma-row-copy strong,
+.brick-lane-enigma-row-copy small {
+  display: block;
+  min-width: 0;
+}
+
+.brick-lane-enigma-row-copy strong {
+  font-size: 0.74rem;
+}
+
+.brick-lane-enigma-row-copy small {
+  margin-top: 0.1rem;
+  color: var(--brick-lane-muted);
+  font-size: 0.62rem;
+  line-height: 1.25;
+}
+
+.brick-lane-enigma-row-value {
+  color: var(--brick-lane-led);
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: right;
+}
+
+.brick-lane-enigma-detail {
+  position: sticky;
+  top: 76px;
+}
+
+.brick-lane-enigma-detail .brick-lane-parameter-card {
+  min-height: 0;
+  padding: 1rem;
+  border-radius: 10px;
+  transform: none;
+}
+
+.brick-lane-enigma-detail .brick-lane-parameter-card h3 {
+  font-size: 1rem;
+}
+
+.brick-lane-enigma-detail .brick-lane-parameter-card p {
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.brick-lane-parameter-card .brick-lane-parameter-note {
+  flex-grow: 0;
+  margin: 0 0 0.7rem;
+  padding: 0.55rem;
+  border-left: 2px solid var(--brick-lane-led);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(235, 241, 255, 0.8);
+}
+
+.brick-lane-manual-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  color: var(--brick-lane-muted);
+  font-size: 0.72rem;
+}
+
+.brick-lane-manual-link a {
+  color: var(--brick-lane-cyan);
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  #brick-lane-archetypes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .brick-lane-enigma-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .brick-lane-enigma-detail {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .brick-lane-lab-page .brick-lane-shell {
+    width: min(100% - 1rem, 1220px);
+    padding-top: 1rem;
+  }
+
+  .brick-lane-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .brick-lane-hero h1 {
+    font-size: clamp(2.45rem, 13vw, 4rem);
+  }
+
+  .brick-lane-progress {
+    gap: 0.45rem;
+    padding: 0.7rem;
+  }
+
+  .brick-lane-progress button {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-height: 82px;
+  }
+
+  .brick-lane-progress button strong {
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+
+  .brick-lane-chooser-grid,
+  .brick-lane-recall-grid,
+  .brick-lane-enigma-access,
+  .brick-lane-enigma-index {
+    grid-template-columns: 1fr;
+  }
+
+  #brick-lane-archetypes {
+    grid-template-columns: 1fr;
+  }
+
+  .brick-lane-preset-row {
+    min-height: 0;
+  }
+
+  .brick-lane-section-heading,
+  .brick-lane-enigma-toolbar,
+  .brick-lane-manual-link {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .brick-lane-section-heading > p {
+    text-align: left;
+  }
+
+  .brick-lane-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .brick-lane-stage-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .brick-lane-stage-actions button,
+  .brick-lane-stage-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .brick-lane-manual-link a {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 460px) {
+  .brick-lane-workflow-stage {
+    padding: 0.65rem;
+  }
+
+  .brick-lane-enigma-row {
+    grid-template-columns: 10px minmax(0, 1fr);
+  }
+
+  .brick-lane-enigma-row-value {
+    grid-column: 2;
+    text-align: left;
+  }
+}
+
+/* Brick Lane: compact setup workspace */
+.brick-lane-progress {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.brick-lane-workflow-stage[data-brick-lane-stage="setup"] {
+  padding: clamp(0.85rem, 2.2vw, 1.4rem);
+}
+
+.brick-lane-workflow-stage[data-brick-lane-stage="setup"] .brick-lane-stage-header {
+  max-width: 840px;
+  margin-bottom: 1rem;
+}
+
+.brick-lane-starting-point {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.48fr) minmax(0, 1.3fr);
+  gap: 0.8rem 1.1rem;
+  align-items: end;
+  padding: 0.85rem 0.95rem;
+  border-color: rgba(94, 231, 255, 0.23);
+  background:
+    linear-gradient(90deg, rgba(94, 231, 255, 0.09), transparent 45%),
+    rgba(8, 12, 18, 0.82);
+}
+
+.brick-lane-starting-point-copy h3,
+.brick-lane-direction-panel h3,
+.brick-lane-front-panel-workspace h3 {
+  margin: 0.15rem 0 0;
+  font-size: 1rem;
+  letter-spacing: -0.015em;
+}
+
+.brick-lane-picker-grid {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.42fr) minmax(220px, 1fr);
+  gap: 0.65rem;
+}
+
+.brick-lane-picker-field {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+  color: var(--brick-lane-muted);
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brick-lane-picker-field select {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 0 2rem 0 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 7px;
+  outline: none;
+  background: rgba(0, 0, 0, 0.34);
+  color: #fff;
+  font: 750 0.78rem/1.2 inherit;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.brick-lane-picker-field select:focus-visible {
+  border-color: var(--brick-lane-cyan);
+  box-shadow: 0 0 0 3px rgba(94, 231, 255, 0.13);
+}
+
+#brick-lane-archetypes {
+  display: block;
+}
+
+.brick-lane-selection-context {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 0.55rem;
+  margin: -0.05rem 0 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--brick-lane-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.brick-lane-selection-context strong {
+  flex: 0 0 auto;
+  color: var(--brick-lane-cyan);
+  font-weight: 850;
+}
+
+.brick-lane-setup-workspace {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(330px, 0.86fr);
+  gap: 0.85rem;
+  align-items: start;
+  margin-top: 0.85rem;
+}
+
+.brick-lane-direction-panel,
+.brick-lane-front-panel-workspace {
+  min-width: 0;
+  padding: 0.85rem;
+}
+
+.brick-lane-direction-panel .brick-lane-section-heading {
+  align-items: flex-start;
+  margin-bottom: 0.45rem;
+}
+
+.brick-lane-direction-panel .brick-lane-section-heading > p {
+  max-width: 250px;
+}
+
+.brick-lane-direction-panel .brick-lane-controls {
+  margin-top: 0;
+}
+
+.brick-lane-front-panel-workspace {
+  position: sticky;
+  top: 0.8rem;
+  background:
+    linear-gradient(145deg, rgba(245, 46, 230, 0.055), transparent 32%),
+    rgba(8, 9, 16, 0.86);
+}
+
+.brick-lane-front-panel-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 0.74fr);
+  gap: 0.65rem;
+  align-items: start;
+  margin-bottom: 0.7rem;
+}
+
+.brick-lane-front-panel-heading .brick-lane-summary-card {
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+
+.brick-lane-front-panel-heading .brick-lane-kicker,
+.brick-lane-front-panel-heading .brick-lane-preset-path,
+.brick-lane-front-panel-heading .brick-lane-mode-family,
+.brick-lane-front-panel-heading .brick-lane-saturation-note,
+.brick-lane-front-panel-heading .brick-lane-front-panel {
+  display: none;
+}
+
+.brick-lane-front-panel-heading .brick-lane-summary-card h2 {
+  margin: 0;
+  color: var(--brick-lane-cyan);
+  font-size: clamp(0.8rem, 1.7vw, 1rem);
+  line-height: 1.25;
+  text-align: right;
+}
+
+.brick-lane-front-panel-heading .brick-lane-summary-card > p:not(.brick-lane-kicker):not(.brick-lane-preset-path):not(.brick-lane-mode-family) {
+  display: none;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-hardware {
+  width: min(100%, 300px);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-faceplate-core {
+  min-height: 790px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-live-note {
+  margin-top: 0.65rem;
+}
+
+.brick-lane-workflow-stage[data-brick-lane-stage="setup"] .brick-lane-stage-actions {
+  margin-top: 0.85rem;
+}
+
+@media (max-width: 980px) {
+  .brick-lane-setup-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .brick-lane-front-panel-workspace {
+    position: static;
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-hardware {
+    width: min(100%, 330px);
+  }
+}
+
+@media (max-width: 640px) {
+  .brick-lane-starting-point,
+  .brick-lane-picker-grid,
+  .brick-lane-front-panel-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .brick-lane-selection-context {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .brick-lane-front-panel-heading .brick-lane-summary-card h2 {
+    text-align: left;
+  }
+
+  .brick-lane-direction-panel .brick-lane-section-heading {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-panel-body {
+    box-sizing: border-box;
+    padding-left: 8px;
+  }
+}
+
+/* Brick Lane 500 front panel: matched to Cranborne's official front photograph. */
+.brick-lane-front-panel-workspace .brick-lane-hardware {
+  width: min(100%, 286px);
+  padding: 0;
+  border: 1px solid #565b63;
+  border-radius: 3px;
+  background: #0a0b0d;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 24px 48px rgba(0, 0, 0, 0.58);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-faceplate-core {
+  position: relative;
+  min-height: 1000px;
+  padding: 64px 12px 54px;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035), transparent 11%, transparent 88%, rgba(255, 255, 255, 0.025)),
+    linear-gradient(180deg, #111216, #08090b 48%, #101115);
+  box-sizing: border-box;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stripe {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 43px;
+  margin: 0;
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(-8deg, rgba(245, 46, 230, 0.58) 0 2px, rgba(94, 231, 255, 0.5) 2px 4px, rgba(75, 76, 255, 0.5) 4px 6px, transparent 6px 9px),
+    #15161a;
+  opacity: 0.78;
+}
+
+.brick-lane-panel-screw {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  width: 19px;
+  height: 19px;
+  border: 2px solid #8f949c;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at 38% 34%, #fbfbfb 0 20%, #b8bbc0 26% 48%, #4a4d53 53% 60%, #0a0b0d 65%);
+  box-shadow: 0 1px 2px #000;
+}
+
+.brick-lane-panel-screw-top {
+  top: 11px;
+}
+
+.brick-lane-panel-screw-bottom {
+  bottom: 10px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-panel-body {
+  display: grid;
+  grid-template-columns: minmax(126px, 1.08fr) minmax(105px, 0.92fr);
+  gap: 7px;
+  align-items: start;
+  padding: 0;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-main-controls {
+  display: grid;
+  gap: 24px;
+  justify-items: center;
+  padding-top: 0;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-right-controls {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  align-content: start;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-brand-lockup {
+  display: block;
+  width: 100%;
+  margin: 0 0 2px;
+  text-align: center;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-brand {
+  color: #f5f5f7;
+  font: italic 900 0.87rem/1 "Arial Narrow", sans-serif;
+  letter-spacing: -0.08em;
+  text-shadow: -2px 0 #5ee7ff, 2px 0 #f52ee6;
+  white-space: nowrap;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-model-label {
+  margin-top: 2px;
+  color: #d2d4d8;
+  font: 600 0.43rem/1 sans-serif;
+  text-align: center;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-knob-container {
+  width: 122px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob {
+  width: 90px;
+  margin-top: 1px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-knob-header {
+  display: block;
+  min-height: 15px;
+  padding: 0;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-knob-name {
+  display: block;
+  margin: 0 0 2px;
+  color: #f6f6f6;
+  font: 800 0.72rem/1 "Arial Narrow", sans-serif !important;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-main-knob:first-child .brick-lane-knob-name,
+.brick-lane-front-panel-workspace .brick-lane-main-knob:last-child .brick-lane-knob-name {
+  text-align: left;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-knob-readout {
+  display: none;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-big-knob {
+  width: 106px;
+  height: 106px;
+  outline: none;
+  background:
+    repeating-conic-gradient(from 225deg, rgba(255,255,255,0.75) 0 1deg, transparent 1deg 7deg, transparent 7deg 360deg),
+    radial-gradient(circle at 34% 28%, rgba(255,255,255,0.24), transparent 18%),
+    radial-gradient(circle, #202226 0 55%, #08090b 57% 70%, transparent 71%);
+  box-shadow: inset 0 -20px 26px rgba(0,0,0,0.7), 0 4px 8px rgba(0,0,0,0.55);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob .brick-lane-big-knob {
+  width: 82px;
+  height: 82px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-big-knob::before {
+  inset: 13px;
+  border: 1px solid #2f3237;
+  background: radial-gradient(circle at 34% 24%, rgba(255,255,255,0.16), transparent 18%), linear-gradient(145deg, #282b30, #0b0c0f 70%);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-big-knob::after {
+  top: 17px;
+  left: calc(50% - 2px);
+  height: 36px;
+  transform-origin: 2px 36px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob .brick-lane-big-knob::before {
+  inset: 10px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob .brick-lane-big-knob::after {
+  top: 13px;
+  height: 28px;
+  transform-origin: 2px 28px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-scale-row {
+  width: 94px;
+  margin: 0 auto;
+  color: #ececef;
+  font-size: 0.5rem;
+  line-height: 1;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob .brick-lane-scale-row {
+  width: 75px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-meter-pair {
+  width: 102px;
+  grid-template-columns: repeat(2, 48px);
+  gap: 4px;
+  margin-top: 0;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-physical-meter .brick-lane-mini-title {
+  display: none;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-led-housing {
+  width: 48px;
+  margin: 0;
+  padding: 4px 2px;
+  border: 0;
+  border-radius: 2px;
+  background: #0c0d0f;
+  box-shadow: inset 0 0 5px #000;
+  box-sizing: border-box;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-led-ladder {
+  grid-template-columns: 25px 15px;
+  grid-auto-rows: 6px;
+  gap: 2px 3px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-rung {
+  width: 25px;
+  height: 6px;
+  border-radius: 1px;
+  background: rgba(255,255,255,0.12);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-led-label {
+  color: #d9d9dd;
+  font-size: 6px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-mode-list {
+  width: 86px;
+  gap: 2px;
+  margin: 0;
+  font-size: 0.46rem;
+  line-height: 1;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-mode-dot {
+  grid-template-columns: 19px 1fr;
+  gap: 4px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-mode-dot::before {
+  width: 19px;
+  height: 6px;
+  border-radius: 2px;
+  transform: skewX(-35deg);
+  background: linear-gradient(90deg, rgba(245,46,230,0.34), rgba(94,231,255,0.26));
+}
+
+.brick-lane-front-panel-workspace .brick-lane-mode-dot.is-active::before {
+  background: linear-gradient(90deg, #f52ee6, #5ee7ff);
+  box-shadow: 0 0 8px rgba(94,231,255,0.72);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-lower-hardware {
+  display: grid;
+  width: 104px;
+  gap: 9px;
+  justify-items: center;
+}
+
+.brick-lane-momentary-section,
+.brick-lane-optosync-section,
+.brick-lane-in-section {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+}
+
+.brick-lane-switch-legends,
+.brick-lane-switch-end-labels {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  color: #d9d9dc;
+  font-size: 0.42rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.brick-lane-momentary-switch {
+  position: relative;
+  width: 54px;
+  height: 27px;
+  margin: 2px 0;
+  padding: 0;
+  border: 2px solid #55585f;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2d3035 0 18%, #0a0b0d 22% 55%, #7b7f87 58% 65%, #181a1e 68%);
+  cursor: ew-resize;
+}
+
+.brick-lane-momentary-switch button {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.brick-lane-momentary-switch button:first-child {
+  left: 0;
+}
+
+.brick-lane-momentary-switch button:last-child {
+  right: 0;
+}
+
+.brick-lane-momentary-switch button:focus-visible {
+  outline: 2px solid var(--brick-lane-cyan);
+  outline-offset: 2px;
+}
+
+.brick-lane-momentary-switch span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(#b8bac0, #34363b);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.brick-lane-scf-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  width: 100%;
+  gap: 1px;
+  color: #727780;
+  font-size: 0.35rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.brick-lane-scf-option.is-active {
+  color: #fff;
+  text-shadow: 0 0 6px #5ee7ff;
+}
+
+.brick-lane-optosync-section {
+  padding: 4px 7px 3px;
+  border: 1px solid #7b7e85;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.brick-lane-optosync-title {
+  margin-top: -10px;
+  padding: 0 3px;
+  background: #0a0b0d;
+  color: #f0f0f2;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.brick-lane-hardware-switch {
+  position: relative;
+  width: 50px;
+  height: 26px;
+  margin: 4px 0 3px;
+  padding: 0;
+  border: 2px solid #46494f;
+  border-radius: 16px;
+  background: #090a0c;
+  box-shadow: inset 0 0 6px #000;
+  cursor: pointer;
+}
+
+.brick-lane-switch-toggle {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  width: 24px;
+  height: 9px;
+  border-radius: 999px;
+  background: linear-gradient(#ddd, #50535a 70%);
+  transform: translateY(-50%) rotate(-12deg);
+  transform-origin: left center;
+  transition: transform 120ms ease;
+}
+
+.brick-lane-hardware-switch.is-right .brick-lane-switch-toggle {
+  transform: translateY(-50%) rotate(192deg);
+  transform-origin: 20px center;
+}
+
+.brick-lane-switch-end-labels {
+  font-size: 0.32rem;
+}
+
+.brick-lane-link-jack {
+  display: grid;
+  width: 54px;
+  height: 45px;
+  place-items: center;
+  border: 1px solid #787b82;
+  border-radius: 5px;
+}
+
+.brick-lane-link-jack span {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #4d5055;
+  border-radius: 50%;
+  background: radial-gradient(circle, #050506 0 42%, #23252a 46% 58%, #777a80 62% 68%, #111 72%);
+}
+
+.brick-lane-in-section {
+  position: relative;
+  padding-top: 2px;
+}
+
+.brick-lane-in-led {
+  width: 10px;
+  height: 10px;
+  margin-bottom: 1px;
+  border-radius: 50%;
+  background: #26282d;
+  box-shadow: inset 0 1px 2px #000;
+}
+
+.brick-lane-in-led.is-on {
+  background: #5ee7ff;
+  box-shadow: 0 0 9px #5ee7ff;
+}
+
+.brick-lane-in-label {
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-footer-brand {
+  right: 11px;
+  bottom: 36px;
+  left: 11px;
+  padding-top: 2px;
+  border-top: 1px solid #a7a9ae;
+  color: #e7e7ea;
+  font-size: 0.58rem;
+}
+
+.brick-lane-hardware-reference {
+  display: block;
+  max-width: 320px;
+  margin: 0.55rem auto 0;
+  color: var(--brick-lane-muted);
+  font-size: 0.62rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .brick-lane-front-panel-workspace .brick-lane-panel-body {
+    padding-left: 0;
+  }
+}
+
+/* Larger, recall-ready faceplate controls. */
+.brick-lane-front-panel-workspace .brick-lane-hardware {
+  width: min(100%, 360px);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-faceplate-core {
+  min-height: 1260px;
+  padding: 72px 15px 60px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stripe {
+  height: 48px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-panel-body {
+  grid-template-columns: minmax(160px, 1.1fr) minmax(148px, 0.9fr);
+  gap: 12px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-main-controls {
+  gap: 27px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-right-controls {
+  gap: 13px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-brand-lockup {
+  margin-bottom: 4px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-brand {
+  font-size: 1.14rem;
+  letter-spacing: -0.07em;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-model-label {
+  margin-top: 4px;
+  font-size: 0.57rem;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-knob-container {
+  width: 148px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob {
+  width: 118px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-knob-header {
+  min-height: 20px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-knob-name {
+  margin-bottom: 4px;
+  font-size: 0.87rem !important;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-big-knob {
+  width: 128px;
+  height: 128px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob .brick-lane-big-knob {
+  width: 104px;
+  height: 104px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-big-knob::before {
+  inset: 15px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-big-knob::after {
+  top: 20px;
+  height: 43px;
+  transform-origin: 2px 43px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob .brick-lane-big-knob::before {
+  inset: 12px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob .brick-lane-big-knob::after {
+  top: 16px;
+  height: 34px;
+  transform-origin: 2px 34px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-scale-row {
+  width: 114px;
+  margin-top: 1px;
+  font-size: 0.61rem;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob .brick-lane-scale-row {
+  width: 92px;
+}
+
+.brick-lane-precision-readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 114px;
+  min-height: 15px;
+  margin: 4px auto 0;
+  color: #aeb6c1;
+  font: 700 0.45rem/1 "JetBrains Mono", monospace;
+  letter-spacing: 0.015em;
+}
+
+.brick-lane-precision-readout strong {
+  color: var(--brick-lane-cyan);
+  font-size: 0.52rem;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob .brick-lane-precision-readout {
+  width: 92px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-meter-pair {
+  width: 142px;
+  grid-template-columns: repeat(2, 68px);
+  gap: 6px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-led-housing {
+  width: 68px;
+  padding: 6px 4px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-led-ladder {
+  grid-template-columns: 36px 19px;
+  grid-auto-rows: 8px;
+  gap: 3px 4px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-rung {
+  width: 36px;
+  height: 8px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-led-label {
+  font-size: 7px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-mode-list {
+  width: 112px;
+  gap: 4px;
+  font-size: 0.58rem;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-mode-dot {
+  grid-template-columns: 31px 1fr;
+  gap: 6px;
+  min-height: 10px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-mode-dot::before {
+  width: 29px;
+  height: 8px;
+  border-radius: 2px;
+  transform: skewX(-32deg);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-mode-dot:nth-child(odd)::before {
+  transform: translateX(-4px) skewX(-32deg);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-mode-dot:nth-child(even)::before {
+  transform: translateX(6px) skewX(-32deg);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-mode-dot.is-active::before {
+  box-shadow: 0 0 11px rgba(94, 231, 255, 0.92);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-lower-hardware {
+  grid-template-columns: 1fr;
+  width: 142px;
+  gap: 14px;
+}
+
+.brick-lane-momentary-section {
+  order: 1;
+}
+
+.brick-lane-optosync-section {
+  order: 2;
+}
+
+.brick-lane-link-jack {
+  order: 3;
+}
+
+.brick-lane-in-section {
+  order: 4;
+}
+
+.brick-lane-switch-legends {
+  font-size: 0.57rem;
+}
+
+.brick-lane-momentary-switch {
+  width: 80px;
+  height: 39px;
+  margin: 4px 0;
+}
+
+.brick-lane-momentary-switch span {
+  width: 42px;
+  height: 10px;
+}
+
+.brick-lane-scf-options {
+  grid-template-columns: repeat(3, 1fr);
+  width: 132px;
+  gap: 6px;
+}
+
+.brick-lane-scf-option {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: center;
+  column-gap: 1px;
+  color: #868c96;
+  font: 800 0.5rem/1 "JetBrains Mono", monospace;
+}
+
+.brick-lane-scf-option i {
+  grid-column: 1 / -1;
+  width: 9px;
+  height: 9px;
+  margin: 0 auto 3px;
+  border-radius: 50%;
+  background: #252930;
+  box-shadow: inset 0 1px 2px #000;
+}
+
+.brick-lane-scf-option b,
+.brick-lane-scf-option small {
+  font: inherit;
+}
+
+.brick-lane-scf-option.is-active {
+  color: #fff;
+  text-shadow: 0 0 7px var(--brick-lane-cyan);
+}
+
+.brick-lane-scf-option.is-active i {
+  background: var(--brick-lane-cyan);
+  box-shadow: 0 0 10px var(--brick-lane-cyan), inset 0 1px 2px rgba(255,255,255,0.55);
+}
+
+.brick-lane-optosync-section {
+  padding: 7px 12px 6px;
+}
+
+.brick-lane-optosync-title {
+  margin-top: -13px;
+  font-size: 0.8rem;
+}
+
+.brick-lane-hardware-switch {
+  width: 69px;
+  height: 34px;
+  margin: 6px 0 4px;
+}
+
+.brick-lane-switch-toggle {
+  left: 10px;
+  width: 33px;
+  height: 12px;
+}
+
+.brick-lane-hardware-switch.is-right .brick-lane-switch-toggle {
+  transform-origin: 26px center;
+}
+
+.brick-lane-switch-end-labels {
+  font-size: 0.44rem;
+}
+
+.brick-lane-link-jack {
+  width: 68px;
+  height: 56px;
+}
+
+.brick-lane-link-jack span {
+  width: 27px;
+  height: 27px;
+}
+
+.brick-lane-in-led {
+  width: 13px;
+  height: 13px;
+}
+
+.brick-lane-in-label {
+  font-size: 0.8rem;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-footer-brand {
+  font-size: 0.66rem;
+}
+
+@media (max-width: 440px) {
+  .brick-lane-front-panel-workspace .brick-lane-hardware {
+    width: min(100%, 336px);
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-faceplate-core {
+    min-height: 1175px;
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-panel-body {
+    grid-template-columns: minmax(148px, 1.08fr) minmax(136px, 0.92fr);
+    gap: 7px;
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-knob-container {
+    width: 136px;
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-big-knob {
+    width: 119px;
+    height: 119px;
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-meter-pair {
+    width: 130px;
+    grid-template-columns: repeat(2, 62px);
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-led-housing {
+    width: 62px;
+  }
+}
+
+/* Match the long meter and full-height control geometry of the hardware. */
+.brick-lane-front-panel-workspace .brick-lane-panel-body {
+  align-items: stretch;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-right-controls {
+  position: relative;
+  min-height: 1040px;
+  align-self: stretch;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-meter-pair {
+  align-items: start;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-led-ladder {
+  grid-auto-rows: 21px;
+  gap: 4px 4px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-rung {
+  height: 18px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-led-label {
+  font-size: 8px;
+}
+
+/* The two meter ladders share one neutral, unlit LED treatment.  Meter colour
+   is reserved for a live reading, never for an arbitrary static cell. */
+.brick-lane-front-panel-workspace .brick-lane-meter-pair .brick-lane-rung:not(.is-on) {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #303238;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), inset 0 -2px 3px rgba(0, 0, 0, 0.45);
+  cursor: default;
+  filter: none;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-meter-pair .brick-lane-rung:not(.is-on):hover {
+  filter: none;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-lower-hardware {
+  position: absolute;
+  top: 538px;
+  left: 50%;
+  height: 500px;
+  transform: translateX(-50%);
+}
+
+/* Brick Lane's SCF/MODE control is a tiny split momentary selector, not a
+   long rocker.  The two sides remain independently clickable. */
+.brick-lane-front-panel-workspace .brick-lane-selector-console {
+  display: grid;
+  grid-template-columns: 1fr 44px 1fr;
+  width: 136px;
+  align-items: center;
+  column-gap: 5px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-selector-legend {
+  color: #e3e5e9;
+  font-size: 0.57rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-selector-legend:first-child {
+  text-align: right;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-selector-legend:last-child {
+  text-align: left;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-momentary-switch {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border: 2px solid #999da4;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 44%, #8b9097 0 8%, #31343a 9% 28%, #101114 29% 48%, #646970 49% 57%, #17191d 58% 72%, #050608 73%);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.32), 0 1px 2px #000;
+  cursor: default;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-momentary-switch button {
+  top: 4px;
+  bottom: 4px;
+  width: 50%;
+  border-radius: 50%;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-momentary-switch button:first-child {
+  left: 2px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-momentary-switch button:last-child {
+  right: 2px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-momentary-switch button:hover {
+  background: rgba(94, 231, 255, 0.1);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-momentary-switch button:active {
+  background: rgba(94, 231, 255, 0.2);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-momentary-switch span {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #b7bbc2;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #e4e6e8, #62666d 50%, #1a1c20 55%);
+  box-shadow: inset 0 1px 2px #fff, 0 1px 3px #000;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-momentary-section .brick-lane-scf-options {
+  width: 116px;
+  margin: 5px auto 0;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-in-section {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-link-jack {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 3px;
+  padding: 4px 0;
+  box-sizing: border-box;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-link-jack.is-linked {
+  border-color: var(--brick-lane-cyan);
+  box-shadow: 0 0 12px rgba(94, 231, 255, 0.52), inset 0 0 13px rgba(94, 231, 255, 0.12);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-link-jack.is-linked span {
+  border-color: #baf7ff;
+  background: radial-gradient(circle, #063844 0 39%, #5ee7ff 42% 51%, #e0fcff 54% 61%, #0d2026 64%);
+  box-shadow: 0 0 12px #5ee7ff, inset 0 1px 2px rgba(255, 255, 255, 0.75);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-link-jack.is-linked small {
+  color: #bdf8ff;
+  text-shadow: 0 0 6px rgba(94, 231, 255, 0.82);
+}
+
+.brick-lane-link-jack small {
+  color: #b5bbc4;
+  font: 800 0.36rem/1 "JetBrains Mono", monospace;
+  letter-spacing: 0.02em;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-big-knob {
+  border: 2px solid rgba(245, 247, 250, 0.78);
+  box-sizing: border-box;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-knob-cap {
+  position: absolute;
+  z-index: 4;
+  inset: -7px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 225deg,
+    rgba(255, 255, 255, 0.96) 0deg 0.8deg,
+    transparent 0.8deg 6.6deg
+  );
+  -webkit-mask: radial-gradient(
+    circle,
+    transparent 64%,
+    #000 65% 68%,
+    transparent 69%
+  );
+  mask: radial-gradient(
+    circle,
+    transparent 64%,
+    #000 65% 68%,
+    transparent 69%
+  );
+  pointer-events: none;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-stress-knob .brick-lane-knob-cap {
+  inset: -6px;
+}
+
+/* The faceplate wordmark spans the same visual width as the input control,
+   bringing it right up to the module's outside edge. */
+.brick-lane-front-panel-workspace .brick-lane-brand-lockup {
+  width: 164px;
+  margin-bottom: 8px;
+  transform: translateX(-18px);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-brand {
+  font-size: 1.58rem;
+  letter-spacing: -0.06em;
+  transform: scaleX(1.12);
+  transform-origin: center;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-model-label {
+  margin-top: 5px;
+  font-size: 0.66rem;
+}
+
+@media (max-width: 440px) {
+  .brick-lane-front-panel-workspace .brick-lane-right-controls {
+    min-height: 975px;
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-lower-hardware {
+    top: 500px;
+    height: 462px;
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-led-ladder {
+    grid-auto-rows: 17px;
+    gap: 3px 4px;
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-rung {
+    height: 14px;
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-brand-lockup {
+    width: 160px;
+    transform: translateX(-16px);
+  }
+
+  .brick-lane-front-panel-workspace .brick-lane-brand {
+    font-size: 1.46rem;
+  }
+}
+
+/* Compact, readable switch bank. The mode lamps remain visually separate
+   above it, while every action uses the same switch language. */
+.brick-lane-front-panel-workspace .brick-lane-lower-hardware {
+  top: 648px;
+  height: 390px;
+  align-content: start;
+  grid-auto-rows: max-content;
+  gap: 12px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-momentary-section,
+.brick-lane-front-panel-workspace .brick-lane-optosync-section {
+  align-self: start;
+  height: auto;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-cycle-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 124px;
+  gap: 12px;
+  align-items: end;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-cycle-control {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  color: #e3e5e9;
+  font-size: 0.54rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-hardware-switch {
+  width: 48px;
+  height: 24px;
+  margin: 3px 0;
+  border-width: 1px;
+  border-radius: 999px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-switch-toggle {
+  left: 7px;
+  width: 22px;
+  height: 8px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-hardware-switch.is-right .brick-lane-switch-toggle {
+  transform-origin: 18px center;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-cycle-switch {
+  width: 46px;
+  height: 22px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-cycle-switch .brick-lane-switch-toggle {
+  left: 6px;
+  width: 21px;
+  height: 7px;
+  transform: translateY(-50%) rotate(-8deg);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-cycle-switch:active .brick-lane-switch-toggle {
+  transform: translateY(-50%) rotate(8deg);
+}
+
+.brick-lane-front-panel-workspace .brick-lane-momentary-section .brick-lane-scf-options {
+  margin-top: 7px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-optosync-section {
+  width: 112px;
+  padding: 6px 8px 5px;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-optosync-title {
+  margin-top: -12px;
+  font-size: 0.68rem;
+}
+
+.brick-lane-front-panel-workspace .brick-lane-switch-end-labels {
+  font-size: 0.4rem;
+}
+
+@media (max-width: 440px) {
+  .brick-lane-front-panel-workspace .brick-lane-lower-hardware {
+    top: 620px;
+    height: 342px;
+  }
+}

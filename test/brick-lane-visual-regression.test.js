@@ -27,13 +27,12 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
     await page.goto("http://127.0.0.1:4174/brick-lane-lab.html", {
       waitUntil: "networkidle",
     });
-
     const hardware = await page.locator(".brick-lane-hardware").boundingBox();
-    const topRackEar = await page
-      .locator(".brick-lane-rack-ear-top")
+    const topScrew = await page
+      .locator(".brick-lane-panel-screw-top")
       .boundingBox();
-    const bottomRackEar = await page
-      .locator(".brick-lane-rack-ear-bottom")
+    const bottomScrew = await page
+      .locator(".brick-lane-panel-screw-bottom")
       .boundingBox();
     const panelBody = await page
       .locator(".brick-lane-panel-body")
@@ -48,6 +47,12 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
       .boundingBox();
     const stressKnobBox = await page
       .locator(".brick-lane-stress-knob")
+      .boundingBox();
+    const modeListBox = await page
+      .locator(".brick-lane-mode-list")
+      .boundingBox();
+    const cycleControlsBox = await page
+      .locator(".brick-lane-cycle-controls")
       .boundingBox();
     const meterBoxes = await page
       .locator(".brick-lane-physical-meter")
@@ -79,29 +84,36 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
       .locator(".brick-lane-hardware select")
       .count();
     const meters = await page.locator(".brick-lane-physical-meter").count();
-    const lowerTitles = await page
-      .locator(".brick-lane-lower-section .brick-lane-mini-title")
-      .evaluateAll((titles) =>
-        titles.map((title) => ({
-          text: title.textContent.trim(),
-          textTransform: window.getComputedStyle(title).textTransform,
-        }))
-      );
-    const topScrewContent = await page
-      .locator(".brick-lane-rack-ear-top")
-      .evaluate((ear) => window.getComputedStyle(ear, "::before").content);
+    const cycleSwitches = await page
+      .locator(".brick-lane-cycle-switch")
+      .count();
+    const cycleActions = await page
+      .locator(".brick-lane-cycle-switch[data-param]")
+      .count();
+    const optosyncSwitches = await page
+      .locator('.brick-lane-hardware-switch[data-param="optosync"]')
+      .count();
+    const inSwitches = await page
+      .locator('.brick-lane-hardware-switch[data-param="in"]')
+      .count();
+    const linkJacks = await page.locator(".brick-lane-link-jack").count();
+    const scfLabels = await page
+      .locator(".brick-lane-scf-option")
+      .allTextContents();
 
     assert.ok(hardware, "hardware faceplate should render");
-    assert.ok(topRackEar, "top rack ear should render");
-    assert.ok(bottomRackEar, "bottom rack ear should render");
+    assert.ok(topScrew, "top faceplate screw should render");
+    assert.ok(bottomScrew, "bottom faceplate screw should render");
     assert.ok(panelBody, "hardware panel body should render");
     assert.ok(firstMainKnob, "first main knob should render");
     assert.ok(lastMainKnob, "last main knob should render");
     assert.ok(stressKnobBox, "stress knob should render");
+    assert.ok(modeListBox, "compression mode indicators should render");
+    assert.ok(cycleControlsBox, "SCF and MODE switches should render");
 
-    // Validate that the hardware keeps tall 500-series proportions (> 2.5)
+    // Validate the narrow single-slot 500-series front-panel proportion.
     assert.ok(
-      hardware.height / hardware.width > 2.5,
+      hardware.height / hardware.width > 3.3,
       `expected tall module ratio, got ${hardware.height / hardware.width}`
     );
 
@@ -109,27 +121,17 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
     assert.equal(stressKnobs, 1);
     assert.equal(meters, 2);
     assert.equal(selectsInHardware, 0);
-    assert.deepEqual(
-      lowerTitles.map((title) => title.text),
-      ["SCF", "MODE", "optosync", "IN"]
-    );
-    assert.notEqual(
-      lowerTitles[2].textTransform,
-      "uppercase",
-      "optosync label should keep physical lowercase casing"
-    );
+    assert.equal(cycleSwitches, 2);
+    assert.equal(cycleActions, 2);
+    assert.equal(optosyncSwitches, 1);
+    assert.equal(inSwitches, 1);
+    assert.equal(linkJacks, 1);
+    assert.deepEqual(scfLabels, ["60Hz", "100Hz", "200Hz"]);
+    assert.ok(topScrew.width >= 18, "top mounting screw should stay visible");
+    assert.ok(bottomScrew.width >= 18, "bottom mounting screw should stay visible");
     assert.ok(
-      topRackEar.height >= 18,
-      "top rack ear should be visible like the real 500-series faceplate"
-    );
-    assert.ok(
-      bottomRackEar.height >= 14,
-      "bottom rack ear should be visible like the real 500-series faceplate"
-    );
-    assert.notEqual(
-      topScrewContent,
-      "none",
-      "top rack ear should include a visible screw hole"
+      cycleControlsBox.y >= modeListBox.y + modeListBox.height + 8,
+      "SCF and MODE switches must not overlap the compression mode indicators"
     );
 
     const [sigMeter, grMeter] = meterBoxes;
@@ -150,6 +152,7 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
           "-12",
           "-18",
           "-24",
+          "-30",
         ],
       },
       {
@@ -199,14 +202,54 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
       "STRESS knob should appear before the bottom OUTPUT section"
     );
     assert.ok(
-      panelBody.height < hardware.height * 0.82,
+      panelBody.height < hardware.height * 0.91,
       "faceplate body should not contain a large blank vertical gap"
+    );
+
+    await page
+      .locator("#brick-lane-archetypes")
+      .selectOption({ label: "Kick/Snare Safety" });
+    assert.equal(
+      await page.locator(".brick-lane-scf-options").getAttribute("aria-label"),
+      "SCF 200 Hz"
+    );
+    const attackBeforeFineTune = Number(
+      await page.locator('[data-param="attack"]').getAttribute("data-val")
+    );
+    await page.getByLabel("Punch to Smoothness").fill("5");
+    const attackAfterFineTune = Number(
+      await page.locator('[data-param="attack"]').getAttribute("data-val")
+    );
+    assert.notEqual(
+      attackAfterFineTune,
+      attackBeforeFineTune,
+      "fine-tune controls should visibly move the hardware attack knob"
+    );
+    await page.getByRole("button", { name: "Cycle SCF" }).click();
+    assert.equal(
+      await page.locator(".brick-lane-scf-options").getAttribute("aria-label"),
+      "SCF OFF"
+    );
+    const modeBeforeCycle = await page
+      .locator(".brick-lane-mode-dot.is-active")
+      .innerText();
+    await page.getByRole("button", { name: "Cycle compression mode" }).click();
+    assert.notEqual(
+      await page.locator(".brick-lane-mode-dot.is-active").innerText(),
+      modeBeforeCycle
+    );
+    await page.getByRole("button", { name: "Optosync PARENT" }).click();
+    assert.equal(
+      await page
+        .locator('.brick-lane-hardware-switch[data-param="optosync"]')
+        .getAttribute("aria-label"),
+      "Optosync CHILD"
     );
 
     const detectorText = await page
       .locator('[data-parameter-id="detector"]')
       .innerText({ timeoutMs: 5000 });
-    assert.match(detectorText, /Peak \+ RMS \+ Slow RMS/);
+    assert.match(detectorText, /Peak/);
     assert.doesNotMatch(
       detectorText,
       /Triple RMS Hyb|Dual RMS Hybrid|Peak\+RMS Var/
@@ -216,7 +259,6 @@ test("Brick Lane hardware keeps tall 500-series proportions", async () => {
     await page.goto("http://127.0.0.1:4174/brick-lane-lab.html", {
       waitUntil: "networkidle",
     });
-
     const mobileHardware = await page
       .locator(".brick-lane-hardware")
       .boundingBox();

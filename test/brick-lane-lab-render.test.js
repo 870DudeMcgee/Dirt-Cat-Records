@@ -150,7 +150,7 @@ test("createCopyText contains full parameter names and selected rung labels", ()
 
   assert.match(text, /Sidechain High Frequency Emphasis\/De-emphasis/);
   assert.match(text, /Enigma Left/);
-  assert.match(text, /15/);
+  assert.match(text, /High frequencies compressed more/);
 });
 
 test("copy recall text includes Enigma guide labels for users", () => {
@@ -186,14 +186,16 @@ test("polish color variants use the shared Polish mode guide", () => {
 });
 
 test("physical faceplate lights shared POLISH mode for polish color variants", () => {
-  const preset = { ...getGeneratedPreset(), mode: "Polish Blue" };
-  const html = renderHardwareFaceplate(preset, {
-    frontPanelValues: preset.frontPanelValues,
-  });
+  const generated = getGeneratedPreset();
+  const preset = {
+    ...generated,
+    mode: "Polish Blue",
+    frontPanelValues: { ...generated.frontPanelValues, mode: "Polish Blue" },
+  };
+  const html = renderHardwareFaceplate(preset);
 
   assert.match(html, /class="brick-lane-mode-dot is-active">POLISH<\/span>/);
-  assert.match(html, /id="brick-lane-hw-mode">POLISH<\/div>/);
-  assert.doesNotMatch(html, /id="brick-lane-hw-mode">Polish Blue<\/div>/);
+  assert.doesNotMatch(html, /brick-lane-mode-label/);
   assert.doesNotMatch(html, /Limiter\/Clipper|Saturation/);
 });
 
@@ -281,6 +283,28 @@ test("renderHardwareFaceplate matches physical front-panel anatomy", () => {
   assert.match(html, />IN</);
 });
 
+test("faceplate sync link reflects the preset's stereo topology", () => {
+  const mono = renderHardwareFaceplate(
+    getGeneratedPreset({ presetId: "safe-vocal-catcher" })
+  );
+  const stereo = renderHardwareFaceplate(
+    getGeneratedPreset({ presetId: "invisible-mix-glue" })
+  );
+
+  assert.match(mono, /Stereo sync link inactive/);
+  assert.match(stereo, /brick-lane-link-jack is-linked/);
+  assert.match(stereo, /Stereo sync link active/);
+  assert.match(stereo, />SYNC LINKED</);
+});
+
+test("physical faceplate shows 41-detent recall steps", () => {
+  const preset = getGeneratedPreset();
+  const html = renderHardwareFaceplate(preset);
+
+  assert.match(html, /STEP \d+\/41/);
+  assert.match(html, /data-val="47\.5"|data-val="50"/);
+});
+
 test("renderControls replaces six separate knob cards with one compression field", () => {
   const html = renderControls({
     controls: {
@@ -300,37 +324,25 @@ test("renderControls replaces six separate knob cards with one compression field
   assert.doesNotMatch(html, /brick-lane-dial/);
 });
 
-test("renderUseAreas renders workflow tabs", () => {
+test("renderUseAreas renders a compact session-stage picker", () => {
   const html = renderUseAreas({ useAreaId: "mixing" });
 
-  assert.match(html, /data-use-area-id="tracking"/);
-  assert.match(html, /data-use-area-id="mixing"/);
-  assert.match(html, /data-use-area-id="bus-master"/);
-  assert.match(html, />Tracking</);
-  assert.match(html, />Mixing</);
-  assert.match(html, />Bus \/ Master</);
-  assert.match(
-    html,
-    /data-use-area-id="mixing"[^>]*is-active|is-active[^>]*data-use-area-id="mixing"/
-  );
+  assert.match(html, /<option value="tracking">Tracking<\/option>/);
+  assert.match(html, /<option value="mixing" selected>Mixing<\/option>/);
+  assert.match(html, /<option value="bus-master">Bus \/ Master<\/option>/);
 });
 
-test("renderPresetBrowser groups presets by source under selected workflow area", () => {
+test("renderPresetBrowser groups preset options by source under selected session stage", () => {
   const html = renderPresetBrowser({
     useAreaId: "mixing",
     presetId: "vocal-de-esser",
   });
 
-  assert.match(html, /brick-lane-source-section/);
-  assert.match(html, />Vocals</);
-  assert.match(html, />Bass</);
-  assert.match(html, />Drums</);
-  assert.match(html, />Guitar</);
-  assert.match(html, /data-preset-id="vocal-de-esser"/);
-  assert.match(html, /Vocal De-Esser/);
-  assert.match(html, /Controls sharp sibilance/);
-  assert.match(html, /brick-lane-preset-row is-active/);
-  assert.match(html, /brick-lane-preset-tag/);
+  assert.match(html, /<optgroup label="Vocals">/);
+  assert.match(html, /<optgroup label="Bass">/);
+  assert.match(html, /<optgroup label="Drums">/);
+  assert.match(html, /<optgroup label="Guitar">/);
+  assert.match(html, /<option value="vocal-de-esser" selected>Vocal De-Esser<\/option>/);
   assert.doesNotMatch(html, /data-problem-preset-id/);
   assert.doesNotMatch(html, /data-archetype-id/);
   assert.doesNotMatch(html, /brick-lane-source-tile/);
@@ -405,7 +417,7 @@ test("recall cards render state-owned rung selections exactly", () => {
   const preset = getGeneratedPreset();
   const html = renderRecallCards(preset, {
     activeTab: "primary",
-    monitorParam: "VU",
+    monitorParam: "ratio",
     parameterSelections: {
       ratio: ["8"],
     },

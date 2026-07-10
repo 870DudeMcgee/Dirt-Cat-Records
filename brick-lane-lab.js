@@ -129,7 +129,9 @@
 
     try {
       resolved = resolver
-        ? resolver.resolveParameterSelection(parameter, selected)
+        ? resolver.resolveParameterSelection(parameter, selected, {
+            detectorSettingId: options.detectorSettingId,
+          })
         : {
             label: Array.isArray(selected) ? selected.join(", ") : "",
             meaning: parameter.description || "",
@@ -162,6 +164,10 @@
     const resolvedLabel = resolved.label
       ? `<p class="brick-lane-resolved-setting">${escapeHtml(resolved.label)}</p>`
       : "";
+    const displayNote =
+      resolved.displayNote || parameter.displayNote
+        ? `<p class="brick-lane-parameter-note">${escapeHtml(resolved.displayNote || parameter.displayNote)}</p>`
+        : "";
 
     return `<article class="brick-lane-parameter-card${monitoredClass}" data-parameter-id="${escapeHtml(parameter.id)}" style="--brick-lane-led:${escapeHtml(ledColor)}">
       <h3>${escapeHtml(parameter.label)}</h3>
@@ -169,6 +175,7 @@
       ${resolvedLabel}
       <p>${escapeHtml(parameter.side)}. ${escapeHtml(parameter.description || "")}</p>
       ${plainMeaning}
+      ${displayNote}
       ${renderExactLedLadder({
         ...parameter,
         displayScale: resolved.displayScale,
@@ -212,12 +219,17 @@
     </section>`;
   }
 
-  function getResolvedParameter(parameter) {
+  function getResolvedParameter(parameter, preset) {
     try {
       return resolver
         ? resolver.resolveParameterSelection(
             parameter,
-            parameter.selection || parameter.selected
+            parameter.selection || parameter.selected,
+            {
+              detectorSettingId:
+                preset?.parameters?.detector?.selection?.settingId ||
+                preset?.parameters?.detector?.selected?.settingId,
+            }
           )
         : null;
     } catch (_error) {
@@ -249,7 +261,7 @@
         ? `${parameter.label} / ${guide.userLabel}`
         : parameter.label;
 
-      const resolved = getResolvedParameter(parameter);
+      const resolved = getResolvedParameter(parameter, preset);
       const settingLabel = resolved
         ? resolved.label
         : Array.isArray(parameter.selected)
@@ -311,7 +323,13 @@
     const modeLabel = formatModeLabel(preset.mode);
     const saturation = data.ENIGMA_DEMYSTIFIER.saturation;
     const parameterCards = preset.parameterOrder
-      .map((parameterId) => renderParameterCard(preset.parameters[parameterId]))
+      .map((parameterId) =>
+        renderParameterCard(preset.parameters[parameterId], {
+          detectorSettingId:
+            preset.parameters.detector.selection?.settingId ||
+            preset.parameters.detector.selected?.settingId,
+        })
+      )
       .join("");
     const whyItems = Array.isArray(preset.why)
       ? preset.why.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")
@@ -355,8 +373,8 @@
 
   function renderUseAreas(state) {
     return data.USE_AREAS.map((useArea) => {
-      const activeClass = useArea.id === state.useAreaId ? " is-active" : "";
-      return `<button class="brick-lane-option${activeClass}" type="button" data-use-area-id="${escapeHtml(useArea.id)}"><span>${escapeHtml(useArea.label)}</span></button>`;
+      const selected = useArea.id === state.useAreaId ? " selected" : "";
+      return `<option value="${escapeHtml(useArea.id)}"${selected}>${escapeHtml(useArea.label)}</option>`;
     }).join("");
   }
 
@@ -366,37 +384,28 @@
 
     return groups
       .map((group) => {
-        const rows = group.presets
+        const options = group.presets
           .map((preset) => {
-            const activeClass =
-              preset.id === state.presetId ? " is-active" : "";
-            const tags = preset.tags
-              .map(
-                (tag) =>
-                  `<span class="brick-lane-preset-tag">${escapeHtml(tag)}</span>`
-              )
-              .join("");
-
-            return `<button class="brick-lane-preset-row${activeClass}" type="button" data-preset-id="${escapeHtml(preset.id)}">
-              <span class="brick-lane-preset-main">
-                <span class="brick-lane-preset-label">${escapeHtml(preset.label)}</span>
-                <span class="brick-lane-preset-description">${escapeHtml(preset.summary)}</span>
-              </span>
-              <span class="brick-lane-preset-tags">${tags}</span>
-            </button>`;
+            const selected = preset.id === state.presetId ? " selected" : "";
+            return `<option value="${escapeHtml(preset.id)}"${selected}>${escapeHtml(preset.label)}</option>`;
           })
           .join("");
 
-        return `<section class="brick-lane-source-section">
-          <h3>${escapeHtml(group.source.label)}</h3>
-          <div class="brick-lane-preset-list">${rows}</div>
-        </section>`;
+        return `<optgroup label="${escapeHtml(group.source.label)}">${options}</optgroup>`;
       })
       .join("");
   }
 
+  function renderSelectionContext(preset) {
+    return `<strong>${escapeHtml(presetPathLabel(preset))}</strong><span>${escapeHtml(preset.summary)}</span>`;
+  }
+
   function knobAngle(value) {
     return Math.round(-135 + (Number(value) / 100) * 270);
+  }
+
+  function snapToPanelDetent(value) {
+    return Math.round(normalizePanelValue(value) / 2.5) * 2.5;
   }
 
   function normalizePanelValue(value, fallback = 50) {
@@ -415,11 +424,9 @@
       const db = ((normalizedValue / 100) * 40 - 40).toFixed(1);
       valString = db + " dB";
     } else if (param === "attack") {
-      const ms = Math.round(1 + (normalizedValue / 100) * 99);
-      valString = ms + " ms";
+      valString = `${Math.round(normalizedValue)}% FAST`;
     } else if (param === "release") {
-      const ms = Math.round(10 + (normalizedValue / 100) * 990);
-      valString = ms + " ms";
+      valString = `${Math.round(normalizedValue)}% FAST`;
     } else if (param === "stress") {
       const units = ((normalizedValue / 100) * 10).toFixed(1);
       valString = units;
@@ -428,17 +435,19 @@
   }
 
   function renderPhysicalKnob(knob, value, className = "brick-lane-main-knob") {
-    const normalizedValue = normalizePanelValue(value);
+    const normalizedValue = snapToPanelDetent(value);
     const param = knob.id;
     const valString = formatPanelReadout(param, normalizedValue);
+    const detent = Math.round(normalizedValue / 2.5) + 1;
 
     return `<div class="brick-lane-knob-container ${escapeHtml(className)}">
       <div class="brick-lane-knob-header">
         <span class="brick-lane-knob-name">${escapeHtml(knob.label)}</span>
         <span class="brick-lane-knob-readout" id="readout-fp-${param}">${valString}</span>
       </div>
-      <div class="brick-lane-big-knob" data-param="${escapeHtml(param)}" data-val="${normalizedValue}" style="--brick-lane-knob-angle:${knobAngle(normalizedValue)}deg"></div>
+      <div class="brick-lane-big-knob" data-param="${escapeHtml(param)}" data-val="${normalizedValue}" style="--brick-lane-knob-angle:${knobAngle(normalizedValue)}deg" role="slider" tabindex="0" aria-label="${escapeHtml(knob.label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${normalizedValue}" aria-valuetext="${escapeHtml(valString)}"><span class="brick-lane-knob-cap" aria-hidden="true"></span></div>
       <div class="brick-lane-scale-row"><span>${escapeHtml(knob.low || "")}</span>${knob.center ? `<span>${escapeHtml(knob.center)}</span>` : ""}<span>${escapeHtml(knob.high || "")}</span></div>
+      <div class="brick-lane-precision-readout"><span>STEP ${detent}/41</span><strong>${escapeHtml(valString)}</strong></div>
       <div class="brick-lane-tooltip" id="tooltip-fp-${param}">${valString}</div>
     </div>`;
   }
@@ -466,9 +475,10 @@
     const activeValues = new Set(activeScale.map(String));
     const ledColor = data.BRICK_LANE_COLORS[meter.color] || meter.color;
     const rungs = meter.scale
-      .map((label) => {
+      .map((label, index) => {
         const activeClass = activeValues.has(String(label)) ? " is-on" : "";
-        return `<span class="brick-lane-rung${activeClass}" data-val="${escapeHtml(label)}" aria-hidden="true"></span><span class="brick-lane-led-label">${escapeHtml(label)}</span>`;
+        const row = index + 1;
+        return `<span class="brick-lane-rung${activeClass}" data-val="${escapeHtml(label)}" style="grid-row:${row}" aria-hidden="true"></span><span class="brick-lane-led-label" style="grid-row:${row}">${escapeHtml(label)}</span>`;
       })
       .join("");
 
@@ -491,44 +501,58 @@
 
   function renderLowerHardware(fp) {
     const scfValue = fp.scf || "100 Hz";
-    const linkValue = fp.link || "STEREO";
-    const scfActive =
-      scfValue === "120Hz" ||
-      scfValue === "100 Hz" ||
-      scfValue === "60 Hz or 100 Hz";
+    const optosyncValue = fp.optosync || "PARENT";
+    const isIn = fp.in !== false;
+    const isStereoLinked = fp.link === "STEREO";
+    const scfOptions = data.FRONT_PANEL_REFERENCE.scfFrequencies
+      .filter((frequency) => frequency !== "OFF")
+      .map((frequency) => {
+        const activeClass = frequency === scfValue ? " is-active" : "";
+        const number = frequency.replace(/\s*Hz$/i, "");
+        return `<span class="brick-lane-scf-option${activeClass}"><i aria-hidden="true"></i><b>${escapeHtml(number)}</b><small>Hz</small></span>`;
+      })
+      .join("");
     return `<div class="brick-lane-lower-hardware">
-      <div class="brick-lane-lower-section">
-        <div class="brick-lane-mini-title">SCF</div>
-        <div class="brick-lane-toggle-box ${scfActive ? "is-on" : ""}" data-param="scf">
-          <span class="brick-lane-toggle-handle"></span>
+      <div class="brick-lane-momentary-section">
+        <div class="brick-lane-cycle-controls" aria-label="SCF and compression mode switches">
+          <div class="brick-lane-cycle-control">
+            <span>SCF</span>
+            <button type="button" class="brick-lane-hardware-switch brick-lane-cycle-switch" data-param="scf" aria-label="Cycle SCF" title="Cycle sidechain high-pass filter">
+              <span class="brick-lane-switch-toggle" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="brick-lane-cycle-control">
+            <span>MODE</span>
+            <button type="button" class="brick-lane-hardware-switch brick-lane-cycle-switch" data-param="mode" aria-label="Cycle compression mode" title="Cycle compression mode">
+              <span class="brick-lane-switch-toggle" aria-hidden="true"></span>
+            </button>
+          </div>
         </div>
-        <div class="brick-lane-toggle-label">${escapeHtml(scfValue)}</div>
+        <div class="brick-lane-scf-options" aria-label="SCF ${escapeHtml(scfValue)}">${scfOptions}</div>
       </div>
-      <div class="brick-lane-lower-section">
-        <div class="brick-lane-mini-title">MODE</div>
-        <div class="brick-lane-toggle-box ${linkValue === "MONO" ? "is-on" : ""}" data-param="link">
-          <span class="brick-lane-toggle-handle"></span>
-        </div>
-        <div class="brick-lane-toggle-label">${escapeHtml(linkValue)}</div>
+      <div class="brick-lane-optosync-section">
+        <div class="brick-lane-optosync-title">optosync</div>
+        <button type="button" class="brick-lane-hardware-switch ${optosyncValue === "CHILD" ? "is-right" : "is-left"}" data-param="optosync" aria-label="Optosync ${escapeHtml(optosyncValue)}" aria-pressed="${optosyncValue === "CHILD"}" title="Switch Optosync between parent and child">
+          <span class="brick-lane-switch-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="brick-lane-switch-end-labels"><span>Parent</span><span>Child</span></div>
       </div>
-      <div class="brick-lane-lower-section">
-        <div class="brick-lane-mini-title">optosync</div>
-        <div class="brick-lane-toggle-box is-on" aria-hidden="true">
-          <span class="brick-lane-toggle-handle"></span>
-        </div>
+      <div class="brick-lane-link-jack${isStereoLinked ? " is-linked" : ""}" aria-label="${isStereoLinked ? "Stereo sync link active" : "Stereo sync link inactive"}" data-link-state="${isStereoLinked ? "stereo" : "mono"}">
+        <span aria-hidden="true"></span>
+        <small>${isStereoLinked ? "SYNC LINKED" : "SYNC LINK"}</small>
       </div>
-      <div class="brick-lane-lower-section">
-        <div class="brick-lane-mini-title">IN</div>
-        <div class="brick-lane-toggle-box is-on" aria-hidden="true">
-          <span class="brick-lane-toggle-handle"></span>
-        </div>
+      <div class="brick-lane-in-section">
+        <span class="brick-lane-in-led${isIn ? " is-on" : ""}" aria-hidden="true"></span>
+        <button type="button" class="brick-lane-hardware-switch ${isIn ? "is-right" : "is-left"}" data-param="in" aria-label="${isIn ? "In" : "Bypassed"}" aria-pressed="${isIn}" title="Toggle Brick Lane in or bypassed">
+          <span class="brick-lane-switch-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="brick-lane-in-label">IN</div>
       </div>
     </div>`;
   }
 
   function renderHardwareFaceplate(preset, state = {}) {
-    const fp = state.frontPanelValues ||
-      preset.frontPanelValues || {
+    const fp = preset.frontPanelValues || {
         input: 50,
         threshold: 48,
         attack: 42,
@@ -536,23 +560,18 @@
         output: 50,
         stress: 28,
         scf: "100 Hz",
-        link: "STEREO",
+        link: "MONO",
+        mode: preset.mode,
+        optosync: "PARENT",
+        in: true,
       };
     const reference = data.FRONT_PANEL_REFERENCE;
-    const hardwareModeLabel =
-      getModeGuide(preset.mode)?.hardwareLabel || normalizeModeKey(preset.mode);
+    const hardwareMode = fp.mode || preset.mode;
 
     return `<div class="brick-lane-hardware" aria-label="Brick Lane 500 front panel">
-      <div class="brick-lane-rack-ear brick-lane-rack-ear-top" aria-hidden="true"></div>
       <div class="brick-lane-faceplate-core">
+      <span class="brick-lane-panel-screw brick-lane-panel-screw-top" aria-hidden="true"></span>
       <div class="brick-lane-stripe"></div>
-      <div class="brick-lane-brand-lockup">
-        <div>
-          <div class="brick-lane-brand">BRICK LANE</div>
-          <div class="brick-lane-model-label">modal compressor</div>
-        </div>
-        <div class="brick-lane-mode-label" id="brick-lane-hw-mode">${escapeHtml(hardwareModeLabel)}</div>
-      </div>
       <div class="brick-lane-panel-body">
         <div class="brick-lane-main-controls">
           ${reference.mainKnobs
@@ -560,18 +579,22 @@
             .join("")}
         </div>
         <div class="brick-lane-right-controls">
+          <div class="brick-lane-brand-lockup">
+            <div class="brick-lane-brand">BRICK LANE</div>
+            <div class="brick-lane-model-label">modal compressor</div>
+          </div>
           <div class="brick-lane-meter-pair">
             ${renderPhysicalMeter(reference.meters.sig)}
             ${renderPhysicalMeter(reference.meters.gr)}
           </div>
           ${renderPhysicalKnob(reference.stressKnob, fp.stress, "brick-lane-stress-knob")}
-          ${renderPhysicalModeList(preset.mode)}
+          ${renderPhysicalModeList(hardwareMode)}
           ${renderLowerHardware(fp)}
         </div>
       </div>
       <footer class="brick-lane-footer-brand">CRANBORNE AUDIO</footer>
+      <span class="brick-lane-panel-screw brick-lane-panel-screw-bottom" aria-hidden="true"></span>
       </div>
-      <div class="brick-lane-rack-ear brick-lane-rack-ear-bottom" aria-hidden="true"></div>
     </div>`;
   }
 
@@ -605,10 +628,13 @@
   }
 
   function renderMonitorSelect(state) {
-    const monitorParam = state.monitorParam || "VU";
-    return `<div class="brick-lane-monitor-control">
-      <select id="brick-lane-monitor-select" class="brick-lane-select" aria-label="Parameter Monitor">
-        <option value="VU" ${monitorParam === "VU" ? "selected" : ""}>Monitor: VU (GR Mode)</option>
+    const monitorParam =
+      state.monitorParam && state.monitorParam !== "VU"
+        ? state.monitorParam
+        : "detector";
+    return `<label class="brick-lane-monitor-control">
+      <span>Inspect parameter</span>
+      <select id="brick-lane-monitor-select" class="brick-lane-select" aria-label="Inspect Enigma parameter">
         <optgroup label="Left Enigma Parameters">
           <option value="stressTypeDiodeClipping" ${monitorParam === "stressTypeDiodeClipping" ? "selected" : ""}>Saturation character (Red)</option>
           <option value="diodeHardness" ${monitorParam === "diodeHardness" ? "selected" : ""}>Saturation hardness (Yellow)</option>
@@ -628,66 +654,70 @@
           <option value="ledBrightness" ${monitorParam === "ledBrightness" ? "selected" : ""}>LED Brightness (Magenta)</option>
         </optgroup>
       </select>
-    </div>`;
+    </label>`;
   }
 
-  // Upgraded Tabbed Recall Card category filtering
   function renderRecallCards(preset, state) {
-    const activeTab = state.activeTab || "primary";
-    const monitorParam = state.monitorParam || "VU";
+    const monitorParam =
+      state.monitorParam && state.monitorParam !== "VU"
+        ? state.monitorParam
+        : "detector";
+    const detectorSettingId =
+      preset.parameters.detector.selection?.settingId ||
+      preset.parameters.detector.selected?.settingId;
 
-    const tabsHtml = `
-      <nav class="brick-lane-tabs">
-        <button type="button" class="brick-lane-tab-btn ${activeTab === "primary" ? "is-active" : ""}" data-tab="primary">Primary (6)</button>
-        <button type="button" class="brick-lane-tab-btn ${activeTab === "tone" ? "is-active" : ""}" data-tab="tone">Tone (4)</button>
-        <button type="button" class="brick-lane-tab-btn ${activeTab === "timing" ? "is-active" : ""}" data-tab="timing">Timing (4)</button>
-        <button type="button" class="brick-lane-tab-btn ${activeTab === "all" ? "is-active" : ""}" data-tab="all">All (14)</button>
-      </nav>
-    `;
-
-    let parameterIds = [];
-    if (activeTab === "primary") {
-      parameterIds = [
-        "sidechainHighFrequencyEmphasis",
-        "detector",
-        "ratio",
-        "attackWeighting",
-        "releaseWeighting",
-        "crestFactorShaping",
-      ];
-    } else if (activeTab === "tone") {
-      parameterIds = [
-        "stressTypeDiodeClipping",
-        "diodeHardness",
-        "stressCrossoverPhase",
-        "crestFactorShaping",
-      ];
-    } else if (activeTab === "timing") {
-      parameterIds = ["knee", "hold", "lookahead", "ledBrightness"];
-    } else if (activeTab === "all") {
-      parameterIds = preset.parameterOrder;
+    function renderParameterRows(side) {
+      return preset.parameterOrder
+        .filter((id) => preset.parameters[id].side === side)
+        .map((id) => {
+          const parameter = preset.parameters[id];
+          const selected = state.parameterSelections?.[id] ||
+            parameter.selection || parameter.selected;
+          let resolvedLabel = "Setting unavailable";
+          try {
+            resolvedLabel = resolver.resolveParameterSelection(
+              parameter,
+              selected,
+              { detectorSettingId }
+            ).label;
+          } catch (_error) {
+            // Keep the unavailable label for invalid or incomplete selections.
+          }
+          const activeClass = id === monitorParam ? " is-active" : "";
+          const guide = getParameterGuide(id);
+          return `<button type="button" class="brick-lane-enigma-row${activeClass}" data-enigma-parameter="${escapeHtml(id)}" style="--brick-lane-led:${escapeHtml(data.BRICK_LANE_COLORS[parameter.color] || parameter.color)}">
+            <span class="brick-lane-enigma-dot" aria-hidden="true"></span>
+            <span class="brick-lane-enigma-row-copy">
+              <strong>${escapeHtml(guide?.userLabel || parameter.label)}</strong>
+              <small>${escapeHtml(parameter.label)}</small>
+            </span>
+            <span class="brick-lane-enigma-row-value">${escapeHtml(resolvedLabel)}</span>
+          </button>`;
+        })
+        .join("");
     }
 
-    if (
-      monitorParam !== "VU" &&
-      preset.parameters[monitorParam] &&
-      !parameterIds.includes(monitorParam)
-    ) {
-      parameterIds = [...parameterIds, monitorParam];
-    }
+    const selectedParameter = preset.parameters[monitorParam];
+    const detail = renderParameterCard(selectedParameter, {
+      isMonitored: true,
+      selectedOverride: state.parameterSelections?.[monitorParam],
+      detectorSettingId,
+    });
 
-    const cardsHtml = `<div class="brick-lane-cards-grid ${activeTab === "all" ? "is-dense" : ""}">
-      ${parameterIds
-        .map((id) =>
-          renderParameterCard(preset.parameters[id], {
-            isMonitored: monitorParam !== "VU" && monitorParam === id,
-            selectedOverride: state.parameterSelections?.[id],
-          })
-        )
-        .join("")}
+    return `<div class="brick-lane-enigma-toolbar">
+      <div>
+        <p class="brick-lane-kicker">Complete preset map</p>
+        <h3>Fourteen parameters, one at a time</h3>
+      </div>
+      ${renderMonitorSelect({ ...state, monitorParam })}
+    </div>
+    <div class="brick-lane-enigma-layout">
+      <div class="brick-lane-enigma-index">
+        <section><h4>Enigma Left · long-press left</h4>${renderParameterRows("Enigma Left")}</section>
+        <section><h4>Enigma Right · long-press right</h4>${renderParameterRows("Enigma Right")}</section>
+      </div>
+      <div class="brick-lane-enigma-detail">${detail}</div>
     </div>`;
-
-    return renderMonitorSelect(state) + tabsHtml + cardsHtml;
   }
 
   function initDom() {
@@ -703,11 +733,40 @@
       summary: document.getElementById("brick-lane-preset-summary"),
       parameters: document.getElementById("brick-lane-parameters"),
       copy: document.getElementById("brick-lane-copy"),
+      copyInline: document.getElementById("brick-lane-copy-inline"),
       print: document.getElementById("brick-lane-print"),
+      printInline: document.getElementById("brick-lane-print-inline"),
       printSheet: document.getElementById("brick-lane-print-sheet"),
+      progressButtons: [...document.querySelectorAll("[data-brick-lane-step]")],
+      stages: [...document.querySelectorAll("[data-brick-lane-stage]")],
     };
 
     let state = stateMachine.getInitialState();
+    let activeWorkflowStep = "setup";
+
+    function setWorkflowStep(step, { scroll = true } = {}) {
+      if (!nodes.stages.some((stage) => stage.dataset.brickLaneStage === step)) {
+        return;
+      }
+      activeWorkflowStep = step;
+      for (const stage of nodes.stages) {
+        const isActive = stage.dataset.brickLaneStage === step;
+        stage.hidden = !isActive;
+        stage.classList.toggle("is-active", isActive);
+      }
+      for (const button of nodes.progressButtons) {
+        const isActive = button.dataset.brickLaneStep === step;
+        button.classList.toggle("is-active", isActive);
+        if (isActive) button.setAttribute("aria-current", "step");
+        else button.removeAttribute("aria-current");
+      }
+      if (scroll) {
+        document.getElementById("brick-lane-sonic-lab")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }
 
     function renderGeneratedPanels(renderState) {
       const preset = data.getGeneratedPreset(renderState);
@@ -720,13 +779,24 @@
       const preset = renderGeneratedPanels(state);
       nodes.useAreas.innerHTML = renderUseAreas(state);
       nodes.presetBrowser.innerHTML = renderPresetBrowser(state);
-      nodes.context.innerHTML = "";
+      nodes.context.innerHTML = renderSelectionContext(preset);
       nodes.faceplate.innerHTML = renderHardwareFaceplate(preset, state);
       nodes.controls.innerHTML = renderControls(state);
     }
 
     // Dynamic click handler for category sub-nav tabs AND click-to-paint LED segments
     nodes.parameters.addEventListener("click", (event) => {
+      const parameterButton = event.target.closest("[data-enigma-parameter]");
+      if (parameterButton) {
+        state = stateMachine.labStateReducer(state, {
+          type: "SET_MONITOR_PARAM",
+          payload: { param: parameterButton.dataset.enigmaParameter },
+        });
+        render();
+        playShortClick(760, 0.07);
+        return;
+      }
+
       const tabBtn = event.target.closest(".brick-lane-tab-btn");
       if (tabBtn) {
         state = stateMachine.labStateReducer(state, {
@@ -768,22 +838,43 @@
       playShortClick(800, 0.1);
     });
 
-    // Faceplate Event listeners for mechanical switches
+    // Faceplate event listeners for the real momentary, Optosync, and IN switches.
     nodes.faceplate.addEventListener("click", (event) => {
-      const toggle = event.target.closest(".brick-lane-toggle-box");
-      if (!toggle) return;
+      const hardwareSwitch = event.target.closest("button[data-param]");
+      if (!hardwareSwitch) return;
 
-      const param = toggle.dataset.param;
-      const isOn = toggle.classList.toggle("is-on");
+      let param = hardwareSwitch.dataset.param;
+      let value;
+      const preset = data.getGeneratedPreset(state);
+      const fp = preset.frontPanelValues;
 
       playShortClick(180, 0.15);
       playShortClick(90, 0.08);
 
-      let value;
-      if (param === "scf") {
-        value = isOn ? "120Hz" : "60Hz";
-      } else if (param === "link") {
-        value = isOn ? "MONO" : "STEREO";
+      if (param === "mode") {
+        const modes = [
+          "Velvet",
+          "Float",
+          "Smash",
+          "Tame",
+          "Glue",
+          "Polish White",
+        ];
+        const currentIndex = Math.max(
+          0,
+          modes.findIndex(
+            (mode) => normalizeModeKey(mode) === normalizeModeKey(fp.mode)
+          )
+        );
+        value = modes[(currentIndex + 1) % modes.length];
+      } else if (param === "scf") {
+        const frequencies = data.FRONT_PANEL_REFERENCE.scfFrequencies;
+        const currentIndex = Math.max(0, frequencies.indexOf(fp.scf));
+        value = frequencies[(currentIndex + 1) % frequencies.length];
+      } else if (param === "optosync") {
+        value = fp.optosync === "CHILD" ? "PARENT" : "CHILD";
+      } else if (param === "in") {
+        value = fp.in === false;
       }
 
       state = stateMachine.labStateReducer(state, {
@@ -822,6 +913,7 @@
         let newVal = startVal + deltaY * 0.45;
         if (newVal < 0) newVal = 0;
         if (newVal > 100) newVal = 100;
+        newVal = snapToPanelDetent(newVal);
 
         knob.dataset.val = newVal;
         knob.style.setProperty(
@@ -829,28 +921,14 @@
           `${Math.round(-135 + (newVal / 100) * 270)}deg`
         );
 
-        let valString = "";
-        if (param === "input" || param === "output") {
-          const db = ((newVal / 100) * 40 - 20).toFixed(1);
-          valString = (db >= 0 ? "+" : "") + db + " dB";
-        } else if (param === "threshold") {
-          const db = ((newVal / 100) * 40 - 40).toFixed(1);
-          valString = db + " dB";
-        } else if (param === "attack") {
-          const ms = Math.round(1 + (newVal / 100) * 99);
-          valString = ms + " ms";
-        } else if (param === "release") {
-          const ms = Math.round(10 + (newVal / 100) * 990);
-          valString = ms + " ms";
-        } else if (param === "stress") {
-          const units = ((newVal / 100) * 10).toFixed(1);
-          valString = units;
-        }
+        const valString = formatPanelReadout(param, newVal);
 
         const readout = container.querySelector(".brick-lane-knob-readout");
         if (readout) readout.textContent = valString;
         const tooltip = container.querySelector(".brick-lane-tooltip");
         if (tooltip) tooltip.textContent = valString;
+        knob.setAttribute("aria-valuenow", String(Math.round(newVal)));
+        knob.setAttribute("aria-valuetext", valString);
       }
 
       function dragEndKnob() {
@@ -934,7 +1012,11 @@
         axis.style.setProperty("--brick-lane-value", `${value}%`);
       }
 
-      renderGeneratedPanels({
+      const livePreset = renderGeneratedPanels({
+        ...state,
+        controls,
+      });
+      nodes.faceplate.innerHTML = renderHardwareFaceplate(livePreset, {
         ...state,
         controls,
       });
@@ -977,24 +1059,24 @@
       playShortClick(600, 0.03);
     }
 
-    nodes.useAreas.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-use-area-id]");
-      if (!button) return;
+    nodes.useAreas.addEventListener("change", (event) => {
+      const useAreaId = event.target.value;
+      if (!useAreaId) return;
 
       state = stateMachine.labStateReducer(state, {
         type: "SET_USE_AREA",
-        payload: { useAreaId: button.dataset.useAreaId },
+        payload: { useAreaId },
       });
       render();
     });
 
-    nodes.presetBrowser.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-preset-id]");
-      if (!button) return;
+    nodes.presetBrowser.addEventListener("change", (event) => {
+      const presetId = event.target.value;
+      if (!presetId) return;
 
       state = stateMachine.labStateReducer(state, {
         type: "SET_PRESET",
-        payload: { presetId: button.dataset.presetId },
+        payload: { presetId },
       });
       render();
       playShortClick(660, 0.07);
@@ -1013,24 +1095,46 @@
       render();
     });
 
-    nodes.copy.addEventListener("click", async () => {
+    root.addEventListener("click", (event) => {
+      const workflowButton = event.target.closest(
+        "[data-brick-lane-step], [data-brick-lane-next], [data-brick-lane-back]"
+      );
+      if (!workflowButton) return;
+      const step =
+        workflowButton.dataset.brickLaneStep ||
+        workflowButton.dataset.brickLaneNext ||
+        workflowButton.dataset.brickLaneBack;
+      setWorkflowStep(step);
+    });
+
+    async function handleCopy(button) {
       const preset = data.getGeneratedPreset(state);
       const text = createCopyText(preset);
       const copied = await copyRecallText(text);
-      nodes.copy.textContent = copied ? "Copied" : "Copy unavailable";
+      const originalLabel = button.textContent;
+      button.textContent = copied ? "Copied" : "Copy unavailable";
       window.setTimeout(() => {
-        nodes.copy.textContent = "Copy Recall";
+        button.textContent = originalLabel;
       }, 1400);
-    });
+    }
 
-    nodes.print.addEventListener("click", () => {
+    nodes.copy.addEventListener("click", () => handleCopy(nodes.copy));
+    nodes.copyInline?.addEventListener("click", () =>
+      handleCopy(nodes.copyInline)
+    );
+
+    function handlePrint() {
       const preset = data.getGeneratedPreset(state);
       nodes.printSheet.innerHTML = renderPrintSheet(preset);
       nodes.printSheet.hidden = false;
       window.requestAnimationFrame(() => window.print());
-    });
+    }
+
+    nodes.print.addEventListener("click", handlePrint);
+    nodes.printInline?.addEventListener("click", handlePrint);
 
     render();
+    setWorkflowStep(activeWorkflowStep, { scroll: false });
   }
 
   const api = {

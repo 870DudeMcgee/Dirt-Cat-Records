@@ -3,6 +3,21 @@
 Date: 2026-05-25
 Scope: Brick Lane Sonic Lab front-panel and Enigma LED behavior
 
+## 2026-07-10 Re-audit
+
+Baseline: official Cranborne Audio Brick Lane 500 User Guide, Enigma pages 26-37.
+
+Corrections made in the live model:
+
+- The printed `0.5`-`15` markings are treated as GR-ladder positions when an Enigma parameter does not use those numbers as its real unit.
+- STRESS character choices now light a cumulative LED count, matching the guide's "1 LED = Velvet" through "7 LEDs = Polish Blue" description.
+- Stress Crossover and Phase is limited to the four LED patterns and meanings shown in the guide. Invented angle and generic crossover names were removed.
+- Sidechain HF Emphasis/De-emphasis is limited to the three documented example states: flat, high frequencies compressed less, and high frequencies compressed more. Unsupported de-ess strength names were removed.
+- Detector includes the two documented RMS-pot-variable patterns in addition to the fixed single, dual, and triple detector patterns.
+- Attack and Release Weighting now resolve the same LED position through the correct detector-dependent manual table: single detector, fixed RMS, fixed Slow RMS, or RMS-pot-variable.
+- Hold, Lookahead, Diode Hardness, Stereo Linking, Knee, and LED Brightness are labeled as relative LED settings where the guide does not publish a complete numeric unit table.
+- The UI now explains DIP switch 6, left/right two-second menu entry, short-press navigation, exit behavior, and stereo-parent restrictions before showing the fourteen-parameter map.
+
 ## Implementation Status
 
 - Canonical Enigma data now declares behavior type, evidence, and setting/scalar rules.

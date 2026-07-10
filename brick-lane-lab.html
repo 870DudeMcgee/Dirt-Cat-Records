@@ -10,7 +10,7 @@
     />
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
     <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
-    <link rel="stylesheet" href="style.css?v=4" />
+    <link rel="stylesheet" href="style.css?v=5" />
   </head>
   <body class="brick-lane-lab-page studio-tools-page">
     <nav id="main-nav">
@@ -30,13 +30,13 @@
       class="brick-lane-shell studio-tools-shell"
       aria-label="Brick Lane Sonic Lab"
     >
-      <header class="brick-lane-topbar studio-tools-topbar">
+      <header class="brick-lane-topbar studio-tools-topbar brick-lane-hero">
         <div>
-          <p class="brick-lane-kicker">Dirt Cat Records</p>
+          <p class="brick-lane-kicker">Studio Tool · Hardware Recall</p>
           <h1>Brick Lane Sonic Lab</h1>
           <p class="brick-lane-subhead">
-            Generate exact Brick Lane 500 recall from source context and sonic
-            compromises.
+            Choose the musical job, get a practical front-panel starting point,
+            then enter Enigma only when the session calls for it.
           </p>
         </div>
         <div class="brick-lane-actions">
@@ -57,28 +57,103 @@
         class="studio-tools-active-tool"
         aria-label="Brick Lane Sonic Lab"
       >
-        <section class="brick-lane-grid">
-          <aside class="brick-lane-panel brick-lane-browser">
-            <h2>Use Case</h2>
-            <div id="brick-lane-use-cases"></div>
-            <h2>Archetype</h2>
-            <div id="brick-lane-archetypes"></div>
-            <h2>Problem Presets</h2>
-            <div id="brick-lane-context"></div>
-          </aside>
+        <nav class="brick-lane-progress" aria-label="Brick Lane workflow">
+          <button type="button" class="is-active" data-brick-lane-step="setup" aria-current="step">
+            <span>1</span><strong>Setup &amp; front panel</strong>
+          </button>
+          <button type="button" data-brick-lane-step="enigma">
+            <span>2</span><strong>Program Enigma</strong>
+          </button>
+        </nav>
 
-          <section
-            class="brick-lane-panel brick-lane-faceplate"
-            aria-label="Generated hardware recall"
-          >
-            <div id="brick-lane-faceplate"></div>
-            <div id="brick-lane-controls" class="brick-lane-controls"></div>
+        <section class="brick-lane-workflow-stage is-active" data-brick-lane-stage="setup">
+          <header class="brick-lane-stage-header">
+            <p class="brick-lane-stage-kicker">Start here</p>
+            <h2>Choose a starting point, then set the front panel.</h2>
+            <p>Everything needed for a useful first pass lives below. The Enigma page is only for the deeper recall.</p>
+          </header>
+          <section class="brick-lane-panel brick-lane-starting-point">
+            <div class="brick-lane-starting-point-copy">
+              <p class="brick-lane-kicker">Starting point</p>
+              <h3>Pick the session and musical job</h3>
+            </div>
+            <div class="brick-lane-picker-grid">
+              <label class="brick-lane-picker-field">
+                <span>Session stage</span>
+                <select id="brick-lane-use-cases" aria-label="Choose session stage"></select>
+              </label>
+              <label class="brick-lane-picker-field brick-lane-preset-field">
+                <span>Preset</span>
+                <select id="brick-lane-archetypes" aria-label="Choose preset"></select>
+              </label>
+            </div>
+            <p id="brick-lane-context" class="brick-lane-selection-context" aria-live="polite"></p>
           </section>
+          <div class="brick-lane-setup-workspace">
+            <section class="brick-lane-panel brick-lane-direction-panel">
+              <div class="brick-lane-section-heading">
+                <div>
+                  <p class="brick-lane-kicker">Fine-tune</p>
+                  <h3>Adjust the musical direction</h3>
+                </div>
+                <p>Move the point or nudge the axes. The recall updates with it.</p>
+              </div>
+              <div id="brick-lane-controls" class="brick-lane-controls"></div>
+            </section>
+            <section class="brick-lane-panel brick-lane-front-panel-workspace" aria-label="Generated hardware recall">
+              <div class="brick-lane-front-panel-heading">
+                <div>
+                  <p class="brick-lane-kicker">Front-panel starting point</p>
+                  <h3>Set this on your Brick Lane</h3>
+                </div>
+                <div id="brick-lane-preset-summary"></div>
+              </div>
+              <div id="brick-lane-faceplate"></div>
+              <a class="brick-lane-hardware-reference" href="https://www.cranborne-audio.com/bricklane500" target="_blank" rel="noreferrer">Front-panel anatomy referenced to Cranborne Audio’s official product photography</a>
+              <div class="brick-lane-live-note">
+                <strong>Use your ears and the GR meter.</strong>
+                <span>These are starting points, not calibration values. Set Threshold and makeup gain for the actual source.</span>
+              </div>
+            </section>
+          </div>
+          <div class="brick-lane-stage-actions is-end">
+            <button type="button" class="brick-lane-primary" data-brick-lane-next="enigma">Open Enigma setup</button>
+          </div>
+        </section>
 
-          <aside class="brick-lane-panel brick-lane-recall">
-            <div id="brick-lane-preset-summary"></div>
+        <section class="brick-lane-workflow-stage" data-brick-lane-stage="enigma" hidden>
+          <header class="brick-lane-stage-header">
+            <p class="brick-lane-stage-kicker">Step 3 · Advanced hardware setup</p>
+            <h2>Program the Enigma parameters</h2>
+            <p>The colored LED patterns below are recall instructions for the hidden menus—not extra front-panel meters.</p>
+          </header>
+          <div class="brick-lane-enigma-access">
+            <div>
+              <span class="brick-lane-access-number">1</span>
+              <p><strong>Enable access</strong><br />Set side-panel DIP switch 6 to <b>ON</b>.</p>
+            </div>
+            <div>
+              <span class="brick-lane-access-number">2</span>
+              <p><strong>Enter a menu</strong><br />Long-press left for Enigma Left or right for Enigma Right (2 seconds).</p>
+            </div>
+            <div>
+              <span class="brick-lane-access-number">3</span>
+              <p><strong>Program and exit</strong><br />Short left selects a parameter; short right changes its value. Long-press either direction to exit.</p>
+            </div>
+          </div>
+          <p class="brick-lane-stereo-warning"><strong>Stereo pair:</strong> program Enigma from the parent module. Turn Optosync off before changing a child for mono use.</p>
+          <section class="brick-lane-panel brick-lane-enigma-workbench">
             <div id="brick-lane-parameters"></div>
-          </aside>
+          </section>
+          <div class="brick-lane-manual-link">
+            <span>Documentation checked against Cranborne Audio’s Brick Lane 500 User Guide, Enigma section (pages 26–37).</span>
+            <a href="https://www.cranborne-audio.com/hubfs/User_Manuals/Brick%20Lane%20500/Cranborne_Audio_Brick_Lane_500_User_Guide.pdf" target="_blank" rel="noreferrer">Open manufacturer guide</a>
+          </div>
+          <div class="brick-lane-stage-actions">
+            <button type="button" class="btn-secondary" data-brick-lane-back="setup">Back to setup</button>
+            <button type="button" id="brick-lane-copy-inline">Copy complete recall</button>
+            <button type="button" id="brick-lane-print-inline" class="brick-lane-primary">Print cheat sheet</button>
+          </div>
         </section>
       </section>
 
@@ -90,9 +165,9 @@
     </main>
 
     <script src="nav.js"></script>
-    <script src="brick-lane-data.js"></script>
+    <script src="brick-lane-data.js?v=2"></script>
     <script src="lib/lab/state-machine.js"></script>
     <script src="lib/lab/brick-lane-resolver.js"></script>
-    <script src="brick-lane-lab.js"></script>
+    <script src="brick-lane-lab.js?v=2"></script>
   </body>
 </html>

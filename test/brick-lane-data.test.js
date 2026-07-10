@@ -260,7 +260,7 @@ test("generated preset returns exact selected rung labels", () => {
   assert.equal(preset.mode, "Tame");
   assert.equal(preset.targetGainReduction, "3-6 dB");
   assert.deepEqual(preset.parameters.sidechainHighFrequencyEmphasis.selection, {
-    settingId: "de-ess-hard",
+    settingId: "compress-highs-more",
   });
   assert.deepEqual(preset.parameters.detector.selection, {
     settingId: "peak-rms-slow",
@@ -273,12 +273,12 @@ test("generated preset derives Enigma selections from desired compression contro
     useAreaId: "tracking",
     presetId: "safe-vocal-catcher",
     controls: {
-      punchSmooth: 18,
+      punchSmooth: 82,
       cleanColor: 12,
-      controlOpen: 24,
-      safeExciting: 86,
-      glueLoud: 78,
-      stableWide: 82,
+      controlOpen: 76,
+      safeExciting: 14,
+      glueLoud: 22,
+      stableWide: 18,
     },
   });
 
@@ -286,12 +286,12 @@ test("generated preset derives Enigma selections from desired compression contro
     useAreaId: "tracking",
     presetId: "safe-vocal-catcher",
     controls: {
-      punchSmooth: 92,
+      punchSmooth: 8,
       cleanColor: 84,
-      controlOpen: 94,
-      safeExciting: 22,
-      glueLoud: 24,
-      stableWide: 28,
+      controlOpen: 6,
+      safeExciting: 78,
+      glueLoud: 76,
+      stableWide: 72,
     },
   });
 
@@ -367,6 +367,7 @@ test("front panel reference captures physical Brick Lane 500 anatomy", () => {
     "-12",
     "-18",
     "-24",
+    "-30",
   ]);
   assert.deepEqual(FRONT_PANEL_REFERENCE.meters.gr.scale, [
     "0.5",
@@ -383,16 +384,45 @@ test("front panel reference captures physical Brick Lane 500 anatomy", () => {
     "15",
   ]);
   assert.deepEqual(FRONT_PANEL_REFERENCE.scfFrequencies, [
-    "60Hz",
-    "100Hz",
-    "200Hz",
+    "OFF",
+    "60 Hz",
+    "100 Hz",
+    "200 Hz",
   ]);
   assert.deepEqual(FRONT_PANEL_REFERENCE.lowerSections, [
-    "scf",
-    "mode",
+    "momentary",
     "optosync",
+    "link-jack",
     "in",
   ]);
+});
+
+test("fine-tune controls derive visible hardware settings and drum SCF", () => {
+  const drumPreset = getGeneratedPreset({
+    useAreaId: "tracking",
+    presetId: "kick-snare-safety",
+    controls: {
+      punchSmooth: 12,
+      cleanColor: 40,
+      controlOpen: 18,
+      safeExciting: 62,
+      glueLoud: 46,
+      stableWide: 44,
+    },
+  });
+
+  assert.equal(drumPreset.frontPanelValues.scf, "200 Hz");
+  assert.notEqual(drumPreset.frontPanelValues.attack, 42);
+  assert.equal(typeof drumPreset.frontPanelValues.mode, "string");
+  assert.match(drumPreset.frontPanel.attack, /% fast/);
+});
+
+test("front panel sync link only illuminates for stereo-capable recalls", () => {
+  const vocal = getGeneratedPreset({ presetId: "safe-vocal-catcher" });
+  const bus = getGeneratedPreset({ presetId: "invisible-mix-glue" });
+
+  assert.equal(vocal.frontPanelValues.link, "MONO");
+  assert.equal(bus.frontPanelValues.link, "STEREO");
 });
 
 test("Enigma demystifier maps hardware mode names to familiar compressor families", () => {

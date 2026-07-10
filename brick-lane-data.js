@@ -63,6 +63,7 @@
           "-12",
           "-18",
           "-24",
+          "-30",
         ],
       },
       gr: {
@@ -86,8 +87,8 @@
       },
     },
     modeLabels: ["VELVET", "FLOAT", "SMASH", "TAME", "GLUE", "POLISH"],
-    scfFrequencies: ["60Hz", "100Hz", "200Hz"],
-    lowerSections: ["scf", "mode", "optosync", "in"],
+    scfFrequencies: ["OFF", "60 Hz", "100 Hz", "200 Hz"],
+    lowerSections: ["momentary", "optosync", "link-jack", "in"],
   };
 
   const ENIGMA_DEMYSTIFIER = {
@@ -289,6 +290,9 @@
     displayScale = COMMON_LED_SCALE,
     scale,
     settings,
+    interpretation,
+    valueTables,
+    displayNote,
     evidence: evidenceEntries = [],
   }) {
     const resolvedScale = displayScale || scale || COMMON_LED_SCALE;
@@ -304,6 +308,9 @@
       evidence: evidenceEntries,
     };
     if (settings) result.settings = settings;
+    if (interpretation) result.interpretation = interpretation;
+    if (valueTables) result.valueTables = valueTables;
+    if (displayNote) result.displayNote = displayNote;
     return result;
   }
 
@@ -344,67 +351,67 @@
           id: "float",
           label: "Float (Optical)",
           meaning: "Airy, low-grain color.",
-          ledPattern: ["1.0"],
+          ledPattern: ["0.5", "1.0"],
         },
         {
           id: "smash",
           label: "Smash (FET)",
           meaning: "Edgy, transient-forward drive.",
-          ledPattern: ["1.5"],
+          ledPattern: ["0.5", "1.0", "1.5"],
         },
         {
           id: "tame",
           label: "Tame (Clean/Transparent)",
           meaning: "Least colored saturation path.",
-          ledPattern: ["2"],
+          ledPattern: ["0.5", "1.0", "1.5", "2"],
         },
         {
           id: "glue",
           label: "Glue (VCA)",
           meaning: "Cohesive, mix-bus density.",
-          ledPattern: ["3"],
+          ledPattern: ["0.5", "1.0", "1.5", "2", "3"],
         },
         {
           id: "polish-white",
           label: "Polish White (Limiter/Clipper)",
           meaning: "Bright limiting / clipping style finish.",
-          ledPattern: ["4"],
+          ledPattern: ["0.5", "1.0", "1.5", "2", "3", "4"],
         },
         {
           id: "polish-blue",
           label: "Polish Blue (Limiter/Clipper)",
           meaning: "Alternative bright limiting / clipping style finish.",
-          ledPattern: ["5"],
+          ledPattern: ["0.5", "1.0", "1.5", "2", "3", "4", "5"],
         },
         {
           id: "series-clip-1",
           label: "Series Clip 1",
           meaning: "First series clipper configuration.",
-          ledPattern: ["6"],
+          ledPattern: ["0.5", "1.0", "1.5", "2", "3", "4", "5", "6"],
         },
         {
           id: "series-clip-2",
           label: "Series Clip 2",
           meaning: "Second series clipper configuration.",
-          ledPattern: ["8"],
+          ledPattern: ["0.5", "1.0", "1.5", "2", "3", "4", "5", "6", "8"],
         },
         {
           id: "series-clip-3",
           label: "Series Clip 3",
           meaning: "Third series clipper configuration.",
-          ledPattern: ["10"],
+          ledPattern: ["0.5", "1.0", "1.5", "2", "3", "4", "5", "6", "8", "10"],
         },
         {
           id: "series-clip-4",
           label: "Series Clip 4",
           meaning: "Fourth series clipper configuration.",
-          ledPattern: ["12"],
+          ledPattern: ["0.5", "1.0", "1.5", "2", "3", "4", "5", "6", "8", "10", "12"],
         },
         {
           id: "series-clip-5",
           label: "Series Clip 5",
           meaning: "Fifth series clipper configuration.",
-          ledPattern: ["15"],
+          ledPattern: ["0.5", "1.0", "1.5", "2", "3", "4", "5", "6", "8", "10", "12", "15"],
         },
       ],
     }),
@@ -416,6 +423,9 @@
       behavior: "stepped-scale",
       description:
         "Changes the hardness of the saturation diode clipping curve.",
+      interpretation: "relative-led-position",
+      displayNote:
+        "The guide describes relative diode hardness; the printed GR numbers identify LED positions, not hardness units.",
       evidence: [
         evidence({
           type: "manual-stated",
@@ -441,76 +451,28 @@
       ],
       settings: [
         {
-          id: "linear-phase",
-          label: "Linear Phase",
-          meaning: "Linear phase parallel alignment.",
-          ledPattern: ["0.5"],
-        },
-        {
-          id: "linear-freq",
-          label: "Linear Freq",
-          meaning: "Linear frequency parallel alignment.",
-          ledPattern: ["1.0"],
-        },
-        {
-          id: "low-freq-par",
-          label: "Low-Freq Par",
-          meaning: "Low frequency parallel emphasis.",
-          ledPattern: ["1.5"],
-        },
-        {
-          id: "inverted-phase",
-          label: "Inverted Phase",
-          meaning: "Inverted phase parallel alignment.",
-          ledPattern: ["2"],
-        },
-        {
-          id: "crossover-a",
-          label: "Crossover A",
-          meaning: "Crossover option A.",
-          ledPattern: ["3"],
-        },
-        {
-          id: "crossover-b",
-          label: "Crossover B",
-          meaning: "Crossover option B.",
-          ledPattern: ["4"],
-        },
-        {
-          id: "crossover-c",
-          label: "Crossover C",
-          meaning: "Crossover option C.",
+          id: "frequency-linear",
+          label: "Frequency response more linear",
+          meaning: "Prioritizes a more linear STRESS frequency response than phase response.",
           ledPattern: ["5"],
         },
         {
-          id: "crossover-d",
-          label: "Crossover D",
-          meaning: "Crossover option D.",
-          ledPattern: ["6"],
+          id: "phase-linear-low-parallel",
+          label: "Phase response more linear",
+          meaning: "Best documented starting point for parallel compression with STRESS on low frequencies.",
+          ledPattern: ["4", "5"],
         },
         {
-          id: "phase-45",
-          label: "Phase 45°",
-          meaning: "Parallel phase offset 45 degrees.",
-          ledPattern: ["8"],
+          id: "frequency-linear-inverted",
+          label: "Frequency-linear response, phase inverted",
+          meaning: "Inverts the STRESS phase of the frequency-linear example.",
+          ledPattern: ["4", "5", "6"],
         },
         {
-          id: "phase-90",
-          label: "Phase 90°",
-          meaning: "Parallel phase offset 90 degrees.",
-          ledPattern: ["10"],
-        },
-        {
-          id: "phase-135",
-          label: "Phase 135°",
-          meaning: "Parallel phase offset 135 degrees.",
-          ledPattern: ["12"],
-        },
-        {
-          id: "phase-inverted",
-          label: "Phase Inverted",
-          meaning: "Fully inverted parallel phase offset.",
-          ledPattern: ["15"],
+          id: "phase-linear-inverted",
+          label: "Phase-linear response, phase inverted",
+          meaning: "Inverts the STRESS phase of the phase-linear example.",
+          ledPattern: ["3", "4", "5", "6"],
         },
       ],
     }),
@@ -532,75 +494,21 @@
       settings: [
         {
           id: "flat",
-          label: "Flat (Bypass)",
-          meaning: "No high frequency sidechain filter modification.",
-          ledPattern: ["0.5"],
-        },
-        {
-          id: "sc-de-emp-soft",
-          label: "SC De-emp Soft",
-          meaning: "Soft high frequency de-emphasis on sidechain.",
-          ledPattern: ["1.0"],
-        },
-        {
-          id: "sc-de-emp-mid",
-          label: "SC De-emp Mid",
-          meaning: "Medium high frequency de-emphasis on sidechain.",
-          ledPattern: ["1.5"],
-        },
-        {
-          id: "sc-de-emp-hard",
-          label: "SC De-emp Hard",
-          meaning: "Hard high frequency de-emphasis on sidechain.",
+          label: "Flat",
+          meaning: "No high-frequency emphasis or de-emphasis.",
           ledPattern: ["2"],
         },
         {
-          id: "sc-de-emp-ext",
-          label: "SC De-emp Ext",
-          meaning: "Extreme high frequency de-emphasis on sidechain.",
-          ledPattern: ["3"],
+          id: "compress-highs-less",
+          label: "High frequencies compressed less",
+          meaning: "De-emphasizes high frequencies in the detector path.",
+          ledPattern: ["2", "3", "4", "5", "6", "8", "10", "12", "15"],
         },
         {
-          id: "sc-emp-soft",
-          label: "SC Emp Soft",
-          meaning: "Soft high frequency emphasis on sidechain.",
-          ledPattern: ["4"],
-        },
-        {
-          id: "sc-emp-mid",
-          label: "SC Emp Mid",
-          meaning: "Medium high frequency emphasis on sidechain.",
-          ledPattern: ["5"],
-        },
-        {
-          id: "sc-emp-hard",
-          label: "SC Emp Hard",
-          meaning: "Hard high frequency emphasis on sidechain.",
-          ledPattern: ["6"],
-        },
-        {
-          id: "sc-emp-ext",
-          label: "SC Emp Ext",
-          meaning: "Extreme high frequency emphasis on sidechain.",
-          ledPattern: ["8"],
-        },
-        {
-          id: "de-ess-soft",
-          label: "De-ess Soft",
-          meaning: "Soft sidechain de-essing filter behavior.",
-          ledPattern: ["10"],
-        },
-        {
-          id: "de-ess-mid",
-          label: "De-ess Mid",
-          meaning: "Medium sidechain de-essing filter behavior.",
-          ledPattern: ["12"],
-        },
-        {
-          id: "de-ess-hard",
-          label: "De-ess Hard",
-          meaning: "Hard sidechain de-essing filter behavior.",
-          ledPattern: ["15"],
+          id: "compress-highs-more",
+          label: "High frequencies compressed more",
+          meaning: "Emphasizes high frequencies in the detector path.",
+          ledPattern: ["0.5", "1.0", "1.5", "2"],
         },
       ],
     }),
@@ -668,6 +576,22 @@
             "Combines peak catching, body tracking, and slower program movement.",
           ledPattern: ["0.5", "1.5", "3"],
         },
+        {
+          id: "peak-rms-variable",
+          label: "Peak + RMS · RMS pot variable",
+          meaning:
+            "Attack and release weighting set the RMS detector as a multiple of the Peak detector timing.",
+          ledPattern: ["0.5", "1.5", "15"],
+          timingModel: "variable",
+        },
+        {
+          id: "peak-rms-slow-variable",
+          label: "Peak + RMS + Slow RMS · RMS pot variable",
+          meaning:
+            "Triple detection with RMS timing derived as a multiple of the Peak detector timing.",
+          ledPattern: ["0.5", "1.5", "3", "15"],
+          timingModel: "variable",
+        },
       ],
     }),
     crestFactorShaping: parameter({
@@ -678,6 +602,9 @@
       behavior: "stepped-scale",
       description:
         "Influences slower detectors in multi-detector modes, adjusting Peak-to-RMS compression thresholds.",
+      interpretation: "cumulative-relative",
+      displayNote:
+        "More lit LEDs give the slower detectors more influence. This control only matters in multi-detector modes.",
       evidence: [
         evidence({
           type: "manual-derived",
@@ -694,6 +621,9 @@
       behavior: "stepped-scale",
       description:
         "Sets the parent-to-child sidechain linking percentage or dual mono isolation.",
+      interpretation: "relative-led-position",
+      displayNote:
+        "The exact linking topology is documented in the Stereo Operation and Optosync section of the guide.",
       evidence: [
         evidence({
           type: "manual-stated",
@@ -710,6 +640,9 @@
       behavior: "stepped-scale",
       description:
         "Sets advanced analogue compression curves and ratio options up to brickwall limiting.",
+      interpretation: "approximate-ratio",
+      displayNote:
+        "The blue LED approximately matches the printed GR number; all LEDs lit indicates ∞:1.",
       evidence: [
         evidence({
           type: "manual-stated",
@@ -726,6 +659,9 @@
       behavior: "stepped-scale",
       description:
         "Selects hardness of the compression threshold transition (Hardest to Softest knee).",
+      interpretation: "relative-led-position",
+      displayNote:
+        "The guide documents the direction: top LED is hardest, bottom LED is soft, and all LEDs is softest.",
       evidence: [
         evidence({
           type: "manual-stated",
@@ -742,6 +678,15 @@
       behavior: "stepped-scale",
       description:
         "Modifies attack timing reactions based on threshold overshoot or multi-stage detector speeds.",
+      interpretation: "detector-dependent-table",
+      valueTables: {
+        single: ["4.0x", "2.0x", "1.0x (mid)", "0.66x", "0.56x", "0.3136x", "0.175x", "0.0983x", "0.055x", "0.03x", "0.017x", "0.009x"],
+        variable: ["300x", "200x", "150x", "120x", "100x", "75x", "50x", "40x", "30x", "25x", "20x", "15x"],
+        rmsFixed: ["35 ms", "30 ms", "25 ms", "20 ms", "15 ms", "10 ms", "5 ms", "2.5 ms", "2 ms", "1.5 ms", "1 ms", "500 µs"],
+        slowRmsFixed: ["1200 ms", "800 ms", "600 ms", "400 ms", "320 ms", "240 ms", "200 ms", "160 ms", "120 ms", "90 ms", "60 ms", "45 ms"],
+      },
+      displayNote:
+        "The same red LED position means a different value in single, fixed multi-detector, and RMS-pot-variable modes.",
       evidence: [
         evidence({
           type: "manual-stated",
@@ -758,6 +703,15 @@
       behavior: "stepped-scale",
       description:
         "Modifies adaptive envelope recovery speed and program-dependent release timing.",
+      interpretation: "detector-dependent-table",
+      valueTables: {
+        single: ["4.0x", "2.0x", "1.0x (mid)", "0.66x", "0.56x", "0.3136x", "0.175x", "0.0983x", "0.055x", "0.03x", "0.017x", "0.009x"],
+        variable: ["5.0x", "4.636x", "4.272x", "3.909x", "3.545x", "3.181x", "2.818x", "2.454x", "2.090x", "1.727x", "1.363x", "1.0x"],
+        rmsFixed: ["1000 ms", "850 ms", "700 ms", "600 ms", "500 ms", "350 ms", "250 ms", "200 ms", "150 ms", "100 ms", "75 ms", "50 ms"],
+        slowRmsFixed: ["5000 ms", "4000 ms", "3000 ms", "2000 ms", "1000 ms", "750 ms", "500 ms", "250 ms", "150 ms", "100 ms", "75 ms", "50 ms"],
+      },
+      displayNote:
+        "The same white LED position means a different value in single, fixed multi-detector, and RMS-pot-variable modes.",
       evidence: [
         evidence({
           type: "manual-stated",
@@ -774,6 +728,9 @@
       behavior: "stepped-scale",
       description:
         "Sets duration the gain reduction is held (in ms) before release to prevent low-frequency wave distortion.",
+      interpretation: "relative-led-position",
+      displayNote:
+        "The guide documents relative hold length, not an exact millisecond table: more LEDs means a longer hold.",
       evidence: [
         evidence({
           type: "manual-stated",
@@ -790,6 +747,9 @@
       behavior: "stepped-scale",
       description:
         "Buffers sidechain timing with negative group delay filter arrays to preemptively clamp fast transients.",
+      interpretation: "lookahead-relative",
+      displayNote:
+        "The guide documents relative analogue lookahead: top LED is off, lower positions add more, and the 10 mark is the shown maximum example.",
       evidence: [
         evidence({
           type: "manual-stated",
@@ -806,6 +766,9 @@
       behavior: "stepped-scale",
       description:
         "Calibrates the brightness settings for all front-panel LEDs.",
+      interpretation: "relative-led-position",
+      displayNote:
+        "Display-only setting; it does not change compression tone or timing.",
       evidence: [
         evidence({
           type: "manual-stated",
@@ -948,10 +911,10 @@
       selected: {
         stressTypeDiodeClipping: { settingId: "float" },
         diodeHardness: { value: "2" },
-        sidechainHighFrequencyEmphasis: { settingId: "de-ess-hard" },
+        sidechainHighFrequencyEmphasis: { settingId: "compress-highs-more" },
         detector: { settingId: "peak-rms-slow" },
         stereoMonoSidechainLinking: { value: "1.0" },
-        stressCrossoverPhase: { settingId: "low-freq-par" },
+        stressCrossoverPhase: { settingId: "phase-linear-low-parallel" },
         crestFactorShaping: { value: "1.0" },
         ratio: { value: "3" },
         knee: { value: "1.5" },
@@ -997,10 +960,10 @@
       selected: {
         stressTypeDiodeClipping: { settingId: "smash" },
         diodeHardness: { value: "1.0" },
-        sidechainHighFrequencyEmphasis: { settingId: "sc-emp-soft" },
+        sidechainHighFrequencyEmphasis: { settingId: "compress-highs-more" },
         detector: { settingId: "peak-rms" },
         stereoMonoSidechainLinking: { value: "1.0" },
-        stressCrossoverPhase: { settingId: "inverted-phase" },
+        stressCrossoverPhase: { settingId: "frequency-linear-inverted" },
         crestFactorShaping: { value: "1.5" },
         ratio: { value: "2" },
         knee: { value: "3" },
@@ -1046,10 +1009,10 @@
       selected: {
         stressTypeDiodeClipping: { settingId: "float" },
         diodeHardness: { value: "1.5" },
-        sidechainHighFrequencyEmphasis: { settingId: "de-ess-hard" },
+        sidechainHighFrequencyEmphasis: { settingId: "compress-highs-more" },
         detector: { settingId: "rms" },
         stereoMonoSidechainLinking: { value: "1.0" },
-        stressCrossoverPhase: { settingId: "linear-freq" },
+        stressCrossoverPhase: { settingId: "frequency-linear" },
         crestFactorShaping: { value: "1.5" },
         ratio: { value: "4" },
         knee: { value: "1.5" },
@@ -1095,10 +1058,10 @@
       selected: {
         stressTypeDiodeClipping: { settingId: "glue" },
         diodeHardness: { value: "4" },
-        sidechainHighFrequencyEmphasis: { settingId: "sc-emp-soft" },
+        sidechainHighFrequencyEmphasis: { settingId: "compress-highs-more" },
         detector: { settingId: "rms" },
         stereoMonoSidechainLinking: { value: "0.5" },
-        stressCrossoverPhase: { settingId: "crossover-a" },
+        stressCrossoverPhase: { settingId: "frequency-linear" },
         crestFactorShaping: { value: "2" },
         ratio: { value: "3" },
         knee: { value: "1.5" },
@@ -1146,7 +1109,7 @@
         sidechainHighFrequencyEmphasis: { settingId: "flat" },
         detector: { settingId: "rms" },
         stereoMonoSidechainLinking: { value: "1.5" },
-        stressCrossoverPhase: { settingId: "linear-freq" },
+        stressCrossoverPhase: { settingId: "frequency-linear" },
         crestFactorShaping: { value: "1.0" },
         ratio: { value: "1.5" },
         knee: { value: "2" },
@@ -1192,10 +1155,10 @@
       selected: {
         stressTypeDiodeClipping: { settingId: "tame" },
         diodeHardness: { value: "1.5" },
-        sidechainHighFrequencyEmphasis: { settingId: "sc-de-emp-soft" },
+        sidechainHighFrequencyEmphasis: { settingId: "compress-highs-less" },
         detector: { settingId: "peak-rms" },
         stereoMonoSidechainLinking: { value: "1.0" },
-        stressCrossoverPhase: { settingId: "inverted-phase" },
+        stressCrossoverPhase: { settingId: "frequency-linear-inverted" },
         crestFactorShaping: { value: "2" },
         ratio: { value: "2" },
         knee: { value: "3" },
@@ -1241,10 +1204,10 @@
       selected: {
         stressTypeDiodeClipping: { settingId: "float" },
         diodeHardness: { value: "1.0" },
-        sidechainHighFrequencyEmphasis: { settingId: "sc-de-emp-soft" },
+        sidechainHighFrequencyEmphasis: { settingId: "compress-highs-less" },
         detector: { settingId: "rms" },
         stereoMonoSidechainLinking: { value: "1.5" },
-        stressCrossoverPhase: { settingId: "low-freq-par" },
+        stressCrossoverPhase: { settingId: "phase-linear-low-parallel" },
         crestFactorShaping: { value: "1.5" },
         ratio: { value: "2" },
         knee: { value: "1.5" },
@@ -1293,7 +1256,7 @@
         sidechainHighFrequencyEmphasis: { settingId: "flat" },
         detector: { settingId: "rms" },
         stereoMonoSidechainLinking: { value: "1.5" },
-        stressCrossoverPhase: { settingId: "linear-freq" },
+        stressCrossoverPhase: { settingId: "frequency-linear" },
         crestFactorShaping: { value: "1.0" },
         ratio: { value: "3" },
         knee: { value: "2" },
@@ -1339,10 +1302,10 @@
       selected: {
         stressTypeDiodeClipping: { settingId: "polish-white" },
         diodeHardness: { value: "5" },
-        sidechainHighFrequencyEmphasis: { settingId: "sc-de-emp-soft" },
+        sidechainHighFrequencyEmphasis: { settingId: "compress-highs-less" },
         detector: { settingId: "rms" },
         stereoMonoSidechainLinking: { value: "1.0" },
-        stressCrossoverPhase: { settingId: "crossover-b" },
+        stressCrossoverPhase: { settingId: "phase-linear-low-parallel" },
         crestFactorShaping: { value: "4" },
         ratio: { value: "5" },
         knee: { value: "1.0" },
@@ -1751,18 +1714,18 @@
   }
 
   function deriveCompressionIntent(controls = {}) {
-    const punch = controlValue(controls, "punchSmooth");
+    const smooth = controlValue(controls, "punchSmooth");
     const color = controlValue(controls, "cleanColor");
-    const control = controlValue(controls, "controlOpen");
-    const safe = controlValue(controls, "safeExciting");
-    const glue = controlValue(controls, "glueLoud");
-    const stable = controlValue(controls, "stableWide");
-    const smooth = 100 - punch;
+    const open = controlValue(controls, "controlOpen");
+    const exciting = controlValue(controls, "safeExciting");
+    const loud = controlValue(controls, "glueLoud");
+    const movement = controlValue(controls, "stableWide");
+    const punch = 100 - smooth;
     const clean = 100 - color;
-    const open = 100 - control;
-    const exciting = 100 - safe;
-    const loud = 100 - glue;
-    const movement = 100 - stable;
+    const control = 100 - open;
+    const safe = 100 - exciting;
+    const glue = 100 - loud;
+    const stable = 100 - movement;
 
     return {
       punch,
@@ -1805,6 +1768,128 @@
     };
   }
 
+  function blendPanelValue(baseValue, desiredValue, predictiveWeight = 0.68) {
+    const base = clampPercent(baseValue, 50);
+    const desired = clampPercent(desiredValue, base);
+    return Math.round(base * (1 - predictiveWeight) + desired * predictiveWeight);
+  }
+
+  function deriveHardwareMode(intent) {
+    if (intent.loud >= 76 && intent.control >= 58) return "Polish White";
+    if (intent.color >= 76 || (intent.exciting >= 74 && intent.control >= 62)) {
+      return "Smash";
+    }
+    if (intent.glue >= 68 && intent.stable >= 56) return "Glue";
+    if (intent.smooth >= 66 && intent.color >= 38) return "Velvet";
+    if (intent.open >= 68 && intent.clean >= 64) return "Float";
+    return "Tame";
+  }
+
+  function deriveSidechainFilter(intent, preset = {}) {
+    const sourceId = preset.sourceId || "";
+    const useAreaId = preset.useAreaId || DEFAULT_STATE.useAreaId;
+
+    if (sourceId === "drums" || sourceId === "drum-bus") {
+      return intent.punch >= 34 || intent.control >= 42 ? "200 Hz" : "100 Hz";
+    }
+    if (sourceId === "bass") return intent.punch >= 58 ? "100 Hz" : "60 Hz";
+    if (sourceId === "mix-bus" || sourceId === "mastering") {
+      if (intent.clean >= 74 && intent.glue < 58) return "OFF";
+      return intent.glue >= 48 ? "100 Hz" : "60 Hz";
+    }
+    if (sourceId === "parallel-bus") return "200 Hz";
+    if (sourceId === "vocals" || sourceId === "vocal-bus") return "100 Hz";
+    if (useAreaId === "tracking") return intent.safe >= 68 ? "100 Hz" : "60 Hz";
+    return preset.frontPanelValues?.scf || "100 Hz";
+  }
+
+  function deriveLinkTopology(preset = {}) {
+    const stereoSources = new Set([
+      "keys-synths",
+      "full-mix-repair",
+      "mix-bus",
+      "drum-bus",
+      "vocal-bus",
+      "parallel-bus",
+      "mastering",
+    ]);
+    const explicitLayout = String(preset.context?.channelLayout || "").toUpperCase();
+
+    return preset.isStereo === true ||
+      explicitLayout === "STEREO" ||
+      preset.useAreaId === "bus-master" ||
+      stereoSources.has(preset.sourceId)
+      ? "STEREO"
+      : "MONO";
+  }
+
+  function deriveFrontPanelFromControls(controls = {}, preset = {}) {
+    const intent = deriveCompressionIntent(controls);
+    const base = preset.frontPanelValues || {};
+    const desiredInput =
+      50 + (intent.color - 50) * 0.34 + (intent.exciting - 50) * 0.16;
+    const desiredThreshold =
+      52 + (intent.open - intent.control) * 0.22 - (intent.loud - 50) * 0.1;
+    const desiredAttack = weightedScore([
+      { value: intent.punch, weight: 0.48 },
+      { value: intent.control, weight: 0.25 },
+      { value: intent.exciting, weight: 0.17 },
+      { value: intent.loud, weight: 0.1 },
+    ]);
+    const desiredRelease = weightedScore([
+      { value: intent.punch, weight: 0.23 },
+      { value: intent.movement, weight: 0.27 },
+      { value: intent.exciting, weight: 0.22 },
+      { value: intent.loud, weight: 0.18 },
+      { value: 100 - intent.glue, weight: 0.1 },
+    ]);
+    const desiredStress = weightedScore([
+      { value: intent.color, weight: 0.58 },
+      { value: intent.exciting, weight: 0.22 },
+      { value: intent.loud, weight: 0.2 },
+    ]);
+    const threshold = blendPanelValue(base.threshold, desiredThreshold, 0.72);
+    const outputCompensation = Math.max(0, (52 - threshold) * 0.38);
+
+    return {
+      input: blendPanelValue(base.input, desiredInput, 0.64),
+      threshold,
+      attack: blendPanelValue(base.attack, desiredAttack, 0.74),
+      release: blendPanelValue(base.release, desiredRelease, 0.74),
+      output: clampPercent(
+        Math.round((base.output ?? 50) + outputCompensation),
+        50
+      ),
+      stress: blendPanelValue(base.stress, desiredStress, 0.78),
+      scf: deriveSidechainFilter(intent, preset),
+      mode: deriveHardwareMode(intent),
+      link: deriveLinkTopology(preset),
+      optosync: base.optosync || "PARENT",
+      in: base.in === false ? false : true,
+    };
+  }
+
+  function clockPosition(value) {
+    const minutes =
+      Math.round((7.5 * 60 + clampPercent(value) * 5.4) / 15) * 15;
+    const hours = Math.floor(minutes / 60) % 12 || 12;
+    const mins = minutes % 60;
+    return `${hours}:${String(mins).padStart(2, "0")}`;
+  }
+
+  function frontPanelTextFromValues(values, targetGainReduction) {
+    const db = (value) => Math.round(-20 + clampPercent(value) * 0.4);
+    return {
+      input: `${db(values.input)} dB`,
+      threshold: `Set for ${targetGainReduction || "the target gain reduction"}`,
+      attack: `${clockPosition(values.attack)} (${Math.round(values.attack)}% fast in ${values.mode || "this mode"})`,
+      release: `${clockPosition(values.release)} (${Math.round(values.release)}% fast in ${values.mode || "this mode"})`,
+      output: `${db(values.output)} dB starting makeup`,
+      stress: `${(clampPercent(values.stress) / 10).toFixed(1)} / 10`,
+      scf: values.scf,
+    };
+  }
+
   function deriveDetectorSelection(intent) {
     if (intent.peakNeed >= 70 && intent.bodyNeed >= 55) {
       return { settingId: "peak-rms-slow" };
@@ -1819,21 +1904,21 @@
   function deriveSidechainSelection(intent, useAreaId) {
     if (useAreaId === "tracking") {
       if (intent.safe >= 76 && intent.clean >= 62) {
-        return { settingId: "de-ess-hard" };
+        return { settingId: "compress-highs-more" };
       }
       if (intent.safe >= 62) return { settingId: "de-ess-mid" };
       if (intent.color >= 72 || intent.exciting >= 68) {
         return { settingId: "sc-emp-hard" };
       }
-      if (intent.color >= 54) return { settingId: "sc-emp-soft" };
-      return { settingId: "sc-de-emp-soft" };
+      if (intent.color >= 54) return { settingId: "compress-highs-more" };
+      return { settingId: "compress-highs-less" };
     }
 
     if (intent.loud >= 76 || intent.exciting >= 76) {
       return { settingId: "sc-de-emp-mid" };
     }
-    if (intent.punch >= 72) return { settingId: "sc-de-emp-soft" };
-    if (intent.color >= 70) return { settingId: "sc-emp-soft" };
+    if (intent.punch >= 72) return { settingId: "compress-highs-less" };
+    if (intent.color >= 70) return { settingId: "compress-highs-more" };
     return { settingId: "flat" };
   }
 
@@ -2053,12 +2138,30 @@
       ...(state.context || {}),
     };
 
-    const predictiveSelections = hasCustomCompressionControls(state.controls)
+    const hasCustomControls = hasCustomCompressionControls(state.controls);
+    const predictiveSelections = hasCustomControls
       ? deriveCompressionSelectionsFromControls(
           generatedControls,
           preset.useAreaId
         )
       : {};
+    const predictiveFrontPanel = hasCustomControls
+      ? deriveFrontPanelFromControls(generatedControls, preset)
+      : {
+          ...(preset.frontPanelValues || {}),
+          scf: deriveSidechainFilter(
+            deriveCompressionIntent(generatedControls),
+            preset
+          ),
+          mode: preset.frontPanelValues?.mode || preset.mode,
+          link: deriveLinkTopology(preset),
+          optosync: preset.frontPanelValues?.optosync || "PARENT",
+          in: preset.frontPanelValues?.in === false ? false : true,
+        };
+    const generatedFrontPanelValues = {
+      ...predictiveFrontPanel,
+      ...(state.frontPanelOverrides || {}),
+    };
     const selected = {
       ...cloneSelectionMap(preset.selected, predictiveSelections),
       ...cloneSelectionMap({}, state.parameterSelections || {}),
@@ -2078,14 +2181,21 @@
 
     return {
       ...preset,
+      mode: generatedFrontPanelValues.mode || preset.mode,
       useAreaLabel: useArea ? useArea.label : preset.useAreaId,
       sourceLabel: source ? source.label : preset.sourceId,
       isModified,
       selected,
       controls: generatedControls,
       context: generatedContext,
-      frontPanelValues: { ...(preset.frontPanelValues || {}) },
-      frontPanel: { ...(preset.frontPanel || {}) },
+      frontPanelValues: generatedFrontPanelValues,
+      frontPanel: {
+        ...(preset.frontPanel || {}),
+        ...frontPanelTextFromValues(
+          generatedFrontPanelValues,
+          preset.targetGainReduction
+        ),
+      },
       tags: [...(preset.tags || [])],
       why: [...(preset.why || [])],
       parameters,
@@ -2113,6 +2223,7 @@
     getPresetsGroupedBySource,
     getFirstPresetForUseArea,
     deriveCompressionSelectionsFromControls,
+    deriveFrontPanelFromControls,
     getGeneratedPreset,
   };
 
