@@ -126,26 +126,21 @@ test("logic auto bounce owns its dedicated page", () => {
   assert.match(html, /id="logic-bounce-preferences"/);
   assert.match(html, /id="bounce-preset-selector"/);
   assert.match(html, /id="toggle-inserts-active"/);
-  assert.match(html, /id="toggle-instruments-active"/);
-  assert.match(html, /id="toggle-master-active"/);
-  assert.match(html, /class="bounce-tracks-table"/);
-  assert.match(html, /id="bounce-recipe-preview"/);
+  assert.match(html, /id="toggle-volume-pan-active"/);
+  assert.match(html, /id="toggle-audio-tail"/);
+  assert.match(html, /name="delivery" value="stereo"/);
+  assert.match(html, /name="delivery"[\s\S]*?value="all-tracks"/);
+  assert.match(html, /name="delivery" value="selected-tracks"/);
+  assert.match(html, /id="logic-menu-path"/);
+  assert.match(html, /id="bounce-track-input"/);
+  assert.match(html, /id="bounce-tracks-list"/);
+  assert.match(html, /id="bounce-result-preview"/);
+  assert.match(html, /id="preflight-checks"/);
   assert.match(html, /id="btn-copy-recipe"/);
   assert.match(html, /id="btn-download-recipe"/);
-  assert.match(html, /src="logic-auto-bounce\.js"/);
+  assert.match(html, /src="logic-auto-bounce\.js\?v=4"/);
   assert.doesNotMatch(html, /drum-alignment\.js/);
-
-  // Assert new interactive track management layout elements
-  assert.match(html, /id="btn-add-track-toggle"/);
-  assert.match(html, /id="btn-paste-tracks-toggle"/);
-  assert.match(html, /id="btn-reset-tracks"/);
-  assert.match(html, /id="add-track-form-panel"/);
-  assert.match(html, /id="paste-tracks-modal"/);
-  assert.match(html, /id="new-track-name"/);
-  assert.match(html, /id="new-track-type"/);
-  assert.match(html, /id="new-track-sidechain"/);
-  assert.match(html, /id="btn-submit-add-track"/);
-  assert.match(html, /id="paste-tracks-textarea"/);
+  assert.match(html, /Build a clean, repeatable Logic export plan/);
 });
 
 test("responsive navigation styling supports a hamburger menu", () => {

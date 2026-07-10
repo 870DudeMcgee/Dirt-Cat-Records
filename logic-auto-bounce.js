@@ -1,675 +1,604 @@
-(function () {
-  const PRESET_STORAGE_KEY = "dirtcat_bounce_presets";
+(function initLogicAutoBounce() {
+  "use strict";
 
-  // Discovered Logic session mock tracks
-  const DISCOVERED_TRACKS = [
-    {
-      name: "Kick Out",
-      type: "Audio",
-      sidechain: "none",
-      defaultPolicy: "none",
-    },
-    {
-      name: "Snare Top",
-      type: "Audio",
-      sidechain: "none",
-      defaultPolicy: "none",
-    },
-    {
-      name: "Bass Synth",
-      type: "Software Instrument",
-      sidechain: "Kick Out",
-      defaultPolicy: "preserve-pump",
-    },
-    {
-      name: "Lead Vocal",
-      type: "Audio",
-      sidechain: "none",
-      defaultPolicy: "none",
-    },
-    {
-      name: "FX Reverb Aux",
-      type: "Aux",
-      sidechain: "none",
-      defaultPolicy: "none",
-    },
+  const STORAGE_KEY = "dirtcat_logic_bounce_plans_v3";
+  const EXAMPLE_TRACKS = [
+    "Kick In",
+    "Kick Out",
+    "Snare Top",
+    "Bass DI",
+    "Guitar L",
+    "Guitar R",
+    "Lead Vocal",
+    "BGV Stack",
   ];
 
   const DEFAULT_PRESETS = {
-    "mix-prep-dry": {
-      id: "mix-prep-dry",
-      label: "Mix Prep (Dry)",
+    "mix-handoff": {
+      id: "mix-handoff",
+      label: "Mix handoff",
+      delivery: "all-tracks",
+      format: "WAV",
       bitDepth: "24",
-      sampleRate: "48000",
-      range: "entire-project",
-      toggles: {
-        insertsActive: false,
-        instrumentsActive: true,
-        masterBusActive: false,
-        volumePanActive: true,
-        printFxAuxes: false,
-        printSubgroups: false,
-      },
+      sampleRate: "project",
+      range: "project-end",
+      normalize: "off",
+      includePlugins: true,
+      includeAutomation: true,
+      includeTail: true,
+      tracks: ["Kick In", "Snare Top", "Bass DI", "Lead Vocal", "Mix FX"],
     },
-    "vocal-stems-wet": {
-      id: "vocal-stems-wet",
-      label: "Vocal Stems (Wet)",
+    "mastering-stereo": {
+      id: "mastering-stereo",
+      label: "Mastering stereo file",
+      delivery: "stereo",
+      format: "WAV",
       bitDepth: "24",
-      sampleRate: "44100",
+      sampleRate: "project",
       range: "entire-project",
-      toggles: {
-        insertsActive: true,
-        instrumentsActive: true,
-        masterBusActive: false,
-        volumePanActive: true,
-        printFxAuxes: true,
-        printSubgroups: true,
-      },
+      normalize: "off",
+      includePlugins: true,
+      includeAutomation: true,
+      includeTail: true,
+      tracks: ["Final Mix"],
     },
-    "mastering-pre-bounce": {
-      id: "mastering-pre-bounce",
-      label: "Mastering Pre-Bounce",
+    "archive-tracks": {
+      id: "archive-tracks",
+      label: "Full project archive",
+      delivery: "all-tracks",
+      format: "WAV",
       bitDepth: "24",
-      sampleRate: "48000",
-      range: "cycle-range",
-      toggles: {
-        insertsActive: true,
-        instrumentsActive: true,
-        masterBusActive: true,
-        volumePanActive: true,
-        printFxAuxes: false,
-        printSubgroups: false,
-      },
+      sampleRate: "project",
+      range: "project-end",
+      normalize: "off",
+      includePlugins: true,
+      includeAutomation: true,
+      includeTail: true,
+      tracks: EXAMPLE_TRACKS,
     },
   };
 
-  let activePresetId = "mix-prep-dry";
+  const WORKFLOWS = {
+    stereo: {
+      path: "File > Bounce > Project or Section…",
+      explanation:
+        "One mono, stereo, or surround file from the active output channel strip.",
+      warning:
+        "Use Realtime in Logic for external MIDI, live inputs, or DSP-based hardware.",
+    },
+    "all-tracks": {
+      path: "File > Export > All Tracks as Audio Files…",
+      explanation:
+        "One file per audio, software-instrument, and Drummer track in the project.",
+      warning:
+        "Aux returns and sidechain-dependent sounds may need a separate print.",
+    },
+    "selected-tracks": {
+      path: "Select tracks > File > Export > Tracks as Audio Files…",
+      explanation:
+        "A focused stem or overdub handoff from the tracks you select in Logic.",
+      warning:
+        "Check the selected tracks and print any critical sidechain or aux relationship separately.",
+    },
+  };
+
+  const RANGE_OPTIONS = {
+    stereo: [
+      ["entire-project", "Entire project"],
+      ["cycle", "Cycle range"],
+    ],
+    tracks: [
+      ["project-end", "Extend to project end"],
+      ["cycle", "Cycle range"],
+      ["trim-silence", "Trim silence at file end"],
+    ],
+  };
+
+  const nodes = {
+    preset: document.getElementById("bounce-preset-selector"),
+    modified: document.getElementById("preset-modified-badge"),
+    newPreset: document.getElementById("btn-new-preset"),
+    savePreset: document.getElementById("btn-save-preset"),
+    deletePreset: document.getElementById("btn-delete-preset"),
+    delivery: Array.from(document.querySelectorAll('input[name="delivery"]')),
+    stepButtons: Array.from(document.querySelectorAll("[data-step-button]")),
+    steps: Array.from(document.querySelectorAll("[data-step]")),
+    format: document.getElementById("bounce-format"),
+    bitDepth: document.getElementById("bounce-bit-depth"),
+    sampleRate: document.getElementById("bounce-sample-rate"),
+    range: document.getElementById("bounce-range"),
+    normalize: document.getElementById("bounce-normalize"),
+    includePlugins: document.getElementById("toggle-inserts-active"),
+    includeAutomation: document.getElementById("toggle-volume-pan-active"),
+    includeTail: document.getElementById("toggle-audio-tail"),
+    audioTailRow: document.getElementById("audio-tail-row"),
+    ditherNote: document.getElementById("dither-note"),
+    settingsSummary: document.getElementById("settings-summary"),
+    path: document.getElementById("logic-menu-path"),
+    explanation: document.getElementById("logic-path-explanation"),
+    warning: document.getElementById("logic-warning"),
+    trackInput: document.getElementById("bounce-track-input"),
+    importTracks: document.getElementById("btn-import-tracks"),
+    loadExample: document.getElementById("btn-load-example"),
+    tracksList: document.getElementById("bounce-tracks-list"),
+    trackSummary: document.getElementById("bounce-track-summary"),
+    review: document.getElementById("bounce-result-preview"),
+    preflightChecks: Array.from(
+      document.querySelectorAll("#preflight-checks input")
+    ),
+    preflightProgress: document.getElementById("preflight-progress"),
+    preflightFill: document.getElementById("preflight-meter-fill"),
+    continueFiles: document.getElementById("btn-continue-files"),
+    continueReview: document.getElementById("btn-continue-review"),
+    backButtons: Array.from(document.querySelectorAll("[data-go-back]")),
+    copy: document.getElementById("btn-copy-recipe"),
+    download: document.getElementById("btn-download-recipe"),
+    status: document.getElementById("bounce-status"),
+    demo: document.getElementById("bounce-demo-button"),
+  };
+
+  if (!nodes.preset) return;
+
   let presets = loadPresets();
-  let selectedTrackPolicies = {};
-  let currentTracks = [];
+  let activePresetId = "mix-handoff";
+  let tracks = [];
+  let modified = false;
+  let activeStep = "deliverable";
 
-  // Setup DOM elements
-  const presetSelector = document.getElementById("bounce-preset-selector");
-  const btnNew = document.getElementById("btn-new-preset");
-  const btnSave = document.getElementById("btn-save-preset");
-  const btnDelete = document.getElementById("btn-delete-preset");
-  const badgeModified = document.getElementById("preset-modified-badge");
+  function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
 
-  const bitDepthSelect = document.getElementById("bounce-bit-depth");
-  const sampleRateSelect = document.getElementById("bounce-sample-rate");
-  const rangeSelect = document.getElementById("bounce-range");
-
-  const toggleInserts = document.getElementById("toggle-inserts-active");
-  const toggleInstruments = document.getElementById(
-    "toggle-instruments-active"
-  );
-  const toggleMaster = document.getElementById("toggle-master-active");
-  const toggleVolPan = document.getElementById("toggle-volume-pan-active");
-  const togglePrintFx = document.getElementById("toggle-print-fx");
-  const togglePrintSubgroups = document.getElementById(
-    "toggle-print-subgroups"
-  );
-
-  const tracksBody = document.getElementById("bounce-tracks-body");
-  const recipePreview = document.getElementById("bounce-recipe-preview");
-  const btnCopy = document.getElementById("btn-copy-recipe");
-  const btnDownload = document.getElementById("btn-download-recipe");
-
-  function init() {
-    if (!presetSelector) return; // Guard for pages without the preferences DOM
-
-    renderPresetDropdown();
-    loadActivePreset(activePresetId);
-
-    // Bind Events
-    presetSelector.addEventListener("change", (e) => {
-      activePresetId = e.target.value;
-      loadActivePreset(activePresetId);
-    });
-
-    [bitDepthSelect, sampleRateSelect, rangeSelect].forEach((el) => {
-      el.addEventListener("change", markModified);
-    });
-
-    [
-      toggleInserts,
-      toggleInstruments,
-      toggleMaster,
-      toggleVolPan,
-      togglePrintFx,
-      togglePrintSubgroups,
-    ].forEach((el) => {
-      el.addEventListener("change", markModified);
-    });
-
-    btnNew.addEventListener("click", createNewPreset);
-    btnSave.addEventListener("click", saveActivePreset);
-    btnDelete.addEventListener("click", deleteActivePreset);
-    btnCopy.addEventListener("click", copyRecipeToClipboard);
-    btnDownload.addEventListener("click", downloadRecipeFile);
-
-    // Bind track actions
-    const btnAddToggle = document.getElementById("btn-add-track-toggle");
-    const btnPasteToggle = document.getElementById("btn-paste-tracks-toggle");
-    const btnReset = document.getElementById("btn-reset-tracks");
-
-    const addTrackPanel = document.getElementById("add-track-form-panel");
-    const pasteModal = document.getElementById("paste-tracks-modal");
-
-    const btnSubmitAdd = document.getElementById("btn-submit-add-track");
-    const btnSubmitPaste = document.getElementById("btn-submit-paste-tracks");
-    const btnClosePaste = document.getElementById("btn-close-paste-modal");
-    const pasteTextarea = document.getElementById("paste-tracks-textarea");
-
-    if (btnAddToggle) {
-      btnAddToggle.addEventListener("click", () => {
-        addTrackPanel.hidden = !addTrackPanel.hidden;
-      });
-    }
-
-    if (btnPasteToggle) {
-      btnPasteToggle.addEventListener("click", () => {
-        pasteModal.hidden = false;
-        if (pasteTextarea) pasteTextarea.focus();
-      });
-    }
-
-    if (btnClosePaste) {
-      btnClosePaste.addEventListener("click", () => {
-        pasteModal.hidden = true;
-        if (pasteTextarea) pasteTextarea.value = "";
-      });
-    }
-
-    if (btnSubmitAdd) {
-      btnSubmitAdd.addEventListener("click", handleAddSingleTrack);
-    }
-
-    if (btnSubmitPaste) {
-      btnSubmitPaste.addEventListener("click", () => {
-        if (pasteTextarea) {
-          handleBatchImport(pasteTextarea.value);
-          pasteTextarea.value = "";
-        }
-        pasteModal.hidden = true;
-      });
-    }
-
-    if (btnReset) {
-      btnReset.addEventListener("click", resetTracksToDefault);
-    }
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   function loadPresets() {
     try {
-      const stored = localStorage.getItem(PRESET_STORAGE_KEY);
-      if (stored) {
-        return { ...DEFAULT_PRESETS, ...JSON.parse(stored) };
-      }
-    } catch (e) {
-      console.error("Failed to load user presets from local storage", e);
+      return {
+        ...clone(DEFAULT_PRESETS),
+        ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"),
+      };
+    } catch (_error) {
+      return clone(DEFAULT_PRESETS);
     }
-    return { ...DEFAULT_PRESETS };
   }
 
-  function savePresetsToStorage() {
-    const userOnly = {};
-    Object.keys(presets).forEach((key) => {
-      if (!DEFAULT_PRESETS[key]) {
-        userOnly[key] = presets[key];
-      }
-    });
-    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(userOnly));
-  }
-
-  function renderPresetDropdown() {
-    presetSelector.innerHTML = "";
-    Object.keys(presets).forEach((key) => {
-      const opt = document.createElement("option");
-      opt.value = key;
-      opt.textContent = presets[key].label;
-      presetSelector.appendChild(opt);
-    });
-    presetSelector.value = activePresetId;
-  }
-
-  function loadActivePreset(presetId) {
-    const p = presets[presetId];
-    if (!p) return;
-
-    bitDepthSelect.value = p.bitDepth;
-    sampleRateSelect.value = p.sampleRate;
-    rangeSelect.value = p.range;
-
-    toggleInserts.checked = p.toggles.insertsActive;
-    toggleInstruments.checked = p.toggles.instrumentsActive;
-    toggleMaster.checked = p.toggles.masterBusActive;
-    toggleVolPan.checked = p.toggles.volumePanActive;
-    togglePrintFx.checked = p.toggles.printFxAuxes;
-    togglePrintSubgroups.checked = p.toggles.printSubgroups;
-
-    badgeModified.hidden = true;
-
-    // Load custom tracks if present, otherwise fall back to defaults
-    if (p.tracks && Array.isArray(p.tracks)) {
-      currentTracks = JSON.parse(JSON.stringify(p.tracks));
-    } else {
-      currentTracks = JSON.parse(JSON.stringify(DISCOVERED_TRACKS));
+  function persistPresets() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
+    } catch (_error) {
+      setStatus(
+        "This browser blocked preset storage. Your current plan still works."
+      );
     }
-
-    renderTracksTable();
-    updateTrackPoliciesForPreset(p);
-    updateRecipeJSON();
-    refreshSidechainSelectors();
   }
 
-  function updateTrackPoliciesForPreset(preset) {
-    selectedTrackPolicies = {};
-    currentTracks.forEach((track) => {
-      if (track.policy && track.policy !== "none") {
-        selectedTrackPolicies[track.name] = track.policy;
-      } else if (track.sidechain && track.sidechain !== "none") {
-        if (preset.id === "mix-prep-dry") {
-          selectedTrackPolicies[track.name] = "bypass-sidechain";
-        } else {
-          selectedTrackPolicies[track.name] =
-            track.defaultPolicy || "preserve-pump";
-        }
-      } else {
-        selectedTrackPolicies[track.name] = "none";
-      }
-    });
-    updateTracksTableDropdowns();
+  function getDelivery() {
+    return nodes.delivery.find((input) => input.checked)?.value || "all-tracks";
   }
 
-  function renderTracksTable() {
-    if (!tracksBody) return;
-    tracksBody.innerHTML = "";
-    currentTracks.forEach((track) => {
-      const tr = document.createElement("tr");
-
-      const tdName = document.createElement("td");
-      tdName.textContent = track.name;
-      tr.appendChild(tdName);
-
-      const tdType = document.createElement("td");
-      tdType.textContent = track.type;
-      tr.appendChild(tdType);
-
-      const tdSidechain = document.createElement("td");
-      if (track.sidechain && track.sidechain !== "none") {
-        tdSidechain.innerHTML = `<span style="color: var(--brick-lane-yellow);">⚡ sidechain from ${track.sidechain}</span>`;
-      } else {
-        tdSidechain.textContent = "-";
-      }
-      tr.appendChild(tdSidechain);
-
-      const tdPolicy = document.createElement("td");
-      if (track.sidechain && track.sidechain !== "none") {
-        const select = document.createElement("select");
-        select.dataset.track = track.name;
-
-        const optPreserve = document.createElement("option");
-        optPreserve.value = "preserve-pump";
-        optPreserve.textContent = "Preserve Pump";
-        select.appendChild(optPreserve);
-
-        const optBypass = document.createElement("option");
-        optBypass.value = "bypass-sidechain";
-        optBypass.textContent = "Bypass Sidechain";
-        select.appendChild(optBypass);
-
-        select.addEventListener("change", (e) => {
-          selectedTrackPolicies[track.name] = e.target.value;
-          markModified();
-        });
-
-        tdPolicy.appendChild(select);
-      } else {
-        tdPolicy.textContent = "N/A";
-      }
-      tr.appendChild(tdPolicy);
-
-      // Actions Column
-      const tdAction = document.createElement("td");
-      const btnDelete = document.createElement("button");
-      btnDelete.type = "button";
-      btnDelete.className = "btn-delete-track";
-      btnDelete.innerHTML = "🗑️";
-      btnDelete.title = "Delete track";
-      btnDelete.addEventListener("click", () => {
-        deleteTrack(track.name);
-      });
-      tdAction.appendChild(btnDelete);
-      tr.appendChild(tdAction);
-
-      tracksBody.appendChild(tr);
+  function setDelivery(value) {
+    nodes.delivery.forEach((input) => {
+      input.checked = input.value === value;
     });
   }
 
-  function updateTracksTableDropdowns() {
-    if (!tracksBody) return;
-    const selects = tracksBody.querySelectorAll("select");
-    selects.forEach((select) => {
-      const trackName = select.dataset.track;
-      if (selectedTrackPolicies[trackName]) {
-        select.value = selectedTrackPolicies[trackName];
-      }
-    });
+  function setRangeOptions(delivery, requestedValue) {
+    const options =
+      delivery === "stereo" ? RANGE_OPTIONS.stereo : RANGE_OPTIONS.tracks;
+    nodes.range.innerHTML = options
+      .map(([value, label]) => `<option value="${value}">${label}</option>`)
+      .join("");
+    nodes.range.value = options.some(([value]) => value === requestedValue)
+      ? requestedValue
+      : options[0][0];
   }
 
-  function refreshSidechainSelectors() {
-    const selector = document.getElementById("new-track-sidechain");
-    if (!selector) return;
-
-    selector.innerHTML = '<option value="none">No Sidechain</option>';
-    currentTracks.forEach((track) => {
-      const opt = document.createElement("option");
-      opt.value = track.name;
-      opt.textContent = track.name;
-      selector.appendChild(opt);
-    });
-  }
-
-  function handleAddSingleTrack() {
-    const nameInput = document.getElementById("new-track-name");
-    const typeSelect = document.getElementById("new-track-type");
-    const sidechainSelect = document.getElementById("new-track-sidechain");
-
-    if (!nameInput || !nameInput.value.trim()) {
-      alert("Please enter a track name.");
-      return;
-    }
-
-    const trackName = nameInput.value.trim();
-    if (
-      currentTracks.some(
-        (t) => t.name.toLowerCase() === trackName.toLowerCase()
+  function renderPresetOptions() {
+    nodes.preset.innerHTML = Object.values(presets)
+      .map(
+        (preset) =>
+          `<option value="${escapeHtml(preset.id)}">${escapeHtml(preset.label)}</option>`
       )
-    ) {
-      alert("A track with this name already exists.");
-      return;
-    }
+      .join("");
+    nodes.preset.value = activePresetId;
+  }
 
-    const trackType = typeSelect.value;
-    const sidechain = sidechainSelect.value;
+  function loadPreset(id) {
+    const preset = presets[id];
+    if (!preset) return;
+    activePresetId = id;
+    setDelivery(preset.delivery);
+    nodes.format.value = preset.format;
+    nodes.bitDepth.value = preset.bitDepth;
+    nodes.sampleRate.value = preset.sampleRate;
+    nodes.normalize.value = preset.normalize;
+    nodes.includePlugins.checked = preset.includePlugins;
+    nodes.includeAutomation.checked = preset.includeAutomation;
+    nodes.includeTail.checked = preset.includeTail;
+    tracks = Array.isArray(preset.tracks) ? [...preset.tracks] : [];
+    nodes.trackInput.value = "";
+    setRangeOptions(preset.delivery, preset.range);
+    nodes.preset.value = id;
+    setModified(false);
+    renderAll();
+  }
 
-    const newTrack = {
-      name: trackName,
-      type: trackType,
-      sidechain: sidechain,
-      defaultPolicy: sidechain !== "none" ? "preserve-pump" : "none",
+  function snapshotPlan() {
+    return {
+      id: activePresetId,
+      label: presets[activePresetId]?.label || "Custom plan",
+      delivery: getDelivery(),
+      format: nodes.format.value,
+      bitDepth: nodes.bitDepth.value,
+      sampleRate: nodes.sampleRate.value,
+      range: nodes.range.value,
+      normalize: nodes.normalize.value,
+      includePlugins: nodes.includePlugins.checked,
+      includeAutomation: nodes.includeAutomation.checked,
+      includeTail: nodes.includeTail.checked,
+      tracks: [...tracks],
     };
-
-    currentTracks.push(newTrack);
-    selectedTrackPolicies[trackName] =
-      sidechain !== "none" ? "preserve-pump" : "none";
-
-    nameInput.value = "";
-    sidechainSelect.value = "none";
-
-    markModified();
-    renderTracksTable();
-    updateTracksTableDropdowns();
-    refreshSidechainSelectors();
   }
 
-  function handleBatchImport(text) {
-    if (!text || !text.trim()) return;
-
-    const lines = text.split("\n");
-    let addedCount = 0;
-
-    lines.forEach((line) => {
-      const trackName = line.trim();
-      if (!trackName) return;
-
-      if (
-        currentTracks.some(
-          (t) => t.name.toLowerCase() === trackName.toLowerCase()
-        )
-      ) {
-        return;
-      }
-
-      let type = "Audio";
-      const lower = trackName.toLowerCase();
-      if (
-        lower.includes("aux") ||
-        lower.includes("reverb") ||
-        lower.includes("delay") ||
-        lower.includes("send") ||
-        lower.includes("bus")
-      ) {
-        type = "Aux";
-      } else if (
-        lower.includes("synth") ||
-        lower.includes("inst") ||
-        lower.includes("midi") ||
-        lower.includes("piano") ||
-        lower.includes("keys")
-      ) {
-        type = "Software Instrument";
-      }
-
-      currentTracks.push({
-        name: trackName,
-        type: type,
-        sidechain: "none",
-        defaultPolicy: "none",
-      });
-
-      selectedTrackPolicies[trackName] = "none";
-      addedCount += 1;
-    });
-
-    if (addedCount > 0) {
-      markModified();
-      renderTracksTable();
-      updateTracksTableDropdowns();
-      refreshSidechainSelectors();
-    }
-  }
-
-  function deleteTrack(trackName) {
-    currentTracks = currentTracks.filter((t) => t.name !== trackName);
-
-    currentTracks.forEach((t) => {
-      if (t.sidechain === trackName) {
-        t.sidechain = "none";
-        t.defaultPolicy = "none";
-      }
-    });
-
-    delete selectedTrackPolicies[trackName];
-
-    markModified();
-    renderTracksTable();
-    updateTracksTableDropdowns();
-    refreshSidechainSelectors();
-  }
-
-  function resetTracksToDefault() {
-    if (
-      !confirm(
-        "Are you sure you want to reset all tracks to the default session tracks?"
-      )
-    ) {
-      return;
-    }
-    currentTracks = JSON.parse(JSON.stringify(DISCOVERED_TRACKS));
-    selectedTrackPolicies = {};
-
-    markModified();
-    renderTracksTable();
-    updateTrackPoliciesForPreset(presets[activePresetId]);
-    updateRecipeJSON();
-    refreshSidechainSelectors();
+  function setModified(value) {
+    modified = value;
+    nodes.modified.hidden = !value;
   }
 
   function markModified() {
-    badgeModified.hidden = false;
-    updateRecipeJSON();
+    setModified(true);
+    renderAll();
   }
 
-  function createNewPreset() {
-    const name = prompt("Enter a name for the new preset:");
-    if (!name || !name.trim()) return;
-
-    const id = name
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-");
-    if (presets[id]) {
-      alert("A preset with that name already exists!");
-      return;
-    }
-
-    presets[id] = {
-      id: id,
-      label: name.trim(),
-      bitDepth: bitDepthSelect.value,
-      sampleRate: sampleRateSelect.value,
-      range: rangeSelect.value,
-      toggles: {
-        insertsActive: toggleInserts.checked,
-        instrumentsActive: toggleInstruments.checked,
-        masterBusActive: toggleMaster.checked,
-        volumePanActive: toggleVolPan.checked,
-        printFxAuxes: togglePrintFx.checked,
-        printSubgroups: togglePrintSubgroups.checked,
-      },
-      tracks: JSON.parse(JSON.stringify(currentTracks)),
-    };
-
-    activePresetId = id;
-    savePresetsToStorage();
-    renderPresetDropdown();
-    loadActivePreset(activePresetId);
+  function extension() {
+    return nodes.format.value === "AIFF" ? "aif" : "wav";
   }
 
-  function saveActivePreset() {
-    const p = presets[activePresetId];
-    if (!p) return;
-
-    p.bitDepth = bitDepthSelect.value;
-    p.sampleRate = sampleRateSelect.value;
-    p.range = rangeSelect.value;
-    p.toggles = {
-      insertsActive: toggleInserts.checked,
-      instrumentsActive: toggleInstruments.checked,
-      masterBusActive: toggleMaster.checked,
-      volumePanActive: toggleVolPan.checked,
-      printFxAuxes: togglePrintFx.checked,
-      printSubgroups: togglePrintSubgroups.checked,
-    };
-
-    p.tracks = currentTracks.map((t) => ({
-      ...t,
-      policy: selectedTrackPolicies[t.name] || "none",
-    }));
-
-    savePresetsToStorage();
-    badgeModified.hidden = true;
-    updateRecipeJSON();
+  function rateLabel() {
+    return nodes.sampleRate.value === "project"
+      ? "Project rate"
+      : `${Number(nodes.sampleRate.value) / 1000} kHz`;
   }
 
-  function deleteActivePreset() {
-    if (DEFAULT_PRESETS[activePresetId]) {
-      alert("Default templates cannot be deleted.");
-      return;
-    }
+  function outputTracks() {
+    return getDelivery() === "stereo" ? [tracks[0] || "Final Mix"] : tracks;
+  }
 
-    if (
-      !confirm(
-        `Are you sure you want to delete the preset "${presets[activePresetId].label}"?`
+  function renderWorkflow() {
+    const workflow = WORKFLOWS[getDelivery()];
+    nodes.path.textContent = workflow.path;
+    nodes.explanation.textContent = workflow.explanation;
+    nodes.warning.textContent = workflow.warning;
+    nodes.audioTailRow.hidden = getDelivery() !== "stereo";
+    nodes.settingsSummary.textContent = `${nodes.bitDepth.value}-bit · ${rateLabel()}`;
+    nodes.ditherNote.hidden = nodes.bitDepth.value !== "16";
+  }
+
+  function renderTrackList() {
+    const listedTracks = outputTracks();
+    nodes.trackSummary.textContent = `${listedTracks.length} planned ${listedTracks.length === 1 ? "file" : "files"}`;
+    nodes.tracksList.innerHTML = listedTracks.length
+      ? listedTracks
+          .map(
+            (track, index) => `<tr>
+              <td>${escapeHtml(track)}</td>
+              <td>${escapeHtml(track.replace(/[\\/:*?"<>|]+/g, "-").trim())}.${extension()}</td>
+              <td>Ready</td>
+              <td><button type="button" data-remove-track="${index}" aria-label="Remove ${escapeHtml(track)}">Remove</button></td>
+            </tr>`
+          )
+          .join("")
+      : '<tr><td colspan="4">Add track names to build the plan.</td></tr>';
+  }
+
+  function renderReview() {
+    const workflow = WORKFLOWS[getDelivery()];
+    const files = outputTracks();
+    nodes.review.innerHTML = [
+      [
+        "Deliverable",
+        getDelivery() === "stereo"
+          ? "Stereo mix"
+          : getDelivery() === "all-tracks"
+            ? "All individual tracks"
+            : "Selected tracks",
+      ],
+      [
+        "Render",
+        `${nodes.format.value} · ${nodes.bitDepth.value}-bit · ${rateLabel()}`,
+      ],
+      [
+        "Files",
+        `${files.length} ${files.length === 1 ? "file" : "files"} planned`,
+      ],
+      ["Logic path", workflow.path],
+      [
+        "Processing",
+        `${nodes.includePlugins.checked ? "Plug-ins" : "Dry tracks"} · ${nodes.includeAutomation.checked ? "Automation" : "Static levels"}`,
+      ],
+      [
+        "Range",
+        nodes.range.options[nodes.range.selectedIndex]?.textContent ||
+          "Project end",
+      ],
+    ]
+      .map(
+        ([label, value]) =>
+          `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`
       )
-    ) {
-      return;
-    }
-
-    delete presets[activePresetId];
-    activePresetId = "mix-prep-dry";
-    savePresetsToStorage();
-    renderPresetDropdown();
-    loadActivePreset(activePresetId);
+      .join("");
   }
 
-  function compileRecipe() {
-    const p = presets[activePresetId];
-    const trackPoliciesList = currentTracks.map((track) => ({
-      trackName: track.name,
-      type: track.type,
-      sidechain: track.sidechain || "none",
-      policy: selectedTrackPolicies[track.name] || "none",
-    }));
-
-    return {
-      presetId: activePresetId,
-      label: p ? p.label : "Custom",
-      isModified: !badgeModified.hidden,
-      audioSettings: {
-        format: "WAV",
-        bitDepth: parseInt(bitDepthSelect.value, 10),
-        sampleRate: parseInt(sampleRateSelect.value, 10),
-        range: rangeSelect.value,
-      },
-      toggles: {
-        insertsActive: toggleInserts.checked,
-        instrumentsActive: toggleInstruments.checked,
-        masterBusActive: toggleMaster.checked,
-        volumePanActive: toggleVolPan.checked,
-        printFxAuxes: togglePrintFx.checked,
-        printSubgroups: togglePrintSubgroups.checked,
-      },
-      trackPolicies: trackPoliciesList,
-    };
+  function renderPreflight() {
+    const checked = nodes.preflightChecks.filter(
+      (input) => input.checked
+    ).length;
+    const total = nodes.preflightChecks.length;
+    nodes.preflightProgress.textContent = `${checked} of ${total} checked`;
+    nodes.preflightFill.style.width = `${(checked / total) * 100}%`;
   }
 
-  function updateRecipeJSON() {
-    const recipe = compileRecipe();
-    if (recipePreview) {
-      recipePreview.textContent = JSON.stringify(recipe, null, 2);
+  function setStep(step, shouldScroll = true) {
+    activeStep = step;
+    nodes.steps.forEach((section) => {
+      section.hidden = section.dataset.step !== step;
+    });
+    nodes.stepButtons.forEach((button) => {
+      const selected = button.dataset.stepButton === step;
+      if (selected) button.setAttribute("aria-current", "step");
+      else button.removeAttribute("aria-current");
+    });
+    if (shouldScroll) {
+      document
+        .getElementById("logic-auto-bounce-workbench")
+        .scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
 
-  function copyRecipeToClipboard() {
-    if (!recipePreview) return;
-    const jsonText = recipePreview.textContent;
-    navigator.clipboard
-      .writeText(jsonText)
-      .then(() => {
-        const oldText = btnCopy.textContent;
-        btnCopy.textContent = "Copied!";
-        setTimeout(() => {
-          btnCopy.textContent = oldText;
-        }, 1500);
-      })
-      .catch((err) => {
-        alert("Failed to copy recipe: " + err);
+  function renderAll() {
+    renderWorkflow();
+    renderTrackList();
+    renderReview();
+    renderPreflight();
+  }
+
+  function normalizeTracks(text) {
+    const seen = new Set();
+    return text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => {
+        const key = line.toLowerCase();
+        if (!line || seen.has(key)) return false;
+        seen.add(key);
+        return true;
       });
   }
 
-  function downloadRecipeFile() {
-    const recipe = compileRecipe();
-    const jsonText = JSON.stringify(recipe, null, 2);
-    const blob = new Blob([jsonText], { type: "application/json" });
+  function importTracks() {
+    const imported = normalizeTracks(nodes.trackInput.value);
+    if (!imported.length) {
+      setStatus("Paste at least one track name to build the file list.");
+      nodes.trackInput.focus();
+      return;
+    }
+    tracks = imported;
+    nodes.trackInput.value = "";
+    setStatus(
+      `Imported ${tracks.length} ${tracks.length === 1 ? "track" : "tracks"}.`
+    );
+    markModified();
+  }
+
+  function removeTrack(index) {
+    tracks.splice(index, 1);
+    setStatus("Removed that track from the plan.");
+    markModified();
+  }
+
+  function createPreset() {
+    const label = window.prompt("Name this bounce plan:");
+    if (!label || !label.trim()) return;
+    const base =
+      label
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") || `plan-${Date.now()}`;
+    let id = base;
+    let suffix = 2;
+    while (presets[id]) {
+      id = `${base}-${suffix}`;
+      suffix += 1;
+    }
+    presets[id] = { ...snapshotPlan(), id, label: label.trim() };
+    activePresetId = id;
+    persistPresets();
+    renderPresetOptions();
+    loadPreset(id);
+    setStatus(`Saved “${label.trim()}” as a new plan.`);
+  }
+
+  function savePreset() {
+    const label = presets[activePresetId].label;
+    presets[activePresetId] = { ...snapshotPlan(), id: activePresetId, label };
+    persistPresets();
+    setModified(false);
+    setStatus(`Saved changes to “${label}”.`);
+  }
+
+  function deletePreset() {
+    if (DEFAULT_PRESETS[activePresetId]) {
+      setStatus("Built-in presets cannot be deleted.");
+      return;
+    }
+    const label = presets[activePresetId].label;
+    if (!window.confirm(`Delete the saved plan “${label}”?`)) return;
+    delete presets[activePresetId];
+    activePresetId = "mix-handoff";
+    persistPresets();
+    renderPresetOptions();
+    loadPreset(activePresetId);
+    setStatus(`Deleted “${label}”.`);
+  }
+
+  function buildChecklist() {
+    const plan = snapshotPlan();
+    const files = outputTracks();
+    const range =
+      nodes.range.options[nodes.range.selectedIndex]?.textContent ||
+      "Project end";
+    return [
+      "DIRT CAT RECORDS · LOGIC AUTO BOUNCE PLAN",
+      "",
+      `Plan: ${plan.label}${modified ? " (edited)" : ""}`,
+      `Logic command: ${WORKFLOWS[plan.delivery].path}`,
+      `Format: ${plan.format} · ${plan.bitDepth}-bit · ${rateLabel()}`,
+      `Range: ${range}`,
+      `Plug-ins: ${plan.includePlugins ? "Included" : "Bypassed"}`,
+      `Automation: ${plan.includeAutomation ? "Rendered" : "Not rendered"}`,
+      plan.delivery === "stereo"
+        ? `Audio tail: ${plan.includeTail ? "Included" : "Not included"}`
+        : "",
+      "",
+      "PLANNED FILES",
+      ...files.map((track) => `• ${track}.${extension()}`),
+      "",
+      "PREFLIGHT",
+      "□ Save a new project version.",
+      "□ Confirm project end or cycle range leaves room for tails.",
+      "□ Review sidechains, aux returns, and bus stems.",
+      "□ Use Realtime for external MIDI, live inputs, or DSP hardware.",
+      "",
+      `NOTE: ${WORKFLOWS[plan.delivery].warning}`,
+      "This plan does not control Logic Pro or inspect the open project. Verify the Logic export dialog before rendering.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  async function copyChecklist() {
+    const text = buildChecklist();
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (_error) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
+    }
+    setStatus("Logic checklist copied to the clipboard.");
+  }
+
+  function downloadPlan() {
+    const blob = new Blob([buildChecklist()], {
+      type: "text/plain;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${activePresetId}-bounce-recipe.json`;
-    document.body.appendChild(a);
-    a.click();
-
-    document.body.removeChild(a);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${(presets[activePresetId]?.label || "logic-bounce-plan").toLowerCase().replace(/[^a-z0-9]+/g, "-")}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
     URL.revokeObjectURL(url);
+    setStatus("Downloaded the session plan.");
   }
 
-  // Self-execute on DOM load
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
+  function setStatus(message) {
+    nodes.status.textContent = message;
   }
+
+  function loadDemo() {
+    setDelivery("all-tracks");
+    setRangeOptions("all-tracks", "project-end");
+    nodes.format.value = "WAV";
+    nodes.bitDepth.value = "24";
+    nodes.sampleRate.value = "project";
+    nodes.normalize.value = "off";
+    nodes.includePlugins.checked = true;
+    nodes.includeAutomation.checked = true;
+    tracks = [...EXAMPLE_TRACKS];
+    nodes.preflightChecks.forEach((input, index) => {
+      input.checked = index < 2;
+    });
+    setStatus(
+      "Demo loaded: eight full-length 24-bit track files ready to review."
+    );
+    markModified();
+  }
+
+  function bindEvents() {
+    nodes.preset.addEventListener("change", () =>
+      loadPreset(nodes.preset.value)
+    );
+    nodes.newPreset.addEventListener("click", createPreset);
+    nodes.savePreset.addEventListener("click", savePreset);
+    nodes.deletePreset.addEventListener("click", deletePreset);
+    nodes.delivery.forEach((input) =>
+      input.addEventListener("change", () => {
+        setRangeOptions(
+          getDelivery(),
+          getDelivery() === "stereo" ? "entire-project" : "project-end"
+        );
+        markModified();
+      })
+    );
+    [
+      nodes.format,
+      nodes.bitDepth,
+      nodes.sampleRate,
+      nodes.range,
+      nodes.normalize,
+      nodes.includePlugins,
+      nodes.includeAutomation,
+      nodes.includeTail,
+    ].forEach((input) => input.addEventListener("change", markModified));
+    nodes.importTracks.addEventListener("click", importTracks);
+    nodes.loadExample.addEventListener("click", () => {
+      nodes.trackInput.value = EXAMPLE_TRACKS.join("\n");
+      importTracks();
+    });
+    nodes.tracksList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-remove-track]");
+      if (button) removeTrack(Number(button.dataset.removeTrack));
+    });
+    nodes.preflightChecks.forEach((input) =>
+      input.addEventListener("change", renderPreflight)
+    );
+    nodes.stepButtons.forEach((button) =>
+      button.addEventListener("click", () => setStep(button.dataset.stepButton))
+    );
+    nodes.continueFiles.addEventListener("click", () => setStep("files"));
+    nodes.continueReview.addEventListener("click", () => setStep("review"));
+    nodes.backButtons.forEach((button) =>
+      button.addEventListener("click", () => setStep(button.dataset.goBack))
+    );
+    nodes.copy.addEventListener("click", copyChecklist);
+    nodes.download.addEventListener("click", downloadPlan);
+    nodes.demo.addEventListener("click", loadDemo);
+  }
+
+  renderPresetOptions();
+  bindEvents();
+  loadPreset(activePresetId);
+  setStep(activeStep, false);
+
+  window.LogicBouncePlannerTest = {
+    buildChecklist,
+    getPlan: snapshotPlan,
+    setStep,
+  };
 })();

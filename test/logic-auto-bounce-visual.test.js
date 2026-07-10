@@ -1,258 +1,150 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { spawn } = require("node:child_process");
+const fs = require("node:fs");
 const { chromium } = require("playwright");
 
 function startServer() {
-  const child = spawn(
+  return spawn(
     process.execPath,
     [
       "-e",
-      "require('http').createServer((req,res)=>{const fs=require('fs');const path=require('path');const file=req.url.split('?')[0] === '/' ? '/studio-tools.html' : req.url.split('?')[0];const full=path.join(process.cwd(), file);fs.readFile(full,(err,data)=>{if(err){res.statusCode=404;res.end('not found');return;}res.end(data);});}).listen(4175)",
+      "require('http').createServer((req,res)=>{const fs=require('fs');const path=require('path');const file=req.url.split('?')[0] === '/' ? '/logic-auto-bounce.html' : req.url.split('?')[0];const full=path.join(process.cwd(), file);fs.readFile(full,(err,data)=>{if(err){res.statusCode=404;res.end('not found');return;}res.end(data);});}).listen(4175)",
     ],
     { cwd: process.cwd(), stdio: "ignore" }
   );
-  return child;
 }
 
-test("Logic Auto Bounce interactive preferences dialogue validation", async () => {
+test("Logic Auto Bounce guides a working plan through deliverable, files, and review", async () => {
   const server = startServer();
   let browser;
   try {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    browser = await chromium.launch({ headless: true });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const chromePath =
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+    browser = await chromium.launch({
+      headless: true,
+      ...(fs.existsSync(chromePath) ? { executablePath: chromePath } : {}),
+    });
     const page = await browser.newPage({
-      viewport: { width: 1440, height: 1200 },
+      viewport: { width: 1440, height: 1024 },
+    });
+    const errors = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
     });
 
-    // 1. Navigate to the workbench
     await page.goto("http://127.0.0.1:4175/logic-auto-bounce.html", {
       waitUntil: "networkidle",
     });
-
-    // 2. Verify all UI containers and buttons exist
-    const prefDialogue = page.locator("#logic-bounce-preferences");
-    await assert.ok(
-      await prefDialogue.isVisible(),
-      "Preferences dialogue should be visible"
+    assert.equal(await page.locator("h1").innerText(), "Logic Auto Bounce");
+    assert.match(
+      await page.locator(".bounce-page-header").innerText(),
+      /Build a clean, repeatable/i
+    );
+    assert.ok(await page.locator('[data-step="deliverable"]').isVisible());
+    assert.equal(await page.locator('[data-step="files"]').isVisible(), false);
+    assert.match(
+      await page.locator("#logic-menu-path").innerText(),
+      /All Tracks as Audio Files/
     );
 
-    const presetSelector = page.locator("#bounce-preset-selector");
-    const bitDepthSelect = page.locator("#bounce-bit-depth");
-    const sampleRateSelect = page.locator("#bounce-sample-rate");
-    const recipePreview = page.locator("#bounce-recipe-preview");
+    const defaultPlan = await page.evaluate(() =>
+      window.LogicBouncePlannerTest.getPlan()
+    );
+    assert.equal(defaultPlan.format, "WAV");
+    assert.equal(defaultPlan.bitDepth, "24");
+    assert.equal(defaultPlan.sampleRate, "project");
 
-    // Verify default active preset is "mix-prep-dry"
-    assert.equal(await presetSelector.inputValue(), "mix-prep-dry");
-    assert.equal(await bitDepthSelect.inputValue(), "24");
-    assert.equal(await sampleRateSelect.inputValue(), "48000");
+    await page.locator('input[name="delivery"][value="stereo"]').check();
+    assert.match(
+      await page.locator("#logic-menu-path").innerText(),
+      /Project or Section/
+    );
+    await page.locator("#render-settings summary").click();
+    assert.ok(await page.locator("#audio-tail-row").isVisible());
+    assert.equal(await page.locator("#bounce-range option").count(), 2);
+    await page.locator("#bounce-bit-depth").selectOption("16");
+    assert.ok(await page.locator("#dither-note").isVisible());
 
-    let initialJSONText = await recipePreview.innerText();
-    let initialRecipe = JSON.parse(initialJSONText);
-    assert.equal(initialRecipe.presetId, "mix-prep-dry");
-    assert.equal(initialRecipe.audioSettings.sampleRate, 48000);
-    assert.equal(initialRecipe.toggles.insertsActive, false);
-    assert.equal(initialRecipe.toggles.printFxAuxes, false);
-
-    // 3. Select "Vocal Stems (Wet)" and verify state changes
-    await presetSelector.selectOption("vocal-stems-wet");
-
-    // Give state machine a tiny tick to update
-    await page.waitForTimeout(100);
-
-    assert.equal(await sampleRateSelect.inputValue(), "44100");
-
-    let wetJSONText = await recipePreview.innerText();
-    let wetRecipe = JSON.parse(wetJSONText);
-    assert.equal(wetRecipe.presetId, "vocal-stems-wet");
-    assert.equal(wetRecipe.audioSettings.sampleRate, 44100);
-    assert.equal(wetRecipe.toggles.insertsActive, true);
-    assert.equal(wetRecipe.toggles.printFxAuxes, true);
-    assert.equal(wetRecipe.isModified, false);
-
-    // 4. Change a granular toggle to verify interactive modification tracking
-    await page.locator("#toggle-inserts-active").evaluate((el) => el.click());
-
-    await page.waitForTimeout(100);
-
-    // Modified badge should be visible
-    const badgeModified = page.locator("#preset-modified-badge");
-    assert.ok(
-      await badgeModified.isVisible(),
-      "Modified badge should be visible after state edits"
+    await page
+      .locator('input[name="delivery"][value="selected-tracks"]')
+      .check();
+    await page.locator("#btn-continue-files").click();
+    assert.ok(await page.locator('[data-step="files"]').isVisible());
+    assert.match(
+      await page.locator("#logic-warning").innerText(),
+      /sidechain/i
     );
 
-    let modifiedJSONText = await recipePreview.innerText();
-    let modifiedRecipe = JSON.parse(modifiedJSONText);
-    assert.equal(modifiedRecipe.toggles.insertsActive, false);
-    assert.equal(modifiedRecipe.isModified, true);
+    await page
+      .locator("#bounce-track-input")
+      .fill("Lead Vocal\nBGV Stack\nLead Vocal\n");
+    await page.locator("#btn-import-tracks").click();
+    assert.equal(await page.locator("#bounce-tracks-list tr").count(), 2);
+    assert.match(
+      await page.locator("#bounce-track-summary").innerText(),
+      /2 planned files/
+    );
+    await page.getByRole("button", { name: "Remove Lead Vocal" }).click();
+    assert.equal(await page.locator("#bounce-tracks-list tr").count(), 1);
 
-    // 5. Verify simulated tracks sidechain policy dropdown selections
-    // The Bass Synth track is expected to have a sidechain dropdown
-    const bassSynthSelect = page.locator('select[data-track="Bass Synth"]');
-    assert.ok(
-      await bassSynthSelect.isVisible(),
-      "Bass Synth sidechain policy dropdown should render"
+    const checklist = await page.evaluate(() =>
+      window.LogicBouncePlannerTest.buildChecklist()
+    );
+    assert.match(checklist, /Tracks as Audio Files/);
+    assert.match(checklist, /16-bit/);
+    assert.match(checklist, /BGV Stack\.wav/);
+    assert.match(checklist, /does not control Logic Pro/i);
+
+    await page.locator("#btn-continue-review").click();
+    assert.ok(await page.locator('[data-step="review"]').isVisible());
+    assert.match(
+      await page.locator("#bounce-result-preview").innerText(),
+      /1 file planned/
+    );
+    await page.locator("#preflight-checks input").first().check();
+    assert.match(
+      await page.locator("#preflight-progress").innerText(),
+      /1 of 4/
     );
 
-    // Select Bypass Sidechain
-    await bassSynthSelect.selectOption("bypass-sidechain");
-    await page.waitForTimeout(100);
-
-    let sidechainJSONText = await recipePreview.innerText();
-    let sidechainRecipe = JSON.parse(sidechainJSONText);
-    const synthPolicy = sidechainRecipe.trackPolicies.find(
-      (t) => t.trackName === "Bass Synth"
-    );
-    assert.equal(synthPolicy.policy, "bypass-sidechain");
-
-    // 6. Verify clipboard and download actions exist
-    const btnCopy = page.locator("#btn-copy-recipe");
-    const btnDownload = page.locator("#btn-download-recipe");
-    assert.ok(
-      await btnCopy.isVisible(),
-      "Copy to clipboard button should render"
-    );
-    assert.ok(
-      await btnDownload.isVisible(),
-      "Download recipe button should render"
+    const downloadPromise = page.waitForEvent("download");
+    await page.locator("#btn-download-recipe").click();
+    assert.match((await downloadPromise).suggestedFilename(), /\.txt$/);
+    assert.match(
+      await page.locator("#bounce-status").innerText(),
+      /Downloaded/i
     );
 
-    // 6.5. Verify interactive track management additions and changes
-    const btnAddToggle = page.locator("#btn-add-track-toggle");
-    const btnPasteToggle = page.locator("#btn-paste-tracks-toggle");
-    const btnResetTracks = page.locator("#btn-reset-tracks");
-
-    assert.ok(
-      await btnAddToggle.isVisible(),
-      "Add Track toggle button should render"
+    await page.locator('[data-step-button="deliverable"]').click();
+    await page.locator("#bounce-demo-button").click();
+    assert.match(
+      await page.locator("#bounce-status").innerText(),
+      /Demo loaded/i
     );
-    assert.ok(
-      await btnPasteToggle.isVisible(),
-      "Paste Track List button should render"
-    );
-    assert.ok(
-      await btnResetTracks.isVisible(),
-      "Reset Tracks button should render"
-    );
-
-    // Add a single track
-    await btnAddToggle.click({ force: true });
-    const addFormPanel = page.locator("#add-track-form-panel");
-    assert.ok(
-      await addFormPanel.isVisible(),
-      "Add track inline form panel should be visible"
-    );
-
-    await page.fill("#new-track-name", "Sub Bass");
-    await page.selectOption("#new-track-type", "Software Instrument");
-    await page.selectOption("#new-track-sidechain", "Kick Out");
-    await page.click("#btn-submit-add-track", { force: true });
-
-    await page.waitForTimeout(100);
-
-    // Assert it appears in the table
-    const subBassRow = page.locator("tbody#bounce-tracks-body tr", {
-      hasText: "Sub Bass",
-    });
-    assert.ok(
-      await subBassRow.isVisible(),
-      "New track 'Sub Bass' should be visible in table"
-    );
-
-    // Assert it is compiled in the recipe JSON
-    let addedTrackRecipeJSON = JSON.parse(await recipePreview.innerText());
-    let subBassPolicy = addedTrackRecipeJSON.trackPolicies.find(
-      (t) => t.trackName === "Sub Bass"
-    );
-    assert.ok(subBassPolicy, "Sub Bass policy should be present in the recipe");
-    assert.equal(subBassPolicy.type, "Software Instrument");
-    assert.equal(subBassPolicy.sidechain, "Kick Out");
-    assert.equal(subBassPolicy.policy, "preserve-pump");
-
-    // Batch paste tracks import
-    await btnPasteToggle.click({ force: true });
-    const pasteModal = page.locator("#paste-tracks-modal");
-    assert.ok(
-      await pasteModal.isVisible(),
-      "Paste tracks modal should be visible"
-    );
-
-    await page.fill("#paste-tracks-textarea", "Guitar L\nGuitar R");
-    await page.click("#btn-submit-paste-tracks", { force: true });
-
-    await page.waitForTimeout(100);
-
-    // Assert guitar tracks appear in the table
-    const guitarLRow = page.locator("tbody#bounce-tracks-body tr", {
-      hasText: "Guitar L",
-    });
-    const guitarRRow = page.locator("tbody#bounce-tracks-body tr", {
-      hasText: "Guitar R",
-    });
-    assert.ok(await guitarLRow.isVisible(), "Guitar L should be in the table");
-    assert.ok(await guitarRRow.isVisible(), "Guitar R should be in the table");
-
-    // Delete a track (Guitar L)
-    const guitarLDeleteBtn = guitarLRow.locator(".btn-delete-track");
-    await guitarLDeleteBtn.click({ force: true });
-    await page.waitForTimeout(100);
-
-    // Assert Guitar L is gone, but Guitar R remains
     assert.equal(
-      await guitarLRow.isVisible(),
-      false,
-      "Guitar L should be deleted"
-    );
-    assert.ok(await guitarRRow.isVisible(), "Guitar R should remain");
-
-    // Reset tracks back to default
-    page.once("dialog", async (dialog) => {
-      assert.equal(
-        dialog.message(),
-        "Are you sure you want to reset all tracks to the default session tracks?"
-      );
-      await dialog.accept();
-    });
-    await btnResetTracks.click({ force: true });
-    await page.waitForTimeout(150);
-
-    // Verify it reset back to default tracks (i.e. Bass Synth is present, Guitar R is gone)
-    const guitarRRowAfterReset = page.locator("tbody#bounce-tracks-body tr", {
-      hasText: "Guitar R",
-    });
-    assert.equal(
-      await guitarRRowAfterReset.isVisible(),
-      false,
-      "Guitar R should be gone after reset"
-    );
-    const bassSynthRowAfterReset = page.locator("tbody#bounce-tracks-body tr", {
-      hasText: "Bass Synth",
-    });
-    assert.ok(
-      await bassSynthRowAfterReset.isVisible(),
-      "Bass Synth should remain after reset"
+      await page.evaluate(
+        () => window.LogicBouncePlannerTest.getPlan().tracks.length
+      ),
+      8
     );
 
-    // 7. Verify no horizontal overflow in mobile layout
-    await page.setViewportSize({ width: 390, height: 800 });
-    await page.goto("http://127.0.0.1:4175/logic-auto-bounce.html", {
-      waitUntil: "networkidle",
-    });
-
+    const desktopLayout = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+    }));
+    assert.ok(desktopLayout.scrollWidth <= desktopLayout.viewportWidth);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: "networkidle" });
     const mobileLayout = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,
       viewportWidth: window.innerWidth,
     }));
-
-    assert.ok(
-      mobileLayout.scrollWidth <= mobileLayout.viewportWidth,
-      `Mobile layout must not create horizontal overflow (scrollWidth=${mobileLayout.scrollWidth}, viewportWidth=${mobileLayout.viewportWidth})`
-    );
+    assert.ok(mobileLayout.scrollWidth <= mobileLayout.viewportWidth);
+    assert.deepEqual(errors, []);
   } finally {
-    if (browser) {
-      await browser.close();
-    }
+    if (browser) await browser.close();
     server.kill();
   }
 });
