@@ -41,6 +41,9 @@
           </p>
         </div>
         <div class="brick-lane-actions">
+          <button type="button" id="drum-demo-button" class="btn-primary">
+            Watch Demo
+          </button>
           <a href="studio-tools.html" class="btn-secondary">All Tools</a>
         </div>
       </header>
@@ -77,6 +80,19 @@
           <article class="drum-align-controls">
             <span class="studio-workbench-label">Reference Strategy</span>
             <h3>Kit Image Reference</h3>
+            <div class="drum-align-demo-card">
+              <div>
+                <span class="drum-align-demo-pulse" aria-hidden="true"></span>
+                <strong>See the full flow</strong>
+              </div>
+              <p>
+                A guided session shows how tracks become offsets you can take
+                into your DAW.
+              </p>
+              <button type="button" id="drum-demo-button-inline" class="btn-primary">
+                Run interactive demo
+              </button>
+            </div>
             <label for="drum-reference-selector">Reference</label>
             <select id="drum-reference-selector">
               <option value="auto">Recommended reference</option>
@@ -100,17 +116,62 @@
           <article class="drum-align-waveform-stage">
             <span class="studio-workbench-label">Before / After Movement</span>
             <h3>Waveform Overlay</h3>
+            <div class="drum-align-waveform-legend" aria-label="Waveform legend">
+              <span><i class="legend-swatch legend-before"></i>Before</span>
+              <span><i class="legend-swatch legend-after"></i>Aligned</span>
+              <span><i class="legend-swatch legend-reference"></i>Reference</span>
+              <span class="waveform-phase-key"><b>Out</b><i></i><b>In phase</b></span>
+              <span class="waveform-zoom-note">First-hit ADSR detail</span>
+            </div>
+            <div class="drum-align-waveform-navigation" aria-label="Waveform navigation">
+              <button type="button" id="drum-waveform-first-hit" class="btn-secondary">
+                Focus first hit
+              </button>
+              <button type="button" id="drum-waveform-fit-track" class="btn-secondary">
+                Fit full track
+              </button>
+              <label for="drum-waveform-window">
+                ADSR window
+                <select id="drum-waveform-window">
+                  <option value="0.25">250 ms</option>
+                  <option value="0.5">500 ms</option>
+                  <option value="0.75" selected>750 ms</option>
+                  <option value="1">1 second</option>
+                  <option value="2">2 seconds</option>
+                </select>
+              </label>
+              <label class="drum-waveform-position-label" for="drum-waveform-position">
+                Track position
+                <input id="drum-waveform-position" type="range" min="0" max="1000" value="0" step="1" />
+              </label>
+              <output id="drum-waveform-position-output" for="drum-waveform-position">First hit · per track</output>
+            </div>
+            <section class="drum-align-phase-strip" aria-label="Phase confidence">
+              <div class="drum-align-phase-heading">
+                <span class="studio-workbench-label">Phase Confidence</span>
+                <strong id="drum-phase-summary">Waiting for analysis</strong>
+                <span class="drum-align-phase-scale">−1 issue · 0 neutral · +1 aligned</span>
+              </div>
+              <div id="drum-correlation-panel"></div>
+            </section>
             <div id="drum-waveform-mount"></div>
           </article>
-          <article class="drum-align-correlation-grid">
-            <span class="studio-workbench-label">Phase Confidence</span>
-            <h3>Correlation Checks</h3>
-            <div id="drum-correlation-panel"></div>
-          </article>
           <article class="drum-align-report">
-            <span class="studio-workbench-label">DAW Notes</span>
-            <h3>Alignment Report</h3>
-            <pre><code id="drum-report-panel">Run analysis to generate a DAW-ready report.</code></pre>
+            <div class="drum-align-report-heading">
+              <div>
+                <span class="studio-workbench-label">DAW Notes</span>
+                <h3>Alignment Report</h3>
+              </div>
+              <button type="button" id="drum-copy-report-inline" class="btn-secondary">
+                Copy DAW notes
+              </button>
+            </div>
+            <div id="drum-report-panel" class="drum-align-report-panel">
+              <div class="drum-align-report-empty">
+                <strong>No report yet</strong>
+                <span>Run analysis to generate a DAW-ready report.</span>
+              </div>
+            </div>
           </article>
           <p
             id="drum-alignment-status"
