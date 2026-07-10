@@ -278,11 +278,16 @@ test("Drum Alignment analyzes synthetic tracks and renders report plus waveform"
 
     const report = await page.locator("#drum-report-panel").innerText();
     console.log("[TEST] Checking report content");
-    assert.match(report, /Dirt Cat Drum Alignment Report/);
-    assert.match(report, /OH Stereo\.wav \[Overhead\]: 0 samples/);
-    assert.match(report, /Kick In\.wav \[Kick\]: -50 samples/);
-    assert.match(report, /Snare Top\.wav \[Snare\]: \+20 samples/);
-    assert.match(report, /Correlation:/);
+    // The page renders a structured summary; the copy/export report keeps
+    // the plain-text "Dirt Cat Drum Alignment Report" header.
+    assert.match(report, /REFERENCE/);
+    assert.match(report, /TRACK MOVES/);
+    assert.match(report, /OH Stereo\.wav/);
+    assert.match(report, /Kick In\.wav/);
+    assert.match(report, /-50 SMP/);
+    assert.match(report, /Snare Top\.wav/);
+    assert.match(report, /\+20 SMP/);
+    assert.match(report, /PHASE CONFIDENCE/);
 
     // Canvas rendering is skipped in test mode, so skip those checks
     console.log("[TEST] Skipping canvas checks (rendering disabled in test mode)");
@@ -299,16 +304,25 @@ test("Drum Alignment analyzes synthetic tracks and renders report plus waveform"
     
     await page.waitForFunction(
       () =>
-        document
-          .querySelector("#drum-report-panel")
-          ?.textContent.includes("manual marker"),
+        window.DrumAlignmentWorkbenchTest.getState().result?.tracks?.some(
+          (track) => track.fileName === "Kick In.wav" && track.manualTransientSample === 120
+        ),
       null,
       { timeout: 5000 }
     );
 
     const correctedReport = await page.locator("#drum-report-panel").innerText();
-    assert.match(correctedReport, /Kick In\.wav \[Kick\]: -20 samples/);
-    assert.match(correctedReport, /manual marker/);
+    assert.match(correctedReport, /Kick In\.wav/);
+    assert.match(correctedReport, /-20 SMP/);
+    const correctedState = await page.evaluate(() =>
+      window.DrumAlignmentWorkbenchTest.getState()
+    );
+    assert.equal(
+      correctedState.result.tracks.find((track) => track.fileName === "Kick In.wav")
+        .manualTransientSample,
+      120
+    );
+    assert.match(correctedState.reportText, /manual marker/);
   } finally {
     if (browser) await browser.close();
     await server.close();
