@@ -125,6 +125,55 @@ test("Drum Alignment page initializes with the local workbench ready", { timeout
   }
 });
 
+test("Drum Alignment demo buttons load a completed sample session", { timeout: 10000 }, async () => {
+  const server = await startServer();
+  let browser;
+
+  try {
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    await page.goto(`${server.origin}/drum-alignment.html`, { waitUntil: "commit" });
+
+    await page.locator("#drum-demo-button").click();
+    await page.waitForFunction(
+      () => document.querySelector("#drum-alignment-status")?.textContent.includes("Demo 4/4"),
+      null,
+      { timeout: 5000 }
+    );
+
+    assert.equal(await page.locator(".drum-align-track-card").count(), 4);
+    assert.match(
+      await page.locator("#drum-report-panel").innerText(),
+      /TRACK MOVES/
+    );
+    assert.equal(await page.locator("#drum-waveform-mount canvas").count(), 1);
+    assert.equal(await page.locator("#drum-demo-button").innerText(), "Watch Demo");
+    assert.equal(
+      await page.locator("#drum-demo-button-inline").innerText(),
+      "Run interactive demo"
+    );
+
+    await page.locator("#drum-demo-button-inline").click();
+    await page.waitForFunction(
+      () => document.querySelector("#drum-alignment-workbench")?.getAttribute("aria-busy") === "true",
+      null,
+      { timeout: 2000 }
+    );
+    await page.waitForFunction(
+      () => document.querySelector("#drum-alignment-status")?.textContent.includes("Demo 4/4"),
+      null,
+      { timeout: 5000 }
+    );
+    assert.equal(
+      await page.locator("#drum-alignment-workbench").getAttribute("aria-busy"),
+      "false"
+    );
+  } finally {
+    if (browser) await browser.close();
+    await server.close();
+  }
+});
+
 test("Drum Alignment analyzes synthetic tracks and renders report plus waveform", { timeout: 10000 }, async () => {
   const server = await startServer();
   let browser;

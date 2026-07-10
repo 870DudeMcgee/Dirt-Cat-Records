@@ -23,6 +23,7 @@
     lastReportText: "",
     booted: false,
     demoRun: 0,
+    demoRunning: false,
     waveformWindowSeconds: 0.75,
     waveformPositionRatio: null,
     waveformFitFullTrack: false,
@@ -220,6 +221,25 @@
 
   function setStatus(nodes, message) {
     if (nodes.status) nodes.status.textContent = message;
+  }
+
+  function setDemoControls(nodes, isRunning) {
+    [nodes.demoButton, nodes.demoButtonInline].forEach((button) => {
+      if (!button) return;
+      if (!button.dataset.defaultLabel) {
+        button.dataset.defaultLabel = button.textContent.trim();
+      }
+      button.disabled = isRunning;
+      button.textContent = isRunning
+        ? "Running demo…"
+        : button.dataset.defaultLabel;
+    });
+    nodes.root?.setAttribute("aria-busy", String(isRunning));
+  }
+
+  function revealDemo(nodes, target = nodes.root) {
+    if (!target || typeof target.scrollIntoView !== "function") return;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function renderReferenceSelector(nodes) {
@@ -580,10 +600,6 @@
         if (
           typeof waveformRenderer.renderDrumAlignmentWaveforms === "function"
         ) {
-          console.log("[drum-alignment] calling renderDrumAlignmentWaveforms with", tracks.length, "tracks");
-          // Use Promise.resolve to give Playwright a chance to handle callbacks
-          const promise = Promise.resolve().then(() => {
-            console.log("[drum-alignment] about to call renderDrumAlignmentWaveforms");
           const result = waveformRenderer.renderDrumAlignmentWaveforms(
             nodes.waveformMount,
             renderState,
@@ -599,13 +615,10 @@
               phaseColors: true,
             }
           );
-          console.log("[drum-alignment] renderDrumAlignmentWaveforms returned, rendered:", result?.rendered);
-            console.log("[drum-alignment] renderDrumAlignmentWaveforms returned, rendered:", result?.rendered);
-            return result;
-          });
-          // Don't wait for it, just return immediately
-          promise.catch((err) => console.error("[drum-alignment] renderDrumAlignmentWaveforms error:", err.message));
-          console.log("[drum-alignment] queued renderDrumAlignmentWaveforms");
+          if (!result?.rendered) {
+            nodes.waveformMount.innerHTML =
+              '<article class="drum-align-empty"><p>The waveform preview could not be drawn here. Your alignment report is still ready below.</p></article>';
+          }
           return;
         }
         if (typeof waveformRenderer.renderAlignmentWaveforms === "function") {
@@ -807,26 +820,41 @@
   }
 
   async function runDemo(nodes) {
+    if (state.demoRunning) return;
     const demoRun = ++state.demoRun;
+    state.demoRunning = true;
+    setDemoControls(nodes, true);
     nodes.root.classList.add("is-demo-active");
-    setStatus(nodes, "Demo 1/4 · Loading a sample drum session locally...");
-    state.tracks = createDemoTracks().map(createHarnessTrack);
-    state.result = null;
-    state.lastReportText = "";
-    state.referenceValue = "auto";
-    state.waveformPositionRatio = null;
-    state.waveformFitFullTrack = false;
-    render(nodes);
+    revealDemo(nodes);
 
-    await delay(650);
-    if (demoRun !== state.demoRun) return;
-    setStatus(nodes, "Demo 2/4 · Overheads detected and selected as the kit image reference.");
-    await delay(650);
-    if (demoRun !== state.demoRun) return;
-    setStatus(nodes, "Demo 3/4 · Detecting transients and comparing close mics...");
-    await analyze(nodes);
-    if (demoRun !== state.demoRun) return;
-    setStatus(nodes, "Demo 4/4 · Done. Review the bright aligned waveforms, confidence checks, and DAW report.");
+    try {
+      setStatus(nodes, "Demo 1/4 · Loading a sample drum session locally...");
+      state.tracks = createDemoTracks().map(createHarnessTrack);
+      state.result = null;
+      state.lastReportText = "";
+      state.referenceValue = "auto";
+      state.waveformPositionRatio = null;
+      state.waveformFitFullTrack = false;
+      render(nodes);
+
+      await delay(650);
+      if (demoRun !== state.demoRun) return;
+      setStatus(nodes, "Demo 2/4 · Overheads detected and selected as the kit image reference.");
+      await delay(650);
+      if (demoRun !== state.demoRun) return;
+      setStatus(nodes, "Demo 3/4 · Detecting transients and comparing close mics...");
+      await analyze(nodes);
+      if (demoRun !== state.demoRun) return;
+      setStatus(nodes, "Demo 4/4 · Done. Review the bright aligned waveforms, confidence checks, and DAW report.");
+      revealDemo(nodes, nodes.waveformStage);
+    } catch (error) {
+      setStatus(nodes, `Demo could not finish: ${error.message || error}`);
+    } finally {
+      if (demoRun === state.demoRun) {
+        state.demoRunning = false;
+        setDemoControls(nodes, false);
+      }
+    }
   }
 
   async function decodeFile(file, index) {
@@ -1186,6 +1214,7 @@
       demoButton: document.getElementById("drum-demo-button"),
       demoButtonInline: document.getElementById("drum-demo-button-inline"),
       waveformMount: document.getElementById("drum-waveform-mount"),
+      waveformStage: document.querySelector(".drum-align-waveform-stage"),
       waveformFirstHit: document.getElementById("drum-waveform-first-hit"),
       waveformFitTrack: document.getElementById("drum-waveform-fit-track"),
       waveformWindow: document.getElementById("drum-waveform-window"),

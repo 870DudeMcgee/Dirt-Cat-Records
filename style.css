@@ -4003,6 +4003,16 @@ footer {
   filter: none;
 }
 
+.drum-align-shell[aria-busy="true"] .drum-align-demo-card {
+  border-color: rgba(94, 231, 255, 0.66);
+  box-shadow: 0 0 22px rgba(94, 231, 255, 0.14);
+}
+
+.drum-align-shell[aria-busy="true"] .drum-align-demo-card button {
+  cursor: wait;
+  opacity: 0.78;
+}
+
 @keyframes drum-demo-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(245, 46, 230, 0.48); }
   50% { box-shadow: 0 0 0 7px rgba(245, 46, 230, 0); }
