@@ -1693,6 +1693,35 @@ textarea::placeholder {
   letter-spacing: 0.02em;
 }
 
+.social-icon.dude-site-link {
+  margin-top: 0.35rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--color-accent, #72f1ff);
+}
+
+.social-icon.dude-site-link::before {
+  content: "DM";
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  box-shadow: 0 0 10px rgba(114, 241, 255, 0.3);
+}
+
+.social-icon.dude-site-link .social-label {
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.9rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
 /* Brand colors — always on, not just hover */
 .social-icon.youtube {
   color: #ff0000;
