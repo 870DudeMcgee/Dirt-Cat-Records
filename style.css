@@ -3812,6 +3812,7 @@ footer {
 }
 
 .studio-tool-card span {
+  display: block;
   color: var(--brick-lane-muted);
   font-size: 0.88rem;
 }

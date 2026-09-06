@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/api/create-paypal-order", "destination": "/api/public?route=create-paypal-order" },
     { "source": "/api/capture-paypal-order", "destination": "/api/public?route=capture-paypal-order" },

@@ -3211,3 +3211,13 @@ Roadmap link: `docs/roadmap.md` (Brick Lane manual accuracy implementation)
 ### Needs To Be Done Next
 
 - Perform the preflight check, finalize branch review, and integrate the manual-accuracy work back to main.
+
+## Search indexing cleanup — 2026-09-06
+
+User-requested technical SEO maintenance after Search Console alerts. Started from a clean clone of main `e405d8a` on `codex/seo-indexing-cleanup`; this SHA matches the latest GitHub Production deployment. The older local `DirtCatRecordsWebsite` folder was not used or changed.
+
+- Audited all 10 HTML pages, the 7-page sitemap, robots policy, static content, canonical tags, local assets, crawl links, and fragment targets. Production pages return 200 with consistent canonical/indexing policies; an unknown route returns 404.
+- Added a permanent `/index.html` to `/` redirect and pointed home navigation directly to canonical fragment URLs. Kept all existing private/noindex policies and checkout functionality.
+- Added missing Open Graph previews to the 6 public subpages, normalized the homepage share URL, and clarified the tool catalog with supported workflows. Tool descriptions display as separate blocks so buttons do not interrupt sentences.
+- Added repeatable local/live inventory audit and a read-only mobile/desktop browser smoke script. Full deployment preflight passed 418 tests before final copy/CSS polish; final checks are recorded in the parent task's `gates/dirt-evidence.md`.
+- Provider configuration and APIs are unchanged. Parent owns pushed-commit deployment, deployment ledger recording, production redirect verification, and Search Console follow-up. Google crawl/index timing remains external.
