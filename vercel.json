@@ -1,4 +1,7 @@
 {
+  "git": {
+    "deploymentEnabled": false
+  },
   "version": 2,
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": true }
