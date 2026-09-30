@@ -1,0 +1,7 @@
+CoreyStudioSession
+prototypes/corey-bench/*
+!prototypes/corey-bench/media
+prototypes/corey-bench/media/*
+!prototypes/corey-bench/media/kit.jpg
+!prototypes/corey-bench/media/close-mic.jpg
+!prototypes/corey-bench/media/ladder.jpg

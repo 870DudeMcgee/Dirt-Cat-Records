@@ -1,0 +1,12 @@
+Dirt Cat public homepage redesign contract. Frozen. A session follow-up cannot amend it.
+
+This contract governs the public homepage only: index.html, public-home.js, and public-home.css. Checkout, portal, support, admin, the studio lab, and every other existing non-homepage system stay as they are.
+
+Invariants:
+- Outcome-first. The visitor meets the result first: songs sound better here, and they can hear the difference. The page does not open as a service menu, a feature list, or a pitch about the studio's importance.
+- Welcoming. A musician who is unsure is invited in. The next step is obvious: listen, send a song, or book.
+- Anti-arrogance. No insider swagger, no lecturing the visitor, and no Dude McGee identity takeover.
+- Real photography. The room, the session, and the people are photographed. No stock neon, no fake waveforms, no illustrated product scenes.
+- Corey Bench is interactive proof. The visitor can operate the comparison and hear the difference. Corey is not a thumbnail, a quote card, or a passive embed.
+- No generic SaaS, card, bento, or plugin treatment. No feature grids, no pricing-tier cards, no bento mosaics, no plugin-marketplace layout, no glass dashboard.
+- Existing non-homepage systems are preserved. Homepage work does not replace or redesign checkout, portal, support, admin, or the lab.
