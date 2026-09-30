@@ -1,0 +1,128 @@
+/* One visual layer for the deployed page family; functional layouts stay in their owning sheets. */
+@font-face { font-family: Outfit; src: url('assets/fonts/Outfit-Variable.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: Anton; src: url('assets/fonts/Anton-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+:root {
+  color-scheme: dark;
+  --dc-bg: #121316; --dc-deep: #0b0c0f; --dc-surface: #1b1d22;
+  --dc-text: #f2f2f4; --dc-muted: #b1b4bc; --dc-accent: #a98aff; --dc-border: #383a42;
+}
+body, body.brick-lane-lab-page, body.bounce-page-body { background: var(--dc-bg); color: var(--dc-text); }
+body { --bounce-ink: var(--dc-deep); --bounce-panel: var(--dc-surface); --bounce-line: var(--dc-border); --bounce-text: var(--dc-text); --bounce-muted: var(--dc-muted); --bounce-magenta: var(--dc-accent); }
+*, *::before, *::after { font-family: Outfit, sans-serif; text-shadow: none !important; }
+body::before, body::after, .checkout-page::before { display: none; }
+h1, h2, h3, h4, .section-title, .card-title { color: var(--dc-text); }
+h1, h2, .section-title { font-family: Anton, sans-serif; font-weight: 400; letter-spacing: -.015em; }
+p, li, .card-text, .field-help, .hero-subtitle, .gear-intro { color: var(--dc-muted); }
+a { color: var(--dc-accent); }
+a:hover { color: #c7b3ff; }
+#main-nav { background: var(--dc-bg); border-color: var(--dc-border); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#main-nav a { color: var(--dc-text); font-weight: 450; text-transform: none; }
+#main-nav a:hover { color: var(--dc-accent); }
+.nav-toggle, .nav-toggle span { box-shadow: none; }
+/* ponytail: override existing visual surfaces once, without duplicating page layouts. */
+.card, .track, .review-panel, .checkout-panel, .checkout-summary,
+.support-panel, .support-summary, .success-card, .portal-card, .portal-panel,
+.admin-login, .admin-panel, .admin-setup-panel, .admin-overview,
+.studio-tool-card, .bounce-step, .bounce-settings-disclosure, .bounce-plan-menu,
+.bounce-upload-zone, .bounce-result, .choice-card, .addon-row,
+.payment-mode, .discount-code-box, .brick-lane-card, .brick-lane-briefing,
+.drum-panel, .drum-workspace, .drum-track-card {
+  background: var(--dc-surface); background-image: none; border-color: var(--dc-border);
+  box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: 8px;
+}
+.card::before, .card::after, .checkout-panel::before, .checkout-summary::before,
+.cta-shimmer-button::before, .cta-shimmer-button::after, .shimmer-flare,
+.cyber-radar { display: none; }
+button, input, textarea, select { font: inherit; }
+input:not([type='checkbox']):not([type='radio']):not([type='range']), textarea, select,
+.checkout-panel > input, .checkout-panel > textarea, .checkout-panel > select,
+.support-field input, .support-field textarea, .support-field select, .admin-login input {
+  color: var(--dc-text); background: var(--dc-deep); border: 1px solid var(--dc-border);
+  border-radius: 4px; box-shadow: none;
+}
+input::placeholder, textarea::placeholder { color: #92959e; opacity: 1; }
+option { background: var(--dc-deep); color: var(--dc-text); }
+input[type='checkbox'], input[type='radio'], input[type='range'] { accent-color: var(--dc-accent); }
+button, .btn, .cta-shimmer-button, .listen-nav, .artist-site-cta, .bounce-primary-action {
+  box-shadow: none; text-shadow: none; background-image: none; border-radius: 4px;
+}
+.btn-primary, .cta-shimmer-button, .bounce-primary-action {
+  color: var(--dc-deep); background: var(--dc-accent); border: 1px solid var(--dc-accent);
+}
+.btn-primary:hover, .cta-shimmer-button:hover, .bounce-primary-action:hover { color: var(--dc-deep); background: #bda5ff; box-shadow: none; }
+.btn-secondary, .listen-nav, .artist-site-cta, .bounce-text-action {
+  color: var(--dc-text); background: transparent; border-color: var(--dc-border);
+}
+button:hover, .btn-secondary:hover, .listen-nav:hover { border-color: var(--dc-accent); box-shadow: none; }
+:focus-visible, #main-nav a:focus-visible, .nav-toggle:focus-visible {
+  outline: 2px solid var(--dc-accent); outline-offset: 4px; box-shadow: none;
+}
+button:disabled, input:disabled, select:disabled, textarea:disabled, [aria-disabled='true'] { opacity: .55; cursor: not-allowed; }
+.choice-card.is-selected, .addon-row.is-selected, .choice-card:has(input:checked),
+.delivery-choice:has(input:checked), .bounce-progress button.is-active {
+  border-color: var(--dc-accent); background: #292334; box-shadow: none;
+}
+.choice-card-label, .addon-row strong, .field-label, .checkout-panel legend,
+.summary-lines strong, .summary-total strong, .terms-row, .payment-mode label { color: var(--dc-text); }
+.checkout-error, [role='alert'], .form-status.error, .status-error { color: #ffb3b9; }
+.form-status, [role='status'] { color: var(--dc-text); }
+.form-status.success, .status-success { color: #a8e4c0; }
+.card-eyebrow, .step-tag, .checkout-summary-kicker, .footer-card-label, .hero-kicker,
+.bounce-brand-kicker, .bounce-step-kicker { color: var(--dc-accent); }
+.listen-dot { background: #61636b; box-shadow: none; }
+.listen-dot.is-active, .listen-dot.active, .listen-dot[aria-current='true'] { background: var(--dc-accent); }
+footer { background: var(--dc-deep); border-color: var(--dc-border); }
+@media (max-width: 900px) {
+  #main-nav { position: relative; }
+  #main-nav.nav-ready ul { background: var(--dc-bg); border-color: var(--dc-border); box-shadow: none; }
+  body { padding-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+/* Legacy gradient text becomes ordinary readable ink, including provider/status copy. */
+h1, h2, h3, h4, .hero-subtitle, .hero-proof, .gear-intro, .review-intro,
+.listen-intro, .checkout-hero p:not(.hero-kicker), .cta-headline, .cta-subtext,
+.cta-email-address, .shimmer-text {
+  background-image: none !important; -webkit-background-clip: border-box; background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+}
+#hero-container .hero-subtitle, .hero-proof, .gear-intro, .review-intro,
+.listen-intro, .checkout-hero p:not(.hero-kicker), .cta-subtext { color: var(--dc-muted); }
+h1, h2, h3, h4, .section-title, .card-title, .cta-headline { color: var(--dc-text); }
+.checkout-logo { filter: none; animation: none; }
+.listen-player::before, #main-nav.nav-ready ul::before,
+#main-nav.nav-ready a::before, #main-nav.nav-ready a::after { display: none; }
+.portal-login, .portal-empty-state, .portal-project, .portal-quote-card, .portal-state-note,
+.portal-upsell-card, .portal-upsell-card.is-included, .portal-balance,
+.overview-metric, .overview-panel, .overview-item, .project-detail-panel,
+.setup-card, .setup-report, .report-empty, .owner-proof-card,
+.studio-workbench-panel, .studio-tool-card.is-active, .studio-tool-card.is-workbench,
+.drum-align-dropzone, .drum-align-controls, .drum-align-track-list,
+.drum-align-waveform-stage, .drum-align-report, .drum-align-correlation-grid,
+.drum-align-reference-card, .drum-align-empty, .drum-align-status,
+.drum-align-demo-card, .drum-align-track-card, .bounce-settings-disclosure,
+.bounce-file-list, .bounce-review-panel, .bounce-file-card, .bounce-dropzone,
+.bounce-empty, .bounce-notice {
+  background: var(--dc-surface); border-color: var(--dc-border); box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: 8px;
+}
+.portal-login .btn, .setup-actions .btn:not(.btn-secondary) { background: var(--dc-accent); color: var(--dc-deep); }
+.brick-lane-topbar .brick-lane-kicker, .studio-workbench-label, .studio-tool-card span,
+.portal-upsell-kicker, .portal-project-code, .summary-total.due-now strong,
+.checkout-panel .choice-card > strong { color: var(--dc-accent); }
+.portal-status-message { background: var(--dc-surface); box-shadow: none; border-color: var(--dc-border); }
+.portal-status-message[data-tone='error'] { color: #ffb3b9; background: #302024; }
+.portal-status-message[data-tone='success'] { color: #a8e4c0; background: #1d2b24; }
+.portal-status-message[data-tone='pending'] { color: var(--dc-muted); background: var(--dc-surface); }
+.bounce-page-body { --bounce-cyan: var(--dc-accent); --bounce-yellow: #d0c4eb; }
+.bounce-page .delivery-choice:has(input:checked) { background: #292334; box-shadow: none; border-color: var(--dc-accent); }
+.bounce-page .bounce-primary-action { background: var(--dc-accent); color: var(--dc-deep); }
+.bounce-page .bounce-primary-action:hover { background: #bda5ff; }
+#main-nav.nav-ready .nav-toggle { background: var(--dc-surface); box-shadow: none; backdrop-filter: none; }
+@media (max-width: 900px) {
+  #main-nav.nav-ready { background: var(--dc-bg); padding: 12px; }
+  #main-nav.nav-ready ul { border-color: var(--dc-border); background: var(--dc-bg); }
+}
+.hero-actions .btn-primary, .hero-actions .btn-primary:hover { box-shadow: none; }

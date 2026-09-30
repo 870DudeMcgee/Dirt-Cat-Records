@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // SPELL 1: THE HERO TERMINAL DECODE
   // =========================================
   const heroHeading = document.getElementById('hero-heading');
-  if (heroHeading) {
+  if (heroHeading && !heroHeading.hasAttribute('data-static-heading')) {
     // Split the text into words and letters for tight granular control
     const text = heroHeading.innerText;
     heroHeading.innerHTML = '';

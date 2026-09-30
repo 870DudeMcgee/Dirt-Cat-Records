@@ -1,38 +1,59 @@
-# Design QA — Approved Logic Auto Bounce Redesign
+# Dark redesign design QA
 
-source visual truth path: `/Users/josh/.codex/generated_images/019f4cff-5331-72f0-b5a2-c852874e449f/exec-44aaaf6f-8a88-40b7-a107-1cefebdb84a9.png`
+final result: passed
 
-implementation screenshot path: `/Users/josh/Desktop/dirt_cat_records_website_final/.codex-audit/10-final-desktop-top.png`
+## Visual truth and capture
 
-viewport and state: The selected source is a 1440 px desktop mock with the Stereo mix choice selected. The implementation capture comes from the in-app browser’s available surface and has the Mix handoff default (All individual tracks) selected. The browser’s later explicit 1440 px capture was visibly cropped by the screenshot channel, so the accepted capture is the clean browser-rendered content region from this run. The comparison therefore evaluates the shared desktop composition and component hierarchy, not the active radio value or browser chrome.
+Approved source: `/Users/jewelbait/.codex/generated_images/01a0f3d4-a286-7371-a376-02ca36a497e9/exec-e611a72f-aa97-4e76-8424-6a3692beb92d.png`.
+Implementation: `/Users/jewelbait/.codex/visualizations/2026/09/30/01a0f3d4-a286-7371-a376-02ca36a497e9/dirtcat-dark-qa/home-final.png`.
+Combined full comparison: `/Users/jewelbait/.codex/visualizations/2026/09/30/01a0f3d4-a286-7371-a376-02ca36a497e9/dirtcat-dark-qa/home-comparison-final.png`.
+Focused comparison: `/Users/jewelbait/.codex/visualizations/2026/09/30/01a0f3d4-a286-7371-a376-02ca36a497e9/dirtcat-dark-qa/compare-headline.png` and `/Users/jewelbait/.codex/visualizations/2026/09/30/01a0f3d4-a286-7371-a376-02ca36a497e9/dirtcat-dark-qa/compare-header.png`.
+State: homepage at top, no open menu, audio paused. CSS viewport 1435 × 1096. Source 1435 × 1096 pixels; implementation 1420 × 1085 pixels due browser screenshot surface and scrollbar clipping. Source was normalized to implementation pixel dimensions for the combined comparison (approximately 1% reduction); captures are approximately 1x density, not a 2x mismatch.
 
-## Full-view comparison evidence
-
-The source image and accepted browser-rendered implementation capture were opened in the same comparison input. Both show the approved single-flow composition: Dirt Cat header and preset control, three-step progress, a focused deliverable decision, full-width choices, a small Logic-command row, one collapsed render-settings control, and one dominant cyan forward action. The implementation preserves the selected target’s black/aubergine ground, cyan selection treatment, yellow micro-labels, fine magenta divider, heavy Dirt Cat headline treatment, and restrained single-surface hierarchy.
-
-## Focused region comparison evidence
-
-The header, progress stepper, delivery choices, Logic command row, and render settings row are readable in the full comparison input. The accepted capture was used for these exact regions because the browser screenshot artifact occurred only on a later viewport override, not on the accepted capture. A separate crop is not needed to judge the visual token, typography, border, and spacing relationship of these components.
-
-## Findings
-
-- Fonts and typography: Passed. The implementation uses the existing Dirt Cat display treatment with a bold headline, compact uppercase yellow kicker labels, and Inter-style readable utility text. The large-to-small hierarchy matches the selected target without the previous repeated section headings.
-- Spacing and layout rhythm: Passed. The workbench moves from a dense two-column dashboard to a single progressive canvas. The 3-step cadence, 0.65 rem choice spacing, and 1.4–3.4 rem section gaps create the intended breathing room.
-- Colors and visual tokens: Passed. Cyan owns selection and the primary action; yellow is limited to studio metadata; magenta is reduced to a single divider/underline detail; the aubergine atmosphere is quieter than the pre-redesign surface.
-- Image quality and asset fidelity: Passed. The chosen target contains no product illustration, logo asset, or nonstandard icon that needs to be recreated. The interface uses real HTML controls rather than replacing a source visual asset with a placeholder.
-- Copy and content: Passed. The page retains the verified Logic command mapping and makes the task clearer through the questions “What are you taking out of Logic?”, “Paste track names from Logic”, and “Ready to export”.
-- Interaction and accessibility: Passed. Native radios, selects, details/summary disclosure, textarea, table, buttons, status text, focus styling, and mobile reflow all work. The verified flow covers delivery selection, render settings, track import and removal, preflight, copy/download, demo loading, and saved presets.
-- Responsive behavior: Passed. The focused browser test validates no horizontal overflow at 390 × 844. The desktop test validates the 1440 px layout and the full three-step interaction.
-- Browser console: Passed in the automated test. The in-app browser log retained one stale error from a cached `?v=3` asset before the script was cache-busted to `?v=4`; no current-page runtime failure was reproducible, and the current flow was exercised successfully in the in-app browser.
+The source establishes the homepage composition, fonts, spacing, charcoal/white/violet palette and room image. Existing live content and functional routes govern the rest of the site. The illustrated A/B player was a proposal: without matched premix audio, implementation retains the three real tracks and adds the supplied Corey album embed.
 
 ## Comparison history
 
-- Pass 1: The pre-redesign dashboard had actionable P1 density and hierarchy problems. It was replaced with the selected progressive-flow target.
-- Pass 2: The first implementation pass showed the approved flow but used a more visible purple field than the selected mock. The aubergine/cyan background was reduced and pushed to the periphery.
-- Pass 3: No actionable P0, P1, or P2 visual differences remain in the accepted browser capture. The browser’s explicit 1440 px screenshot crop is a capture limitation, not a product layout issue; browser-based and automated responsive checks remain valid.
+1. First comparison (`home-comparison-first.png`) was blocked: inherited heading padding and wrapping created four lines, oversized hero pushed listening far below target, image was vertically centered, logo/CTA glows contradicted quiet reference.
+2. Corrected explicit two-line condensed heading, reset inherited padding, 48/52 hero columns, aligned photo top, removed hero/logo glows. Post-fix evidence: `home-comparison-final.png`, `compare-headline.png`. Hero begins at y131, listen band near y914 versus reference near y903. Hierarchy, whitespace, image proportion, CTA and palette match the selected direction.
+3. Visible listening review exposed overpowering inherited visualizer and bright Spotify color. Quieted decorative visualizer while preserving playback behavior; selected Spotify dark theme. Post-fix capture: `listen-final.png`.
 
-## Follow-up polish
+No actionable P0/P1/P2 visual findings remain. P3 follow-up: supplied real photo crop differs slightly from generated reference; Outfit body weight and Anton letter shapes are slightly different. Existing tool waveform and hardware indicator colors retain semantic meaning.
 
-- P3: If desired, the next pass can add a transition between steps. It is intentionally omitted here to respect reduced-motion users and keep the workflow calm.
+## Page and responsive coverage
+
+All ten canonical pages inspected: home, checkout, success, portal, support, admin, studio tools, Brick Lane Sonic Lab, Drum Alignment, Logic Auto Bounce. Each loads the shared dark theme; no horizontal document overflow at 1435 × 1096, 768 × 1024, or 390 × 844. Desktop and mobile screenshots/DOM are saved as `desktop-<page>.png/.txt` and `mobile-<page>.png`; measurements in `desktop-evidence.json`, `tablet-evidence.json`, `mobile-evidence.json`. Mobile homepage capture was repeated after viewport settled. Desktop/mobile contact sheets were opened and visually inspected. Home lower sections were checked visibly by navigation, because full-page screenshots do not trigger offscreen entrance animations or lazy embed rendering.
+
+## Primary interactions
+
+- Mobile menu opens and exposes all four primary destinations.
+- Original audio advances from Digital Dream to Slow Swing; readyState 4. Native play starts and currentTime advances to 11.58 seconds; pause succeeds.
+- Actual Corey album embed renders cover, nine-track list and provider controls; supplied album identifier verified.
+- Checkout: Mix + Master, five songs, extra revision yields $995 service less $199 discount plus $175 add-on = $971; 50% deposit $485.50 now and $485.50 remaining. No payment executed.
+- Sonic Lab: session stage changes to Bus / Master, copies generated hardware recall, Enigma controls become visible. `sonic-enigma.png`.
+- Drum Alignment: built-in local demo completes 4/4 with four decoded tracks, offsets 0/-188/-124/-256 samples and usable phase confidences; copies DAW report. `drum-demo-final.png`.
+- Logic export: demo files, review step and copied checklist produce eight WAV files at 24-bit; earlier manual import/removal and 16-bit dither workflow also checked. `logic-review-final.png`.
+- Offers, original review form required fields/honeypot, studio images, links and backend/script contracts retained by source checks.
+- Console error checks on home, checkout and exercised studio tools returned no errors.
+
+## Verification boundary
+
+412/412 nonbrowser tests passed, JavaScript syntax and whitespace checks passed. Three direct Chromium test harnesses were not run; browser UI checks used the in-app browser instead. This is a local design preview, based on source verified against deployment at f410382a0651e1ea3b69ef4119f3fb7a572e602b. Payment, authenticated portal/admin actions, email submission and delivery provider transitions were preserved but not reverified end to end. Local preview blocks POST requests and only proxies public checkout configuration. No deployment, production form submission or payment occurred. The rejected primary checkout status and diff remain unchanged.
+
+## Studio tools launcher revision — UXPeak
+
+Owner rejected the earlier launcher as visually different from the approved homepage. Revision scope is only the launcher; internal workbenches and behavior remain unchanged. Rendered revision QA passed at desktop and 390px mobile.
+
+Selected lesson: **Top 5 UX/UI Design Tips and Tricks — Part 1**, video `8pMUkEbAM7g`, [source](https://www.youtube.com/watch?v=8pMUkEbAM7g). Lesson type: design procedure. Fit: distinguish launcher purpose, tool name, explanation and action while matching the owner-approved homepage. Canonical study: `/Users/jewelbait/.codex/skills/uxpeak/references/study/03-design-procedures.md`, section “hierarchy, shadows, and conversion testing.” Auto-generated spoken transcript study does not establish silent visual actions or conversion results.
+
+- **00:51–01:39 — differentiate information (spoken; source implementation done):** WHEN a tool row presents equal-weight information → DO distinguish category, tool title, description and CTA with size, position and violet emphasis → CHECK three numbered open rows in `studio-tools.html` with corresponding hierarchy in `studio-tools.css` → IF_FAIL retain the failing hierarchy for parent revision. Source: `03-design-procedures.md`; desktop and mobile screenshot checks done.
+- **01:41–02:34 — rank before styling (spoken; adaptation done):** WHEN selecting launcher content → DO rank tool choice/action first, concise purpose second, navigation third; source metrics example is adapted to studio utilities → CHECK each of the three original exact tool routes has one clear violet CTA; secondary original destinations remain in footer → IF_FAIL restore missing route before styling. Source: `03-design-procedures.md`; source tests run below, all three exact destinations activated and verified at desktop/mobile.
+- **02:37–04:10 — compatible soft shadows (spoken; adaptation done):** WHEN reconciling depth with the approved charcoal homepage → DO remove launcher glow/box treatments entirely and use open spacing plus neutral dividers; no-shadow choice is an adaptation to owner authority → CHECK launcher contains no rack/card/background-gradient treatment → IF_FAIL correct the conflicting surface, without changing internal lab hardware. Source: `03-design-procedures.md`.
+- **04:12–06:05 — product-image presentation (spoken; not applicable):** no product image appears in this utility launcher; supplied brand logo is identity, not a product-cover experiment. No asset generation or presentation/conversion claim. Source: `03-design-procedures.md`.
+- **06:07–06:20 — test, optimize, test again (spoken; adaptation done):** WHEN previewing revision → DO compare beside approved homepage and exercise all three links at desktop and 390px → CHECK coherent brand/header, readable rows, working destinations and no overflow → IF_FAIL correct concrete visual/navigation defect. This is prototype verification, not conversion evidence; source gives no sample, duration or test protocol. Source: `03-design-procedures.md`. Parent captured and inspected the revision at desktop/mobile; all applicable checks passed.
+
+### Launcher rendered acceptance
 
 final result: passed
+
+Source design continuity: approved homepage capture `/Users/jewelbait/.codex/visualizations/2026/09/30/01a0f3d4-a286-7371-a376-02ca36a497e9/dirtcat-dark-qa/home-second-exact.png`; selected generated visual truth remains the source named above. Launcher capture: `/Users/jewelbait/.codex/visualizations/2026/09/30/01a0f3d4-a286-7371-a376-02ca36a497e9/dirtcat-dark-qa/studio-tools-revised-desktop.png` at CSS1435×1096, PNG1420×1085. Source and launcher share captured pixel dimensions; no density rescaling needed for `/Users/jewelbait/.codex/visualizations/2026/09/30/01a0f3d4-a286-7371-a376-02ca36a497e9/dirtcat-dark-qa/studio-tools-home-comparison.png`. Compared together and visually inspected: header/logo/type/color/spacing consistent; the utility launcher adapts the home editorial list pattern instead of copying its photo hero. Mobile capture `/Users/jewelbait/.codex/visualizations/2026/09/30/01a0f3d4-a286-7371-a376-02ca36a497e9/dirtcat-dark-qa/studio-tools-revised-mobile.png` at390×844. No horizontal overflow; mobile menu opens. All three tool CTAs verified at both sizes; desktop Alignment was rechecked with awaited navigation after an initial capture raced a route transition. Evidence `studio-tools-links-revised.json`; console returned no errors. Old tiny rack presentation replaced by spacious numbered rows and restrained violet actions. Product imagery, promotion/discount and conversion experiments are not applicable. No psychological or conversion result claimed. All selected UXPeak workflow hooks are done or explicitly not applicable. Remaining source caveats unchanged.

@@ -38,60 +38,70 @@
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
     <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
     <link rel="stylesheet" href="style.css?v=6" />
-    <link rel="stylesheet" href="logic-auto-bounce.css?v=1" />
+    <link rel="stylesheet" href="dark-theme.css" />
+    <link rel="stylesheet" href="studio-tools.css" />
   </head>
-  <body class="brick-lane-lab-page studio-tools-page">
-    <nav id="main-nav">
+  <body class="tools-launcher">
+    <nav id="main-nav" aria-label="Primary navigation">
+      <a class="launcher-brand" href="/#hero-container" aria-label="Dirt Cat Records home">
+        <img class="launcher-logo" src="assets/Dirt-Cat-Logo.PNG" alt="Dirt Cat Records logo" width="90" height="90" />
+        <span class="launcher-wordmark">DIRT CAT<span>RECORDS</span></span>
+      </a>
       <ul>
-        <li><a href="/#hero-container">Home</a></li>
-        <li><a href="/#services">Offers</a></li>
+        <li><a href="/#studio-gear">The room</a></li>
         <li><a href="/#listen">Listen</a></li>
-        <li><a href="studio-tools.html">Studio Tools</a></li>
-        <li><a href="checkout.html">Checkout</a></li>
-        <li><a href="portal.html">Portal</a></li>
-        <li><a href="support.html">Support</a></li>
-        <li><a href="/#fat-footer">Contact</a></li>
+        <li><a href="/#mix-review">Send a song</a></li>
+        <li><a href="checkout.html">Book a session</a></li>
       </ul>
     </nav>
 
-    <main class="brick-lane-shell studio-tools-shell" aria-label="Studio Tools">
-      <header class="brick-lane-topbar studio-tools-topbar">
-        <div>
-          <p class="brick-lane-kicker">Dirt Cat Records</p>
-          <h1>Studio Tools</h1>
-          <p class="brick-lane-subhead">
-            Plan hardware settings, align multi-mic drum recordings, and prepare
-            Logic Pro exports with practical tools from Dirt Cat Records.
-          </p>
-        </div>
+    <main class="launcher-main" aria-label="Studio Tools">
+      <header class="launcher-intro">
+        <p class="launcher-eyebrow">FROM THE ROOM TO YOUR WORKFLOW</p>
+        <h1>Studio Tools</h1>
+        <p class="launcher-lede">A little less setup.<br />A little more time for the song.</p>
+        <p class="launcher-context">Plan your analog settings, tighten a drum recording, or get your next Logic export ready. Pick the tool you need.</p>
       </header>
 
-      <section class="studio-tools-rack" aria-label="Available studio tools">
-        <article class="studio-tool-card is-active">
-          <p>Available Now</p>
-          <h2>Brick Lane Sonic Lab</h2>
-          <span>Build a Brick Lane 500 compressor starting point, explore Enigma
-            settings, and print a recall sheet.</span>
-          <a href="brick-lane-lab.html">Open Sonic Lab</a>
+      <section class="launcher-tools" aria-label="Available studio tools">
+        <article class="launcher-tool">
+          <p class="launcher-number" aria-hidden="true">01</p>
+          <div class="launcher-tool-copy">
+            <p class="launcher-eyebrow">ANALOG RECALL</p>
+            <h2>Brick Lane Sonic Lab</h2>
+            <p>Build a Brick Lane 500 compressor starting point, explore Enigma settings, and print a recall sheet you can bring back to the session.</p>
+          </div>
+          <a class="launcher-action" href="brick-lane-lab.html">Open Sonic Lab</a>
         </article>
-        <article class="studio-tool-card is-workbench">
-          <p>Workbench</p>
-          <h2>Drum Alignment</h2>
-          <span>Compare local drum recordings against an overhead reference and
-            copy timing offsets into your DAW.</span>
-          <a href="drum-alignment.html">Open Alignment</a>
+        <article class="launcher-tool">
+          <p class="launcher-number" aria-hidden="true">02</p>
+          <div class="launcher-tool-copy">
+            <p class="launcher-eyebrow">DRUM TIMING</p>
+            <h2>Drum Alignment</h2>
+            <p>Compare local drum recordings against an overhead reference, then copy the timing offsets into your DAW.</p>
+          </div>
+          <a class="launcher-action" href="drum-alignment.html">Open Alignment</a>
         </article>
-        <article class="studio-tool-card is-workbench">
-          <p>Workbench</p>
-          <h2>Logic Auto Bounce</h2>
-          <span
-            >Prepare Logic Pro export presets, sidechain policies, and
-            step-by-step bounce recipes</span
-          >
-          <a href="logic-auto-bounce.html">Open Exporter</a>
+        <article class="launcher-tool">
+          <p class="launcher-number" aria-hidden="true">03</p>
+          <div class="launcher-tool-copy">
+            <p class="launcher-eyebrow">EXPORT PLANNING</p>
+            <h2>Logic Auto Bounce</h2>
+            <p>Prepare Logic Pro export presets, sidechain policies, and a step-by-step bounce recipe for the files you need.</p>
+          </div>
+          <a class="launcher-action" href="logic-auto-bounce.html">Open Exporter</a>
         </article>
       </section>
     </main>
+
+    <footer class="launcher-footer">
+      <nav aria-label="More Dirt Cat navigation">
+        <a href="/#hero-container">Home</a><a href="/#services">Offers</a><a href="/#listen">Listen</a>
+        <a href="studio-tools.html" aria-current="page">Studio Tools</a><a href="checkout.html">Checkout</a>
+        <a href="portal.html">Portal</a><a href="support.html">Support</a><a href="/#fat-footer">Contact</a>
+      </nav>
+      <p>© 2026 Dirt Cat Records</p>
+    </footer>
 
     <script src="nav.js"></script>
   </body>

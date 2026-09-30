@@ -86,55 +86,107 @@
     </script>
 
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="dark-theme.css" />
+    <link rel="stylesheet" href="public-home.css" />
   </head>
-  <body>
-    <nav id="main-nav">
+  <body class="public-home">
+    <nav id="main-nav" aria-label="Primary navigation">
+      <a class="home-brand" href="#hero-container" aria-label="Dirt Cat Records home">
+        <img id="main-logo" src="assets/Dirt-Cat-Logo.PNG" alt="Dirt Cat Records logo" width="90" height="90" />
+        <span class="brand-wordmark">DIRT CAT<span>RECORDS</span></span>
+      </a>
       <ul>
-        <li><a href="#hero-container">Home</a></li>
-        <li><a href="#services">Offers</a></li>
+        <li><a href="#studio-gear">The room</a></li>
         <li><a href="#listen">Listen</a></li>
-        <li><a href="studio-tools.html">Studio Tools</a></li>
-        <li><a href="#process">Process</a></li>
-        <li><a href="checkout.html">Checkout</a></li>
-        <li><a href="portal.html">Portal</a></li>
-        <li><a href="#mix-review">Free Review</a></li>
-        <li><a href="support.html">Support</a></li>
-        <li><a href="#fat-footer">Contact</a></li>
+        <li><a href="#mix-review">Send a song</a></li>
+        <li><a href="checkout.html">Book a session</a></li>
       </ul>
     </nav>
-
-    <section
-      id="hero-container"
-      aria-label="Remote mixing hero inside Dirt Cat Records"
-      style="background-image: url(&quot;assets/studio-full.jpeg&quot;)"
-    >
-      <div class="overlay"></div>
-      <img
-        id="main-logo"
-        src="assets/Dirt-Cat-Logo.PNG"
-        alt="Dirt Cat Records logo in psychedelic colorway"
-        loading="lazy"
-      />
-      <p class="hero-kicker">
-        REMOTE MIXING · NORTH ARKANSAS · WORLDWIDE DELIVERY
-      </p>
-      <h1 id="hero-heading">
-        Remote Mixing with Analog Character and Modern Precision.
-      </h1>
-      <p class="hero-subtitle">
-        Send your stems, get direct feedback, and move fast with a free mix
-        review, a fixed-price starter package, or a discounted first song.
-      </p>
-      <div class="hero-actions">
-        <a href="#mix-review" id="book-button" class="btn btn-primary"
-          >Get Your Free Mix Review</a
-        >
-        <a href="#services" class="btn btn-secondary">See Packages</a>
+    <section id="hero-container" aria-label="Dirt Cat Records recording and production">
+      <div class="home-hero-copy">
+        <p class="hero-kicker">NORTH ARKANSAS · RECORDING &amp; PRODUCTION</p>
+        <h1 id="hero-heading" data-static-heading><span class="hero-line">Songs sound</span><span class="hero-line">better here.</span></h1>
+        <p class="hero-subtitle"><span>Real musicians. Real rooms.</span><span>Extraordinary results.</span></p>
+        <div class="hero-actions">
+          <a href="#listen" id="book-button" class="btn btn-primary">Listen to the difference</a>
+          <a href="checkout.html" class="home-book-link">Book a session</a>
+        </div>
+        <p class="hero-proof">Have a song in progress? <a href="#mix-review">Send it over.</a></p>
       </div>
-      <p class="hero-proof">
-        Built for independent artists who want the mix to hit harder without
-        losing personality.
+      <figure class="home-room">
+        <img src="assets/studio-room.jpg" alt="The recording room at Dirt Cat Records, with instruments, analog gear and mixing desk" width="1200" height="1600" fetchpriority="high" />
+        <figcaption>THE ROOM AT DIRT CAT RECORDS</figcaption>
+      </figure>
+    </section>
+
+    <section id="listen">
+      <div class="listen-heading"><p class="section-eyebrow">LISTEN</p><h2>Hear the difference.</h2>
+      <p class="listen-intro">
+        These tracks span very different genres, but they all carry the same
+        Dirt Cat mix character while keeping the original intent of the song
+        intact.
       </p>
+
+      </div>
+      <div class="track listen-player" aria-live="polite">
+        <img
+          id="listen-art"
+          src="assets/Dude-McGee-AlbumCover.PNG"
+          alt="Album artwork for Dude McGee – Digital Dream"
+          class="album-art"
+          loading="lazy"
+        />
+
+        <div class="audio-container">
+          <audio id="listen-audio" controls controlslist="nodownload">
+            <source src="assets/Digital Dream .wav" type="audio/wav" />
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+
+        <p id="listen-title" class="song-title">Dude McGee – Digital Dream</p>
+        <p id="listen-note" class="track-note">
+          Wide, polished, and balanced without losing the personality of the
+          track.
+        </p>
+
+        <a
+          href="https://www.dudemcgee.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="artist-site-cta"
+        >
+          Visit Dude McGee's Artist Website ↗
+        </a>
+
+        <div class="listen-controls" aria-label="Track selector">
+          <button
+            type="button"
+            class="listen-nav"
+            id="listen-prev"
+            aria-label="Previous track"
+          >
+            Prev
+          </button>
+          <div
+            class="listen-dots"
+            id="listen-dots"
+            aria-label="Available tracks"
+          ></div>
+          <button
+            type="button"
+            class="listen-nav"
+            id="listen-next"
+            aria-label="Next track"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+      <div class="home-release">
+        <div><p class="section-eyebrow">MADE HERE</p><h3>Corey Creighton</h3><p>An album made at Dirt Cat</p></div>
+        <iframe title="Corey Creighton album on Spotify" src="https://open.spotify.com/embed/album/65v4pja00fzvRKV3hLaQMh?utm_source=generator&amp;theme=0" width="100%" height="352" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      </div>
     </section>
 
     <h2 class="section-title" id="services">Start Here</h2>
@@ -200,72 +252,6 @@
             <li>1 revision round</li>
           </ul>
           <a href="#mix-review" class="btn btn-primary">Claim Intro Rate</a>
-        </div>
-      </div>
-    </section>
-
-    <section id="listen">
-      <h2>Listen</h2>
-      <p class="listen-intro">
-        These tracks span very different genres, but they all carry the same
-        Dirt Cat mix character while keeping the original intent of the song
-        intact.
-      </p>
-
-      <div class="track listen-player" aria-live="polite">
-        <img
-          id="listen-art"
-          src="assets/Dude-McGee-AlbumCover.PNG"
-          alt="Album artwork for Dude McGee – Digital Dream"
-          class="album-art"
-          loading="lazy"
-        />
-
-        <div class="audio-container">
-          <span class="music-note">🎵</span>
-          <audio id="listen-audio" controls controlslist="nodownload">
-            <source src="assets/Digital Dream .wav" type="audio/wav" />
-            Your browser does not support the audio element.
-          </audio>
-        </div>
-
-        <p id="listen-title" class="song-title">Dude McGee – Digital Dream</p>
-        <p id="listen-note" class="track-note">
-          Wide, polished, and balanced without losing the personality of the
-          track.
-        </p>
-
-        <a
-          href="https://www.dudemcgee.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="artist-site-cta"
-        >
-          Visit Dude McGee's Artist Website ↗
-        </a>
-
-        <div class="listen-controls" aria-label="Track selector">
-          <button
-            type="button"
-            class="listen-nav"
-            id="listen-prev"
-            aria-label="Previous track"
-          >
-            Prev
-          </button>
-          <div
-            class="listen-dots"
-            id="listen-dots"
-            aria-label="Available tracks"
-          ></div>
-          <button
-            type="button"
-            class="listen-nav"
-            id="listen-next"
-            aria-label="Next track"
-          >
-            Next
-          </button>
         </div>
       </div>
     </section>
@@ -555,31 +541,14 @@
     </section>
 
     <footer>
+      <nav class="home-secondary-nav" aria-label="More Dirt Cat navigation">
+        <a href="#hero-container">Home</a><a href="#services">Offers</a><a href="#process">Process</a>
+        <a href="studio-tools.html">Studio Tools</a><a href="checkout.html">Checkout</a><a href="portal.html">Portal</a>
+        <a href="#mix-review">Free Review</a><a href="support.html">Support</a><a href="#fat-footer">Contact</a>
+      </nav>
+
       <p>© 2026 Dirt Cat Records</p>
     </footer>
-    <script>
-      const logo = document.getElementById("main-logo");
-      const fadeStart = window.innerHeight * 0.01;
-      const fadeEnd =
-        document.getElementById("card-container").offsetTop - 1000;
-
-      window.addEventListener("scroll", () => {
-        if (!logo) return;
-        const scrollY = window.scrollY;
-
-        if (scrollY < fadeStart) {
-          logo.style.opacity = "1";
-          logo.style.transform = "translateX(-50%) scale(1)";
-        } else if (scrollY >= fadeStart && scrollY < fadeEnd) {
-          const progress = (scrollY - fadeStart) / (fadeEnd - fadeStart);
-          logo.style.opacity = `${1 - progress}`;
-          logo.style.transform = `translateX(-50%) scale(${1 - progress * 0.05})`;
-        } else {
-          logo.style.opacity = "0";
-          logo.style.transform = "translateX(-50%) scale(0.95)";
-        }
-      });
-    </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
     <script src="nav.js"></script>
