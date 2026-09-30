@@ -1,0 +1,194 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: #161310;
+  color: #f3efe6;
+}
+
+body {
+  font-family: "Iowan Old Style", Palatino, Georgia, serif;
+}
+
+button,
+a,
+.kicker,
+.side,
+.time,
+.hearing,
+.status,
+.frames {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.bench {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+}
+
+.banner,
+.kicker,
+.status {
+  margin: 0;
+  color: #a39e93;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.title-block {
+  margin: 18px 0 14px;
+}
+
+h1 {
+  margin: 4px 0 0;
+  font-size: 2.4rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.frame {
+  margin: 0;
+}
+
+.frame img {
+  display: block;
+  width: 100%;
+  max-height: 52vh;
+  object-fit: contain;
+  background: #221e1a;
+}
+
+.frame figcaption {
+  margin-top: 8px;
+  color: #cfc6b8;
+  font-size: 0.95rem;
+}
+
+.frames {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.frames button,
+.play,
+.hold,
+.pass {
+  border: 1px solid #3a342c;
+  background: #221e1a;
+  color: #f3efe6;
+  min-height: 44px;
+}
+
+.frames button {
+  flex: 1;
+  padding: 0 10px;
+}
+
+.frames button[aria-pressed="true"] {
+  border-color: #c4a574;
+  color: #f3efe6;
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.side {
+  margin: 0;
+  padding: 12px 10px;
+  border: 1px solid #3a342c;
+  text-align: center;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a39e93;
+}
+
+.side.is-sounding {
+  border-color: #c4a574;
+  color: #f3efe6;
+  background: #2a241c;
+}
+
+.time {
+  margin: 14px 0 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.6rem;
+}
+
+.hearing {
+  margin: 4px 0 0;
+  color: #cfc6b8;
+}
+
+.transport {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.play,
+.hold {
+  font-size: 1rem;
+}
+
+.hold {
+  min-height: 64px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hold.is-held {
+  background: #c4a574;
+  color: #161310;
+  border-color: #c4a574;
+}
+
+.note {
+  margin: 16px 0 0;
+  max-width: 38rem;
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+
+.status {
+  margin-top: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
+.pass {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 18px;
+  padding: 0 16px;
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  .frame img {
+    max-height: 38vh;
+  }
+
+  .transport {
+    grid-template-columns: 1fr;
+  }
+}

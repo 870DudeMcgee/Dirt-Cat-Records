@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Rejected · The Bench · You Got Me</title>
+    <link rel="stylesheet" href="bench.css" />
+  </head>
+  <body>
+    <main class="bench">
+      <p class="banner">Rejected 23 Sep 2026 · not the direction</p>
+      <header class="title-block">
+        <p class="kicker">Dirt Cat Records</p>
+        <h1>You Got Me</h1>
+      </header>
+
+      <figure class="frame">
+        <img
+          id="session-photo"
+          src="media/ladder.jpg"
+          alt="A stereo pair of microphones hung from a wooden stepladder over a drum kit in a living room."
+        />
+        <figcaption id="session-caption">
+          Looking up the ladder at the overhead pair.
+        </figcaption>
+      </figure>
+
+      <div class="frames" role="group" aria-label="Session pictures">
+        <button type="button" data-frame="ladder" aria-pressed="true">
+          Overheads
+        </button>
+        <button type="button" data-frame="kit" aria-pressed="false">
+          The kit
+        </button>
+        <button type="button" data-frame="close" aria-pressed="false">
+          Close mic
+        </button>
+      </div>
+
+      <div class="compare" aria-label="Comparison">
+        <p class="side" data-label="source">Source</p>
+        <p class="side is-sounding" data-label="print">Dirt Cat print</p>
+      </div>
+
+      <p class="time" data-time>0:00.0</p>
+      <p class="hearing" data-hearing aria-live="polite">
+        Ready for Dirt Cat print
+      </p>
+
+      <div class="transport">
+        <button type="button" class="play" data-play aria-pressed="false">
+          Play
+        </button>
+        <button type="button" class="hold" data-hold aria-pressed="false">
+          Hold for the source
+        </button>
+      </div>
+
+      <p class="note">
+        The overheads are a stereo pair hung from a stepladder. The kit stayed
+        in the room.
+      </p>
+      <p class="status" data-status></p>
+      <a class="pass" href="../../checkout.html">Start a pass</a>
+    </main>
+    <script src="bench.js"></script>
+  </body>
+</html>

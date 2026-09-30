@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Dirt Cat Records</title>
+    <meta
+      name="description"
+      content="Songs sound better here. Real musicians, real rooms, and the difference good decisions make."
+    />
+    <link rel="icon" href="../../assets/favicon.png" />
+    <link rel="stylesheet" href="home.css" />
+  </head>
+  <body id="top">
+    <header class="top">
+      <a class="mark" href="#top">
+        <span class="mark-name">Dirt Cat</span>
+        <span class="mark-sub">Records</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#music">Music</a>
+        <a href="#studio">Studio</a>
+        <a href="#services">Services</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a class="btn btn-line" href="../../checkout.html"
+        >Let’s make something</a
+      >
+    </header>
+
+    <main>
+      <section class="hero" aria-label="Dirt Cat Records">
+        <img
+          class="hero-still"
+          src="media/room.jpg"
+          alt="The Dirt Cat room under purple light, with a stool on the rug and the desk along the wall."
+        />
+        <video
+          class="hero-photo"
+          autoplay
+          muted
+          loop
+          playsinline
+          poster="media/room.jpg"
+          aria-label="The Dirt Cat room, quietly alive."
+        >
+          <source src="media/hero-alive.mp4" type="video/mp4" />
+        </video>
+        <div class="hero-copy">
+          <h1>
+            Songs<br />
+            Sound<br />
+            Better<br />
+            <em>Here</em>
+          </h1>
+          <a class="btn btn-listen" href="#music">Listen to the difference →</a>
+          <p class="hero-kicker">
+            Real musicians.<br />
+            Real rooms.<br />
+            Extraordinary results.
+          </p>
+          <a class="btn btn-book" href="../../checkout.html">Book a session</a>
+        </div>
+        <p class="scribble hero-scribble">
+          Same<br />
+          song.<br />
+          Different<br />
+          possible.
+        </p>
+      </section>
+
+      <section id="music" class="music" aria-label="You Got Me">
+        <article class="track">
+          <figure class="art">
+            <img
+              src="../corey-bench/media/ladder.jpg"
+              alt="A stereo pair of microphones hung from a wooden stepladder over Corey’s kit."
+            />
+            <figcaption>
+              <span>You Got Me</span>
+              <small>Corey Creighton</small>
+            </figcaption>
+          </figure>
+          <div class="song">
+            <h2>You Got Me</h2>
+            <p class="by">Corey Creighton</p>
+            <p>
+              Same song. Same room. Same cheap gear.<br />
+              Listen to the difference good decisions make.
+            </p>
+            <p class="status" data-status></p>
+          </div>
+          <div class="compare">
+            <p class="hint">
+              <span data-source-line>Hold to hear the source</span>
+              <span data-print-line class="is-active"
+                >Release for the Dirt Cat mix</span
+              >
+            </p>
+            <div class="meter">
+              <div
+                class="wave wave-left"
+                data-wave="left"
+                aria-hidden="true"
+              ></div>
+              <button
+                type="button"
+                class="hold"
+                data-hold
+                aria-pressed="false"
+                aria-label="Play the Dirt Cat mix. Hold to hear the source. Release to return to the mix."
+              ></button>
+              <div
+                class="wave wave-right"
+                data-wave="right"
+                aria-hidden="true"
+              ></div>
+            </div>
+            <p class="time">
+              <span data-time>0:00</span>
+              <span class="slash">/</span>
+              <span data-length>–:––</span>
+            </p>
+            <p class="sr" data-hearing aria-live="polite">
+              Ready for the Dirt Cat mix
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <section id="studio" class="studio" aria-label="The session">
+        <div class="shots">
+          <figure>
+            <img
+              src="../corey-bench/media/kit.jpg"
+              alt="Corey’s drum kit in the room, heads worn, damping and microphones in place."
+            />
+          </figure>
+          <figure>
+            <img
+              src="media/pedals.jpg"
+              alt="Amps stacked on a shelf, with a pedalboard on the studio rug."
+            />
+          </figure>
+          <figure>
+            <img
+              src="media/desk.jpg"
+              alt="The Dirt Cat desk, with a microphone, monitors, and the keyboard."
+            />
+          </figure>
+          <figure>
+            <img
+              src="media/preamp.jpg"
+              alt="The studio preamps under the room’s purple light."
+            />
+          </figure>
+        </div>
+        <p class="scribble studio-scribble">
+          It’s not<br />
+          about the gear.<br />
+          It’s about<br />
+          what you do<br />
+          with it.
+        </p>
+      </section>
+
+      <section id="services" class="services" aria-label="Services">
+        <article>
+          <h2>Recording</h2>
+          <span class="rule gold"></span>
+          <p>Capture real performances in a relaxed, creative environment.</p>
+        </article>
+        <article>
+          <h2>Mixing</h2>
+          <span class="rule green"></span>
+          <p>Clarity, depth, and emotion. Songs that hit harder.</p>
+        </article>
+        <article>
+          <h2>Production</h2>
+          <span class="rule gold"></span>
+          <p>From idea to finished record. Whatever the song needs.</p>
+        </article>
+        <article>
+          <h2>Music support</h2>
+          <span class="rule green"></span>
+          <p>Arrangement, instrumentation, editing, whatever helps the song.</p>
+        </article>
+      </section>
+
+      <section id="about" class="close">
+        <p>Good songs belong here.</p>
+        <a id="contact" class="btn btn-gold" href="../../checkout.html"
+          >Let’s talk →</a
+        >
+      </section>
+    </main>
+    <script src="home.js"></script>
+  </body>
+</html>

@@ -22,12 +22,6 @@
     result: null,
     lastReportText: "",
     booted: false,
-    demoRun: 0,
-    demoRunning: false,
-    waveformWindowSeconds: 0.75,
-    waveformPositionRatio: null,
-    waveformFitFullTrack: false,
-    waveformRenderFrame: null,
   };
 
   function escapeHtml(value) {
@@ -223,25 +217,6 @@
     if (nodes.status) nodes.status.textContent = message;
   }
 
-  function setDemoControls(nodes, isRunning) {
-    [nodes.demoButton, nodes.demoButtonInline].forEach((button) => {
-      if (!button) return;
-      if (!button.dataset.defaultLabel) {
-        button.dataset.defaultLabel = button.textContent.trim();
-      }
-      button.disabled = isRunning;
-      button.textContent = isRunning
-        ? "Running demo…"
-        : button.dataset.defaultLabel;
-    });
-    nodes.root?.setAttribute("aria-busy", String(isRunning));
-  }
-
-  function revealDemo(nodes, target = nodes.root) {
-    if (!target || typeof target.scrollIntoView !== "function") return;
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
   function renderReferenceSelector(nodes) {
     if (!nodes.referenceSelector) return;
     const previousValue = state.referenceValue;
@@ -320,48 +295,22 @@
     const correlations = state.result?.correlations || [];
     if (correlations.length === 0) {
       nodes.correlationPanel.innerHTML =
-        '<p class="drum-align-phase-empty">Analyze to compare each close mic with the reference.</p>';
-      if (nodes.phaseSummary) {
-        nodes.phaseSummary.textContent = "Waiting for analysis";
-      }
+        '<article class="drum-align-empty"><p>Analyze tracks to see correlation confidence.</p></article>';
       return;
-    }
-
-    const validValues = correlations
-      .map((correlation) => Number(correlation.value))
-      .filter(Number.isFinite);
-    const weakestValue = validValues.length ? Math.min(...validValues) : null;
-    const weakestLabel =
-      weakestValue >= 0.82
-        ? "Strong"
-        : weakestValue >= 0.55
-          ? "Check"
-          : "Needs attention";
-    if (nodes.phaseSummary) {
-      nodes.phaseSummary.textContent = Number.isFinite(weakestValue)
-        ? `${weakestLabel} · weakest ${weakestValue >= 0 ? "+" : ""}${weakestValue.toFixed(2)}`
-        : "Check by ear";
     }
 
     nodes.correlationPanel.innerHTML = correlations
       .map((correlation) => {
         const value = Number(correlation.value);
-        const valueLabel = Number.isFinite(value)
-          ? `${value >= 0 ? "+" : ""}${value.toFixed(2)}`
-          : "--";
-        const meterFill = Number.isFinite(value)
-          ? Math.max(0, Math.min(100, ((value + 1) / 2) * 100))
-          : 50;
+        const valueLabel = Number.isFinite(value) ? value.toFixed(3) : "--";
         const confidence =
           value >= 0.82 ? "strong" : value >= 0.55 ? "check" : "issue";
-        const pairLabel = (correlation.trackIds || []).join(" vs ");
-        return `<article class="drum-align-meter" data-confidence="${confidence}" title="${escapeHtml(pairLabel)}${correlation.warning ? ` · ${escapeHtml(correlation.warning)}` : ""}">
-          <div class="drum-align-meter-label">
-            <span>${escapeHtml(correlation.family || "Phase")}</span>
-            <strong>${escapeHtml(correlation.label || "Check by ear")}</strong>
-          </div>
-          <output aria-label="Correlation ${escapeHtml(valueLabel)}">${escapeHtml(valueLabel)}</output>
-          <div class="drum-align-meter-bar" role="meter" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="${Number.isFinite(value) ? value : 0}" style="--phase-fill: ${meterFill.toFixed(1)}%"></div>
+        return `<article class="drum-align-meter" data-confidence="${confidence}">
+          <span class="studio-workbench-label">${escapeHtml(correlation.family || "Correlation")}</span>
+          <strong>${escapeHtml(correlation.label || "Check by ear")}</strong>
+          <p>${escapeHtml((correlation.trackIds || []).join(" vs "))}</p>
+          <p>Value: ${escapeHtml(valueLabel)}</p>
+          ${correlation.warning ? `<p>${escapeHtml(correlation.warning)}</p>` : ""}
         </article>`;
       })
       .join("");
@@ -397,147 +346,17 @@
 
   function renderReport(nodes) {
     if (!nodes.reportPanel) return;
-    if (!state.result) {
-      nodes.reportPanel.innerHTML = `<div class="drum-align-report-empty">
-        <strong>No report yet</strong>
-        <span>Run analysis to generate a DAW-ready report.</span>
-      </div>`;
-      return;
-    }
-
-    const tracks = state.result.tracks || [];
-    const correlations = state.result.correlations || [];
-    const reference =
-      state.result.recommendedReference ||
-      getReferenceFromValue(state.referenceValue);
-    const referenceEvent = state.result.referenceEvent || {};
-    const formatSigned = (value, digits = 0) => {
-      const numericValue = Number(value) || 0;
-      return `${numericValue > 0 ? "+" : ""}${numericValue.toFixed(digits)}`;
-    };
-    const trackNames = new Map(
-      tracks.map((track) => [track.id, track.fileName || track.id])
-    );
-
-    const offsetRows = tracks
-      .map((track) => {
-        const offsetSamples = Number(track.offsetSamples) || 0;
-        const moveLabel =
-          offsetSamples < 0
-            ? "Move earlier"
-            : offsetSamples > 0
-              ? "Move later"
-              : "Reference / no move";
-        const moveTone =
-          offsetSamples === 0 ? "reference" : offsetSamples < 0 ? "earlier" : "later";
-        return `<article class="drum-report-track-row" data-move="${moveTone}">
-          <div class="drum-report-track-name">
-            <strong>${escapeHtml(track.fileName || track.id)}</strong>
-            <span>${escapeHtml(track.role || track.family || "Unknown")} · transient ${escapeHtml(track.transientSample)} smp</span>
-          </div>
-          <span class="drum-report-move">${moveLabel}</span>
-          <output>${formatSigned(offsetSamples)} <small>smp</small></output>
-          <output>${formatSigned(track.offsetMs, 2)} <small>ms</small></output>
-        </article>`;
-      })
-      .join("");
-
-    const phaseRows = correlations.length
-      ? correlations
-          .map((correlation) => {
-            const value = Number(correlation.value);
-            const tone =
-              value >= 0.7 ? "strong" : value >= 0.35 ? "usable" : value >= -0.25 ? "check" : "issue";
-            const pair = (correlation.trackIds || [])
-              .map((trackId) => trackNames.get(trackId) || trackId)
-              .join(" ↔ ");
-            return `<article class="drum-report-phase-row" data-tone="${tone}">
-              <div>
-                <strong>${escapeHtml(correlation.family || "Phase")}</strong>
-                <span>${escapeHtml(pair)}</span>
-              </div>
-              <span class="drum-report-phase-badge">${escapeHtml(correlation.label || "Check by ear")}</span>
-              <output>${Number.isFinite(value) && value >= 0 ? "+" : ""}${Number.isFinite(value) ? value.toFixed(3) : "--"}</output>
-              ${correlation.warning ? `<p>${escapeHtml(correlation.warning)}</p>` : ""}
-            </article>`;
-          })
-          .join("")
-      : '<p class="drum-report-no-phase">No phase-confidence relationships were available for this session.</p>';
-
-    nodes.reportPanel.innerHTML = `<div class="drum-report-summary">
-      <article>
-        <span>Reference</span>
-        <strong>${escapeHtml(reference?.label || "Not selected")}</strong>
-      </article>
-      <article>
-        <span>Reference event</span>
-        <strong>${escapeHtml(referenceEvent.sample)} smp</strong>
-        <small>${Number.isFinite(Number(referenceEvent.ms)) ? `${Number(referenceEvent.ms).toFixed(2)} ms` : "Time unavailable"}</small>
-      </article>
-      <article>
-        <span>Session</span>
-        <strong>${tracks.length} track${tracks.length === 1 ? "" : "s"}</strong>
-        <small>${correlations.length} phase check${correlations.length === 1 ? "" : "s"}</small>
-      </article>
-    </div>
-    <section class="drum-report-section">
-      <header><h4>Track moves</h4><span>Apply these offsets from the original position</span></header>
-      <div class="drum-report-track-list">${offsetRows}</div>
-    </section>
-    <section class="drum-report-section">
-      <header><h4>Phase confidence</h4><span>Verify ambiguous relationships by ear</span></header>
-      <div class="drum-report-phase-list">${phaseRows}</div>
-    </section>`;
-  }
-
-  function syncWaveformControls(nodes) {
-    if (!nodes.waveformWindow || !nodes.waveformPosition) return;
-    const hasTracks = state.tracks.length > 0;
-    const duration = hasTracks
-      ? Math.max(...state.tracks.map((track) => Number(track.duration) || 0))
-      : 0;
-    nodes.waveformWindow.value = String(state.waveformWindowSeconds);
-    nodes.waveformPosition.disabled =
-      !hasTracks || state.waveformFitFullTrack;
-    nodes.waveformFirstHit.disabled = !hasTracks;
-    nodes.waveformFitTrack.disabled = !hasTracks;
-    nodes.waveformFitTrack.classList.toggle(
-      "is-active",
-      hasTracks && state.waveformFitFullTrack
-    );
-    nodes.waveformPosition.value = String(
-      Math.round((state.waveformPositionRatio || 0) * 1000)
-    );
-
-    if (!nodes.waveformPositionOutput) return;
-    if (hasTracks && state.waveformFitFullTrack) {
-      nodes.waveformPositionOutput.textContent = `Full track · ${duration.toFixed(2)}s`;
-      return;
-    }
-    if (!hasTracks || state.waveformPositionRatio === null) {
-      nodes.waveformPositionOutput.textContent = hasTracks
-        ? "First hit · per track"
-        : "Load tracks to navigate";
-      return;
-    }
-
-    const maxStart = Math.max(0, duration - state.waveformWindowSeconds);
-    const start = maxStart * state.waveformPositionRatio;
-    const end = Math.min(duration, start + state.waveformWindowSeconds);
-    nodes.waveformPositionOutput.textContent = `${start.toFixed(2)}s – ${end.toFixed(2)}s`;
-  }
-
-  function scheduleWaveformRender(nodes) {
-    if (state.waveformRenderFrame !== null) return;
-    const schedule = globalScope.requestAnimationFrame || globalScope.setTimeout;
-    state.waveformRenderFrame = schedule.call(globalScope, () => {
-      state.waveformRenderFrame = null;
-      renderWaveforms(nodes);
-    });
+    nodes.reportPanel.textContent =
+      state.lastReportText || "Run analysis to generate a DAW-ready report.";
   }
 
   function renderWaveforms(nodes) {
-    console.log("[drum-alignment] renderWaveforms starting, has waveformRenderer:", !!waveformRenderer, "tracks:", state.tracks.length);
+    console.log(
+      "[drum-alignment] renderWaveforms starting, has waveformRenderer:",
+      !!waveformRenderer,
+      "tracks:",
+      state.tracks.length
+    );
     if (!nodes.waveformMount) {
       console.log("[drum-alignment] no waveformMount node");
       return;
@@ -554,9 +373,14 @@
     }
 
     if (waveformRenderer) {
-      console.log("[drum-alignment] waveformRenderer exists, has tracks:", state.tracks.length);
+      console.log(
+        "[drum-alignment] waveformRenderer exists, has tracks:",
+        state.tracks.length
+      );
       // Skip rendering if testHarness is active to avoid rendering hangs in tests
-      const shouldSkipRender = new URLSearchParams(location?.search || "").has("testHarness");
+      const shouldSkipRender = new URLSearchParams(location?.search || "").has(
+        "testHarness"
+      );
       if (shouldSkipRender) {
         console.log("[drum-alignment] in test mode, skipping waveform render");
         nodes.waveformMount.innerHTML =
@@ -580,45 +404,46 @@
         referenceEvent: state.result?.referenceEvent,
         correlations: state.result?.correlations || [],
       };
-      const isCompactViewport = Number(globalScope.innerWidth || 0) <= 760;
-      const maximumDuration = Math.max(
-        ...state.tracks.map((track) => Number(track.duration) || 0)
-      );
-      const renderWindowSeconds = state.waveformFitFullTrack
-        ? maximumDuration
-        : state.waveformWindowSeconds;
-      const renderPositionRatio = state.waveformFitFullTrack
-        ? 0
-        : state.waveformPositionRatio;
-      const renderWidth = state.waveformFitFullTrack
-        ? Math.max(320, nodes.waveformMount.clientWidth)
-        : isCompactViewport
-          ? 1400
-          : 2000;
 
       try {
         if (
           typeof waveformRenderer.renderDrumAlignmentWaveforms === "function"
         ) {
-          const result = waveformRenderer.renderDrumAlignmentWaveforms(
-            nodes.waveformMount,
-            renderState,
-            {
-              width: renderWidth,
-              windowSeconds: renderWindowSeconds,
-              positionRatio: renderPositionRatio,
-              laneHeight: isCompactViewport ? 144 : 184,
-              laneGap: isCompactViewport ? 12 : 16,
-              padding: 16,
-              pixelRatio: 2,
-              rainbowAmplitude: true,
-              phaseColors: true,
-            }
+          console.log(
+            "[drum-alignment] calling renderDrumAlignmentWaveforms with",
+            tracks.length,
+            "tracks"
           );
-          if (!result?.rendered) {
-            nodes.waveformMount.innerHTML =
-              '<article class="drum-align-empty"><p>The waveform preview could not be drawn here. Your alignment report is still ready below.</p></article>';
-          }
+          // Use Promise.resolve to give Playwright a chance to handle callbacks
+          const promise = Promise.resolve().then(() => {
+            console.log(
+              "[drum-alignment] about to call renderDrumAlignmentWaveforms"
+            );
+            const result = waveformRenderer.renderDrumAlignmentWaveforms(
+              nodes.waveformMount,
+              renderState,
+              {
+                windowSeconds: 1.5,
+              }
+            );
+            console.log(
+              "[drum-alignment] renderDrumAlignmentWaveforms returned, rendered:",
+              result?.rendered
+            );
+            console.log(
+              "[drum-alignment] renderDrumAlignmentWaveforms returned, rendered:",
+              result?.rendered
+            );
+            return result;
+          });
+          // Don't wait for it, just return immediately
+          promise.catch((err) =>
+            console.error(
+              "[drum-alignment] renderDrumAlignmentWaveforms error:",
+              err.message
+            )
+          );
+          console.log("[drum-alignment] queued renderDrumAlignmentWaveforms");
           return;
         }
         if (typeof waveformRenderer.renderAlignmentWaveforms === "function") {
@@ -685,176 +510,9 @@
     renderCorrelationPanel(nodes);
     console.log("[drum-alignment] renderReport");
     renderReport(nodes);
-    syncWaveformControls(nodes);
     console.log("[drum-alignment] renderWaveforms");
     renderWaveforms(nodes);
     console.log("[drum-alignment] render complete");
-  }
-
-  function createDemoSignal(
-    length,
-    events,
-    shift = 0,
-    amplitude = 1,
-    profile = "overhead",
-    channelPhase = 0
-  ) {
-    const signal = new Float32Array(length);
-    const sampleRate = 48000;
-    const decaySeconds =
-      profile === "kick"
-        ? 0.48
-        : profile === "snare"
-          ? 0.34
-          : profile === "tom"
-            ? 0.72
-            : 0.9;
-    const decaySamples = Math.round(decaySeconds * sampleRate);
-    events.forEach((event, eventIndex) => {
-      const center = event + shift;
-      const tailLength = Math.min(
-        length - center,
-        Math.round(decaySamples * 2.6)
-      );
-      for (let offset = -48; offset < tailLength; offset += 1) {
-        const index = center + offset;
-        if (index < 0 || index >= length) continue;
-        const attack = offset < 0 ? Math.exp(offset / 11) : 1;
-        const time = Math.max(0, offset) / sampleRate;
-        const transientClick = offset === 0 ? 3.8 : 0;
-        const deterministicNoise =
-          Math.sin(offset * 0.811 + eventIndex * 0.7 + channelPhase) * 0.56 +
-          Math.sin(offset * 1.731 + eventIndex * 1.3 + channelPhase) * 0.31 +
-          Math.sin(offset * 2.417 + channelPhase) * 0.13;
-        let body = 0;
-
-        if (profile === "kick") {
-          const sweepPhase =
-            Math.PI *
-            2 *
-            (52 * time + 58 * 0.045 * (1 - Math.exp(-time / 0.045)));
-          body =
-            Math.sin(sweepPhase + channelPhase) *
-              1.45 *
-              Math.exp(-time / 0.3) +
-            deterministicNoise * 0.72 * Math.exp(-time / 0.012);
-        } else if (profile === "snare") {
-          body =
-            deterministicNoise * 1.32 * Math.exp(-time / 0.105) +
-            Math.sin(Math.PI * 2 * 188 * time + channelPhase) *
-              0.5 *
-              Math.exp(-time / 0.24) +
-            Math.sin(Math.PI * 2 * 1120 * time) *
-              0.22 *
-              Math.exp(-time / 0.18);
-        } else if (profile === "tom") {
-          const sweepPhase =
-            Math.PI *
-            2 *
-            (88 * time + 62 * 0.07 * (1 - Math.exp(-time / 0.07)));
-          body =
-            Math.sin(sweepPhase + channelPhase) *
-              1.35 *
-              Math.exp(-time / 0.52) +
-            deterministicNoise * 0.32 * Math.exp(-time / 0.03);
-        } else {
-          const roomTime = Math.max(0, time - 0.018);
-          body =
-            deterministicNoise * 0.82 * Math.exp(-time / 0.32) +
-            Math.sin(Math.PI * 2 * 104 * time + channelPhase) *
-              0.54 *
-              Math.exp(-time / 0.48) +
-            Math.sin(Math.PI * 2 * 2380 * roomTime + channelPhase) *
-              0.24 *
-              Math.exp(-roomTime / 0.58);
-        }
-
-        const attackBurst =
-          offset > 0
-            ? deterministicNoise * 2.15 * Math.exp(-offset / 92)
-            : 0;
-        signal[index] +=
-          amplitude * attack * (transientClick + attackBurst + body);
-      }
-    });
-    return signal;
-  }
-
-  function createDemoTracks() {
-    const length = 96000;
-    const sampleRate = 48000;
-    const events = [4800];
-    return [
-      {
-        id: "demo-oh",
-        fileName: "OH Stereo · kit image.wav",
-        sampleRate,
-        channelData: [
-          createDemoSignal(length, events, 0, 0.82, "overhead", 0),
-          createDemoSignal(length, events, 4, 0.72, "overhead", 0.17),
-        ],
-      },
-      {
-        id: "demo-kick",
-        fileName: "Kick In · close mic.wav",
-        sampleRate,
-        channelData: createDemoSignal(length, events, 188, 0.92, "kick"),
-      },
-      {
-        id: "demo-snare",
-        fileName: "Snare Top · close mic.wav",
-        sampleRate,
-        channelData: createDemoSignal(length, events, 124, 0.76, "snare"),
-      },
-      {
-        id: "demo-floor-tom",
-        fileName: "Floor Tom · close mic.wav",
-        sampleRate,
-        channelData: createDemoSignal(length, events, 256, 0.7, "tom"),
-      },
-    ];
-  }
-
-  function delay(milliseconds) {
-    return new Promise((resolve) => globalScope.setTimeout(resolve, milliseconds));
-  }
-
-  async function runDemo(nodes) {
-    if (state.demoRunning) return;
-    const demoRun = ++state.demoRun;
-    state.demoRunning = true;
-    setDemoControls(nodes, true);
-    nodes.root.classList.add("is-demo-active");
-    revealDemo(nodes);
-
-    try {
-      setStatus(nodes, "Demo 1/4 · Loading a sample drum session locally...");
-      state.tracks = createDemoTracks().map(createHarnessTrack);
-      state.result = null;
-      state.lastReportText = "";
-      state.referenceValue = "auto";
-      state.waveformPositionRatio = null;
-      state.waveformFitFullTrack = false;
-      render(nodes);
-
-      await delay(650);
-      if (demoRun !== state.demoRun) return;
-      setStatus(nodes, "Demo 2/4 · Overheads detected and selected as the kit image reference.");
-      await delay(650);
-      if (demoRun !== state.demoRun) return;
-      setStatus(nodes, "Demo 3/4 · Detecting transients and comparing close mics...");
-      await analyze(nodes);
-      if (demoRun !== state.demoRun) return;
-      setStatus(nodes, "Demo 4/4 · Done. Review the bright aligned waveforms, confidence checks, and DAW report.");
-      revealDemo(nodes, nodes.waveformStage);
-    } catch (error) {
-      setStatus(nodes, `Demo could not finish: ${error.message || error}`);
-    } finally {
-      if (demoRun === state.demoRun) {
-        state.demoRunning = false;
-        setDemoControls(nodes, false);
-      }
-    }
   }
 
   async function decodeFile(file, index) {
@@ -910,8 +568,6 @@
     state.result = null;
     state.lastReportText = "";
     state.referenceValue = "auto";
-    state.waveformPositionRatio = null;
-    state.waveformFitFullTrack = false;
     render(nodes);
 
     if (decodedTracks.length === 0) {
@@ -955,7 +611,8 @@
   }
 
   function createHarnessTrack(input, index) {
-    const fileName = input.fileName || input.name || `Synthetic ${index + 1}.wav`;
+    const fileName =
+      input.fileName || input.name || `Synthetic ${index + 1}.wav`;
     const classification = normalizeClassification(fileName);
     const channelData = normalizeHarnessChannelData(
       input.channelData || input.channels || input.samples || input.data
@@ -985,7 +642,10 @@
   }
 
   function installTestHarness(nodes) {
-    console.log("[drum-alignment] installTestHarness called, testHarness param present:", shouldInstallTestHarness());
+    console.log(
+      "[drum-alignment] installTestHarness called, testHarness param present:",
+      shouldInstallTestHarness()
+    );
     if (!shouldInstallTestHarness()) return;
     console.log("[drum-alignment] installing test harness...");
     globalScope.DrumAlignmentWorkbenchTest = {
@@ -994,11 +654,11 @@
         state.result = null;
         state.lastReportText = "";
         state.referenceValue = "auto";
-        state.waveformPositionRatio = null;
-        state.waveformFitFullTrack = false;
         render(nodes);
         const recommendation = state.recommendation;
-        const statusParts = [`Loaded ${state.tracks.length} synthetic track(s).`];
+        const statusParts = [
+          `Loaded ${state.tracks.length} synthetic track(s).`,
+        ];
         if (recommendation?.label) {
           statusParts.push(`Recommended reference: ${recommendation.label}.`);
         }
@@ -1148,53 +808,6 @@
 
     nodes.analyzeButton.addEventListener("click", () => analyze(nodes));
     nodes.copyButton.addEventListener("click", () => copyReport(nodes));
-    nodes.copyButtonInline?.addEventListener("click", () => copyReport(nodes));
-
-    nodes.waveformFirstHit.addEventListener("click", () => {
-      state.waveformFitFullTrack = false;
-      state.waveformPositionRatio = null;
-      syncWaveformControls(nodes);
-      renderWaveforms(nodes);
-      setStatus(nodes, "Waveforms focused on each track's first detected hit.");
-    });
-
-    nodes.waveformFitTrack.addEventListener("click", () => {
-      state.waveformFitFullTrack = true;
-      state.waveformPositionRatio = 0;
-      syncWaveformControls(nodes);
-      renderWaveforms(nodes);
-      setStatus(nodes, "Waveforms fitted to the full track. Use Focus first hit for detailed inspection.");
-    });
-
-    nodes.waveformWindow.addEventListener("change", (event) => {
-      state.waveformFitFullTrack = false;
-      const value = Number(event.target.value);
-      state.waveformWindowSeconds = Number.isFinite(value)
-        ? Math.max(0.05, value)
-        : 0.75;
-      syncWaveformControls(nodes);
-      renderWaveforms(nodes);
-      setStatus(
-        nodes,
-        `Waveform ADSR window set to ${Math.round(state.waveformWindowSeconds * 1000)} ms.`
-      );
-    });
-
-    nodes.waveformPosition.addEventListener("input", (event) => {
-      state.waveformFitFullTrack = false;
-      state.waveformPositionRatio = Math.max(
-        0,
-        Math.min(1, Number(event.target.value) / 1000)
-      );
-      syncWaveformControls(nodes);
-      scheduleWaveformRender(nodes);
-    });
-
-    [nodes.demoButton, nodes.demoButtonInline].forEach((button) => {
-      button?.addEventListener("click", () => {
-        runDemo(nodes);
-      });
-    });
   }
 
   function init() {
@@ -1210,42 +823,13 @@
       referenceSelector: document.getElementById("drum-reference-selector"),
       analyzeButton: document.getElementById("drum-analyze-button"),
       copyButton: document.getElementById("drum-copy-report-button"),
-      copyButtonInline: document.getElementById("drum-copy-report-inline"),
-      demoButton: document.getElementById("drum-demo-button"),
-      demoButtonInline: document.getElementById("drum-demo-button-inline"),
       waveformMount: document.getElementById("drum-waveform-mount"),
-      waveformStage: document.querySelector(".drum-align-waveform-stage"),
-      waveformFirstHit: document.getElementById("drum-waveform-first-hit"),
-      waveformFitTrack: document.getElementById("drum-waveform-fit-track"),
-      waveformWindow: document.getElementById("drum-waveform-window"),
-      waveformPosition: document.getElementById("drum-waveform-position"),
-      waveformPositionOutput: document.getElementById(
-        "drum-waveform-position-output"
-      ),
       correlationPanel: document.getElementById("drum-correlation-panel"),
-      phaseSummary: document.getElementById("drum-phase-summary"),
       reportPanel: document.getElementById("drum-report-panel"),
       status: document.getElementById("drum-alignment-status"),
     };
 
-    const missingNode = [
-      "root",
-      "fileInput",
-      "dropzone",
-      "trackList",
-      "referenceSelector",
-      "analyzeButton",
-      "copyButton",
-      "waveformMount",
-      "waveformFirstHit",
-      "waveformFitTrack",
-      "waveformWindow",
-      "waveformPosition",
-      "waveformPositionOutput",
-      "correlationPanel",
-      "reportPanel",
-      "status",
-    ].find((key) => !nodes[key]);
+    const missingNode = Object.keys(nodes).find((key) => !nodes[key]);
     console.log("[drum-alignment] missing node:", missingNode);
     if (missingNode) return;
 

@@ -1,378 +1,303 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-F27NSF7J12"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-      gtag("config", "G-F27NSF7J12");
-    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Logic Auto Bounce | Dirt Cat Records</title>
     <meta
       name="description"
-      content="Build a clean, repeatable Logic Pro export plan."
+      content="Logic Auto Bounce workbench for export presets, track sidechain policies, and one-click recipe generation."
     />
-    <link rel="canonical" href="https://www.dirtcatrecords.com/logic-auto-bounce.html" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Dirt Cat Records" />
-    <meta property="og:title" content="Logic Auto Bounce | Dirt Cat Records" />
-    <meta
-      property="og:description"
-      content="Build a clean, repeatable Logic Pro export plan."
-    />
-    <meta property="og:url" content="https://www.dirtcatrecords.com/logic-auto-bounce.html" />
-    <meta
-      property="og:image"
-      content="https://www.dirtcatrecords.com/assets/Dirt-Cat-Logo.PNG"
-    />
-    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico?v=2" />
     <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
     <link rel="stylesheet" href="style.css?v=4" />
-    <link rel="stylesheet" href="logic-auto-bounce.css?v=4" />
+    <link rel="stylesheet" href="logic-auto-bounce.css" />
   </head>
-  <body class="brick-lane-lab-page studio-tools-page bounce-page-body">
+  <body class="brick-lane-lab-page studio-tools-page">
     <nav id="main-nav">
       <ul>
-        <li><a href="/#hero-container">Home</a></li>
-        <li><a href="/#services">Offers</a></li>
-        <li><a href="/#listen">Listen</a></li>
+        <li><a href="index.html#hero-container">Home</a></li>
+        <li><a href="index.html#services">Offers</a></li>
+        <li><a href="index.html#listen">Listen</a></li>
         <li><a href="studio-tools.html">Studio Tools</a></li>
         <li><a href="checkout.html">Checkout</a></li>
         <li><a href="portal.html">Portal</a></li>
         <li><a href="support.html">Support</a></li>
-        <li><a href="/#fat-footer">Contact</a></li>
+        <li><a href="index.html#fat-footer">Contact</a></li>
       </ul>
     </nav>
 
-    <main class="bounce-page" aria-label="Logic Auto Bounce">
-      <header class="bounce-page-header">
+    <main
+      class="brick-lane-shell studio-tools-shell"
+      aria-label="Logic Auto Bounce"
+    >
+      <header class="brick-lane-topbar studio-tools-topbar">
         <div>
-          <p class="bounce-brand-kicker">Dirt Cat Records</p>
+          <p class="brick-lane-kicker">Dirt Cat Records</p>
           <h1>Logic Auto Bounce</h1>
-          <p>Build a clean, repeatable Logic export plan.</p>
+          <p class="brick-lane-subhead">
+            Customize bounce presets, configure track sidechains, and export a
+            one-click Logic recipe.
+          </p>
         </div>
-        <div class="bounce-preset-control">
-          <label for="bounce-preset-selector">Preset</label>
-          <select id="bounce-preset-selector">
-            <option value="mix-handoff">Mix handoff</option>
-            <option value="mastering-stereo">Mastering stereo file</option>
-            <option value="archive-tracks">Full project archive</option>
-          </select>
-          <span id="preset-modified-badge" hidden>Edited</span>
-          <details class="bounce-plan-menu">
-            <summary>Plan options</summary>
-            <div>
-              <button type="button" id="btn-new-preset">Save a copy</button>
-              <button type="button" id="btn-save-preset">Save changes</button>
-              <button type="button" id="btn-delete-preset">Delete plan</button>
-            </div>
-          </details>
+        <div class="brick-lane-actions">
+          <a href="studio-tools.html" class="btn-secondary">All Tools</a>
         </div>
       </header>
 
       <section
         id="logic-auto-bounce-workbench"
-        class="bounce-flow"
-        aria-label="Logic Auto Bounce workbench"
+        class="studio-workbench-section"
+        aria-label="Logic Auto Bounce Workbench"
       >
-        <nav class="bounce-progress" aria-label="Bounce plan steps">
-          <button
-            type="button"
-            data-step-button="deliverable"
-            aria-current="step"
-          >
-            <span>1</span>Deliverable
-          </button>
-          <button type="button" data-step-button="files">
-            <span>2</span>Files
-          </button>
-          <button type="button" data-step-button="review">
-            <span>3</span>Review
-          </button>
-        </nav>
+        <div
+          id="logic-bounce-preferences"
+          class="studio-workbench-grid bounce-preference-shell"
+        >
+          <div class="bounce-panel-full bounce-preset-toolbar">
+            <label for="bounce-preset-selector">Active Export Preset:</label>
+            <select id="bounce-preset-selector">
+              <option value="mix-prep-dry">Mix Prep (Dry)</option>
+              <option value="vocal-stems-wet">Vocal Stems (Wet)</option>
+              <option value="mastering-pre-bounce">Mastering Pre-Bounce</option>
+              <option value="custom">Custom Presets</option>
+            </select>
+            <button type="button" id="btn-new-preset" class="btn-secondary">
+              New
+            </button>
+            <button type="button" id="btn-save-preset" class="btn-primary">
+              Save
+            </button>
+            <button type="button" id="btn-delete-preset" class="btn-danger">
+              Delete
+            </button>
+            <span id="preset-modified-badge" class="badge-modified" hidden
+              >Modified</span
+            >
+          </div>
 
-        <div id="logic-bounce-preferences">
-          <section
-            class="bounce-step"
-            data-step="deliverable"
-            aria-labelledby="deliverable-title"
-          >
-            <p class="bounce-step-kicker">Step 1 · Choose the deliverable</p>
-            <h2 id="deliverable-title">What are you taking out of Logic?</h2>
-            <p class="bounce-step-intro">
-              Pick the result first. The tool will show the right Logic command
-              and keep the settings in context.
-            </p>
+          <div class="studio-workbench-panel bounce-settings-card">
+            <span class="studio-workbench-label">Bounce Settings</span>
+            <h3>Audio Specifications</h3>
 
-            <fieldset class="delivery-options">
-              <legend>Logic export workflow</legend>
-              <label class="delivery-choice">
-                <input type="radio" name="delivery" value="stereo" />
-                <span
-                  ><strong>Stereo mix</strong
-                  ><small>One mix or mastering file</small></span
-                >
+            <div class="form-row">
+              <label>Format</label>
+              <span class="static-value-label">WAV</span>
+            </div>
+
+            <div class="form-row">
+              <label for="bounce-bit-depth">Bit Depth</label>
+              <select id="bounce-bit-depth">
+                <option value="16">16-bit</option>
+                <option value="24" selected>24-bit</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="bounce-sample-rate">Sample Rate</label>
+              <select id="bounce-sample-rate">
+                <option value="44100">44.1 kHz</option>
+                <option value="48000" selected>48 kHz</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="bounce-range">Bounce Range</label>
+              <select id="bounce-range">
+                <option value="entire-project">Entire Project</option>
+                <option value="cycle-range">Cycle Range</option>
+                <option value="selected-regions">Selected Regions</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="studio-workbench-panel plugin-toggles-card">
+            <span class="studio-workbench-label">Plugin & Track Control</span>
+            <h3>Option C Toggles</h3>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-inserts-active" checked />
+                <span class="neon-slider"></span>
               </label>
-              <label class="delivery-choice">
+              <span class="switch-label">Insert Effects Active</span>
+            </div>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-instruments-active" checked />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Software Instruments Active</span>
+            </div>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-master-active" />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Master Bus Effects Active</span>
+            </div>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-volume-pan-active" checked />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Apply Volume/Pan Automation</span>
+            </div>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-print-fx" />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Print FX Returns (Auxes)</span>
+            </div>
+
+            <div class="switch-row">
+              <label class="switch-container">
+                <input type="checkbox" id="toggle-print-subgroups" />
+                <span class="neon-slider"></span>
+              </label>
+              <span class="switch-label">Print Subgroups (Buses)</span>
+            </div>
+          </div>
+
+          <div
+            class="studio-workbench-panel bounce-panel-full track-table-card"
+          >
+            <span class="studio-workbench-label"
+              >Discovered Session Tracks</span
+            >
+            <h3>Sidechain & Track Mappings</h3>
+
+            <div class="track-action-bar">
+              <button
+                type="button"
+                id="btn-add-track-toggle"
+                class="btn-secondary btn-track-action"
+              >
+                Add Track
+              </button>
+              <button
+                type="button"
+                id="btn-paste-tracks-toggle"
+                class="btn-secondary btn-track-action"
+              >
+                Paste Track List
+              </button>
+              <button
+                type="button"
+                id="btn-reset-tracks"
+                class="btn-danger btn-track-action"
+              >
+                Reset Tracks
+              </button>
+            </div>
+
+            <!-- Inline Add Track Form (Hidden by default) -->
+            <div id="add-track-form-panel" class="add-track-form-panel" hidden>
+              <div class="form-row inline-form-row">
                 <input
-                  type="radio"
-                  name="delivery"
-                  value="all-tracks"
-                  checked
+                  type="text"
+                  id="new-track-name"
+                  placeholder="Track Name (e.g. Sub Bass)"
+                  aria-label="Track Name"
                 />
-                <span
-                  ><strong>All individual tracks</strong
-                  ><small
-                    >One file per audio, instrument, and Drummer track</small
-                  ></span
+                <select id="new-track-type" aria-label="Track Type">
+                  <option value="Audio">Audio</option>
+                  <option value="Software Instrument">
+                    Software Instrument
+                  </option>
+                  <option value="Aux">Aux</option>
+                </select>
+                <select id="new-track-sidechain" aria-label="Sidechain Input">
+                  <option value="none">No Sidechain</option>
+                </select>
+                <button
+                  type="button"
+                  id="btn-submit-add-track"
+                  class="btn-primary"
                 >
-              </label>
-              <label class="delivery-choice">
-                <input type="radio" name="delivery" value="selected-tracks" />
-                <span
-                  ><strong>Selected tracks</strong
-                  ><small>A smaller stem or overdub handoff</small></span
-                >
-              </label>
-            </fieldset>
-
-            <div class="bounce-command-row">
-              <span>Logic command</span>
-              <output id="logic-menu-path"></output>
-            </div>
-            <p id="logic-path-explanation" class="bounce-command-note"></p>
-
-            <details class="bounce-settings-disclosure" id="render-settings">
-              <summary>
-                <span>Render settings</span
-                ><output id="settings-summary">24-bit · Project rate</output>
-              </summary>
-              <div class="bounce-settings-grid">
-                <label
-                  >File format<select id="bounce-format">
-                    <option value="WAV">WAV (Broadcast Wave)</option>
-                    <option value="AIFF">AIFF</option>
-                  </select></label
-                >
-                <label
-                  >Bit depth<select id="bounce-bit-depth">
-                    <option value="24" selected>24-bit</option>
-                    <option value="16">16-bit</option>
-                  </select></label
-                >
-                <label
-                  >Sample rate<select id="bounce-sample-rate">
-                    <option value="project" selected>
-                      Project sample rate
-                    </option>
-                    <option value="44100">44.1 kHz</option>
-                    <option value="48000">48 kHz</option>
-                    <option value="96000">96 kHz</option>
-                  </select></label
-                >
-                <label>Export range<select id="bounce-range"></select></label>
-                <label
-                  >Normalization<select id="bounce-normalize">
-                    <option value="off" selected>Off</option>
-                    <option value="overload">Overload protection only</option>
-                    <option value="on">On</option>
-                  </select></label
-                >
+                  Add
+                </button>
               </div>
-              <div class="bounce-toggle-list">
-                <label
-                  ><input type="checkbox" id="toggle-inserts-active" checked />
-                  Include track plug-ins</label
-                >
-                <label
-                  ><input
-                    type="checkbox"
-                    id="toggle-volume-pan-active"
-                    checked
-                  />
-                  Render volume and pan automation</label
-                >
-                <label id="audio-tail-row" hidden
-                  ><input type="checkbox" id="toggle-audio-tail" checked />
-                  Include instrument releases and effect tails</label
-                >
+            </div>
+
+            <!-- Paste Track List Modal (Hidden by default) -->
+            <div id="paste-tracks-modal" class="paste-modal-overlay" hidden>
+              <div class="paste-modal-content">
+                <span class="studio-workbench-label">Batch Intake</span>
+                <h3>Paste Track List</h3>
+                <p>
+                  Paste track names here (one per line). We'll identify types
+                  and defaults.
+                </p>
+                <textarea
+                  id="paste-tracks-textarea"
+                  placeholder="Kick Out&#10;Snare Top&#10;Bass Synth&#10;Lead Vocal"
+                  aria-label="Track Names List"
+                ></textarea>
+                <div class="modal-actions">
+                  <button
+                    type="button"
+                    id="btn-close-paste-modal"
+                    class="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-submit-paste-tracks"
+                    class="btn-primary"
+                  >
+                    Import Tracks
+                  </button>
+                </div>
               </div>
-              <p id="dither-note" class="bounce-dither-note" hidden>
-                Moving to 16-bit is the point where dithering is normally
-                considered. Use it only on final delivery.
-              </p>
-            </details>
+            </div>
 
-            <div class="bounce-step-actions">
-              <button
-                type="button"
-                id="bounce-demo-button"
-                class="bounce-text-action"
-              >
-                Load demo session
-              </button>
-              <button
-                type="button"
-                id="btn-continue-files"
-                class="bounce-primary-action"
-              >
-                Continue to files
-              </button>
-            </div>
-          </section>
-
-          <section
-            class="bounce-step"
-            data-step="files"
-            aria-labelledby="files-title"
-            hidden
-          >
-            <p class="bounce-step-kicker">Step 2 · Build the file list</p>
-            <h2 id="files-title">Paste track names from Logic</h2>
-            <p class="bounce-step-intro">
-              One name per line. This stays in your browser and turns into a
-              clean, reviewable delivery list.
-            </p>
-            <div class="bounce-track-intake">
-              <label for="bounce-track-input">Track names</label>
-              <textarea
-                id="bounce-track-input"
-                rows="7"
-                placeholder="Kick In&#10;Snare Top&#10;Bass DI&#10;Lead Vocal"
-              ></textarea>
-              <button
-                type="button"
-                id="btn-import-tracks"
-                class="bounce-primary-action"
-              >
-                Import tracks
-              </button>
-            </div>
-            <div id="logic-warning" class="bounce-warning" role="note"></div>
-            <div class="bounce-files-heading">
-              <span id="bounce-track-summary"></span
-              ><button type="button" id="btn-load-example">
-                Load example session
-              </button>
-            </div>
-            <div class="bounce-file-table-wrap">
-              <table class="bounce-file-table">
+            <div class="table-wrapper">
+              <table class="bounce-tracks-table">
                 <thead>
                   <tr>
-                    <th>Track</th>
-                    <th>Output filename</th>
-                    <th>Status</th>
-                    <th><span class="visually-hidden">Actions</span></th>
+                    <th>Track Name</th>
+                    <th>Type</th>
+                    <th>Sidechain Input</th>
+                    <th>Sidechain Policy</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="bounce-tracks-list"></tbody>
+                <tbody id="bounce-tracks-body"></tbody>
               </table>
             </div>
-            <div class="bounce-step-actions">
-              <button
-                type="button"
-                class="bounce-text-action"
-                data-go-back="deliverable"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                id="btn-continue-review"
-                class="bounce-primary-action"
-              >
-                Review export
-              </button>
-            </div>
-          </section>
+          </div>
 
-          <section
-            class="bounce-step"
-            data-step="review"
-            aria-labelledby="review-title"
-            hidden
+          <div
+            class="studio-workbench-panel bounce-panel-full recipe-preview-card"
           >
-            <p class="bounce-step-kicker">Step 3 · Review</p>
-            <h2 id="review-title">Ready to export</h2>
-            <p class="bounce-step-intro">
-              This is the handoff plan. Verify the list in Logic before starting
-              the render.
-            </p>
-            <div class="bounce-review-summary" id="bounce-result-preview"></div>
-            <section class="bounce-preflight" aria-labelledby="preflight-title">
-              <div>
-                <p class="bounce-step-kicker">Preflight</p>
-                <h3 id="preflight-title">Four quick checks</h3>
-              </div>
-              <span id="preflight-progress">0 of 4 checked</span>
-              <div class="preflight-meter" aria-hidden="true">
-                <span id="preflight-meter-fill"></span>
-              </div>
-              <div id="preflight-checks" class="preflight-checks">
-                <label
-                  ><input type="checkbox" /> Save a new project version before
-                  changing bounce settings.</label
-                >
-                <label
-                  ><input type="checkbox" /> Confirm the cycle or project end
-                  leaves enough room for tails.</label
-                >
-                <label
-                  ><input type="checkbox" /> Review sidechain-triggered tracks
-                  and print critical relationships if needed.</label
-                >
-                <label
-                  ><input type="checkbox" /> Use realtime bounce for external
-                  MIDI, live inputs, or non-native DSP hardware.</label
-                >
-              </div>
-            </section>
-            <div class="bounce-step-actions bounce-review-actions">
-              <button
-                type="button"
-                class="bounce-text-action"
-                data-go-back="files"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                id="btn-copy-recipe"
-                class="bounce-text-action"
-              >
-                Copy Logic checklist
+            <span class="studio-workbench-label">1-Click Exporter Recipe</span>
+            <h3>Generated Config JSON</h3>
+            <pre><code id="bounce-recipe-preview"></code></pre>
+            <div class="recipe-actions">
+              <button type="button" id="btn-copy-recipe" class="btn-secondary">
+                Copy to Clipboard
               </button>
               <button
                 type="button"
                 id="btn-download-recipe"
-                class="bounce-primary-action"
+                class="btn-primary"
               >
-                Download session plan
+                Download Recipe
               </button>
             </div>
-            <p
-              id="bounce-status"
-              class="bounce-status"
-              role="status"
-              aria-live="polite"
-            >
-              Your plan updates as you work.
-            </p>
-          </section>
+          </div>
         </div>
       </section>
     </main>
+
     <script src="nav.js"></script>
-    <script src="logic-auto-bounce.js?v=4"></script>
+    <script src="logic-auto-bounce.js"></script>
   </body>
 </html>

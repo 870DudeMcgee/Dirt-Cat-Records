@@ -1,6 +1,10 @@
 const { ensureRuntimeEnv } = require("../../lib/env/runtime");
 const { requireCronAuth } = require("../../lib/auth/cron-auth");
-const { methodNotAllowed, sendJson } = require("../../lib/http/json");
+const {
+  getQueryValue,
+  methodNotAllowed,
+  sendJson,
+} = require("../../lib/http/json");
 const recordsDefault = require("../../lib/db/studio-records");
 const {
   runFollowUpPipeline,
@@ -56,18 +60,6 @@ function createFollowUpsCronHandler(dependencies = {}) {
       });
     }
   };
-}
-
-function getQueryValue(req, key) {
-  if (req.query && req.query[key]) {
-    return Array.isArray(req.query[key]) ? req.query[key][0] : req.query[key];
-  }
-  if (!req.url) return null;
-  try {
-    return new URL(req.url, "http://localhost").searchParams.get(key);
-  } catch (_error) {
-    return null;
-  }
 }
 
 function parseOptionalNumber(value) {

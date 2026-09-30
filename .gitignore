@@ -17,3 +17,12 @@ coverage/
 .nyc_output/
 dist/
 build/
+
+# Unpublished Corey session media. The Bench page stays; its pictures do not ship in git.
+CoreyStudioSession/
+prototypes/corey-bench/media/*
+!prototypes/corey-bench/media/kit.jpg
+!prototypes/corey-bench/media/close-mic.jpg
+!prototypes/corey-bench/media/ladder.jpg
+prototypes/corey-bench/audio/*
+!prototypes/corey-bench/audio/.gitkeep

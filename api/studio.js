@@ -51,10 +51,5 @@ router.use(async (req, res, next) => {
 });
 
 registerGatewayRoutes("/api/studio");
-registerGatewayRoutes("/api/portal/actions");
-registerGatewayRoutes("/api/admin/overview");
-registerGatewayRoutes("/api/admin/projects");
-registerGatewayRoutes("/api/admin/quotes");
-registerGatewayRoutes("/api/admin/setup-wizard");
 
 module.exports = router.handler();
