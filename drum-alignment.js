@@ -1,876 +1,267 @@
 (function initDrumAlignmentWorkbench(globalScope) {
-  const engine = globalScope.DrumAlignmentEngine || null;
-  const waveformRenderer = globalScope.DrumWaveformRenderer || null;
-
-  const ROLE_OPTIONS = [
-    { value: "overhead", label: "Overhead" },
-    { value: "kick", label: "Kick" },
-    { value: "snare", label: "Snare" },
-    { value: "tom", label: "Tom" },
-    { value: "room", label: "Room" },
-    { value: "hat", label: "Hi-hat" },
-    { value: "ride", label: "Ride" },
-    { value: "percussion", label: "Percussion" },
-    { value: "unknown", label: "Unknown" },
+  const engine = globalScope.DrumAlignmentEngine;
+  const waveform = globalScope.DrumWaveformRenderer;
+  const roles = [
+    ["overhead-left", "OH L"], ["overhead-right", "OH R"], ["overhead", "Overhead"],
+    ["kick-in", "Kick In"], ["kick-out", "Kick Out"], ["kick", "Kick"],
+    ["snare-top", "Snare Top"], ["snare-bottom", "Snare Bottom"], ["snare", "Snare"],
+    ["rack-tom", "Rack Tom"], ["floor-tom", "Floor Tom"], ["tom", "Tom"],
+    ["room", "Room"], ["other", "Other"],
   ];
-
   const state = {
-    audioContext: null,
-    tracks: [],
-    referenceValue: "auto",
-    recommendation: null,
-    result: null,
-    lastReportText: "",
-    scopeZoom: "transient",
-    booted: false,
+    tracks: [], result: null, recommendation: null, referenceValue: "auto",
+    selectedId: null, scopeZoom: "transient", report: "", errors: [], context: null,
   };
-
-  function escapeHtml(value) {
-    return String(value || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+  const $ = (id) => document.getElementById(id);
+  const escape = (value) => String(value ?? "").replace(/[&<>"']/g, (char) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+  const family = (role) => role.startsWith("overhead") ? "overhead" :
+    role.startsWith("kick") ? "kick" : role.startsWith("snare") ? "snare" :
+    role.endsWith("-tom") || role === "tom" ? "tom" : role === "room" ? "room" : "other";
+  const selected = () => state.tracks.find((track) => track.id === state.selectedId);
+  const aligned = (id) => state.result?.tracks.find((track) => track.id === id);
+  const pair = (id) => state.result?.correlations.find((score) => score.trackId === id);
+  const status = (text) => { $("drum-alignment-status").textContent = text; };
+  const numeric = (value) => value === null || value === undefined ? "Unverified" :
+    (value < 0 ? "−" : "+") + Math.abs(value).toFixed(3);
+  const option = (value, label, current) =>
+    `<option value="${escape(value)}"${value === current ? " selected" : ""}>${escape(label)}</option>`;
+  function infer(name) {
+    const detail = engine?.classifyTrackName(name);
+    return detail?.role || "other";
   }
-
-  function formatDuration(seconds) {
-    const value = Number(seconds);
-    if (!Number.isFinite(value)) return "--";
-    return `${value.toFixed(2)}s`;
-  }
-
-  function formatOffset(track) {
-    if (!track) return "Pending";
-    const offsetSamples = Number(track.offsetSamples || 0);
-    const offsetMs = Number(track.offsetMs || 0);
-    if (!Number.isFinite(offsetSamples) || !Number.isFinite(offsetMs)) {
-      return "Pending";
+  function reference() {
+    const recommendation = engine?.recommendReference(state.tracks);
+    if (state.referenceValue === "auto") return recommendation;
+    if (state.referenceValue.startsWith("group:")) {
+      const group = state.referenceValue.slice(6);
+      return { type: "group", trackIds: state.tracks.filter((track) => track.family === group).map((track) => track.id), label: group === "overhead" ? "Overhead group" : "Room group" };
     }
-    return `${offsetSamples >= 0 ? "+" : ""}${offsetSamples} samples / ${offsetMs >= 0 ? "+" : ""}${offsetMs.toFixed(2)} ms`;
+    const id = state.referenceValue.slice(6);
+    const track = state.tracks.find((item) => item.id === id);
+    return track ? { type: "track", trackIds: [id], label: track.fileName } : recommendation;
   }
-
-  function getFamilyForRole(role) {
-    if (["overhead", "kick", "snare", "tom", "room"].includes(role)) {
-      return role;
+  function renderReference() {
+    state.recommendation = engine?.recommendReference(state.tracks);
+    const choices = [option("auto", state.recommendation ? `Recommended: ${state.recommendation.label}` : "Recommended reference", state.referenceValue)];
+    for (const group of ["overhead", "room"]) {
+      if (state.tracks.some((track) => track.family === group))
+        choices.push(option(`group:${group}`, `${group === "overhead" ? "Overhead" : "Room"} group`, state.referenceValue));
     }
-    return "other";
+    for (const track of state.tracks) choices.push(option(`track:${track.id}`, track.fileName, state.referenceValue));
+    $("drum-reference-selector").innerHTML = choices.join("");
   }
-
-  function normalizeRoleForWorkbench(role, family) {
-    const roleValues = ROLE_OPTIONS.map((option) => option.value);
-    if (roleValues.includes(role)) return role;
-    if (roleValues.includes(family)) return family;
-    return "unknown";
+  function eventSeconds() {
+    const item = aligned(state.selectedId);
+    const track = selected();
+    return item?.referenceMs !== null && Number.isFinite(item?.referenceMs) ? item.referenceMs / 1000 :
+      item?.transientSample !== null && Number.isFinite(item?.transientSample) ? item.transientSample / item.sampleRate :
+      state.result?.referenceEvent?.ms !== null && Number.isFinite(state.result?.referenceEvent?.ms) ? state.result.referenceEvent.ms / 1000 :
+      track?.manualTransientSample !== null && Number.isFinite(track?.manualTransientSample) ? track.manualTransientSample / track.sampleRate : 0;
   }
-
-  function inferRoleLocally(fileName) {
-    const name = String(fileName || "").toLowerCase();
-    if (/\b(oh|overhead|cymbal)s?\b/.test(name)) return "overhead";
-    if (/\bkick|bd\b|bass drum/.test(name)) return "kick";
-    if (/\bsnare|sn\b/.test(name)) return "snare";
-    if (/\btom|rack|floor/.test(name)) return "tom";
-    if (/\broom|crush|ambience|ambient/.test(name)) return "room";
-    if (/\bhat|hihat|hi-hat/.test(name)) return "hat";
-    if (/\bride\b/.test(name)) return "ride";
-    if (/perc|shaker|tamb/.test(name)) return "percussion";
-    return "unknown";
+  function viewport() {
+    const duration = Math.max(0.1, ...state.tracks.map((track) => track.duration || 0));
+    if (state.scopeZoom === "overview") return { start: 0, end: duration };
+    const width = state.scopeZoom === "detail" ? 0.02 : 0.1;
+    const center = eventSeconds();
+    const start = Math.max(0, center - width / 2);
+    return { start, end: start + width };
   }
-
-  function normalizeClassification(fileName) {
-    if (engine && typeof engine.classifyTrackName === "function") {
-      try {
-        const classification = engine.classifyTrackName(fileName);
-        if (typeof classification === "string") {
-          return {
-            role: classification,
-            family: getFamilyForRole(classification),
-          };
-        }
-        if (classification && typeof classification === "object") {
-          const family =
-            classification.family || getFamilyForRole(classification.role);
-          const role = normalizeRoleForWorkbench(classification.role, family);
-          return {
-            role,
-            family: family === "other" ? getFamilyForRole(role) : family,
-          };
-        }
-      } catch (_error) {
-        // Fall through to local filename inference.
-      }
+  function renderRuler(view) {
+    const width = view.end - view.start;
+    const step = width <= 0.025 ? 0.005 : width <= 0.12 ? 0.02 : Math.max(0.05, Math.ceil(width / 0.2 * 20) / 1000);
+    let marks = "";
+    for (let seconds = Math.ceil(view.start / step) * step; seconds <= view.end + 1e-9; seconds += step) {
+      const left = (seconds - view.start) / width * 100;
+      marks += `<span style="left:${left.toFixed(3)}%">${Math.round(seconds * 1000)} ms</span>`;
     }
-
-    const role = inferRoleLocally(fileName);
-    return { role, family: getFamilyForRole(role) };
+    $("drum-ruler").innerHTML = `<span>TRACK</span><div class="drum-ruler-axis">${marks}</div><span>OFFSET</span>`;
   }
-
-  function getAudioContext() {
-    if (state.audioContext) return state.audioContext;
-    const AudioContextConstructor =
-      globalScope.AudioContext || globalScope.webkitAudioContext;
-    if (!AudioContextConstructor) {
-      throw new Error("This browser does not support Web Audio decoding.");
-    }
-    state.audioContext = new AudioContextConstructor();
-    return state.audioContext;
-  }
-
-  function getTrackChannelData(audioBuffer) {
-    return Array.from({ length: audioBuffer.numberOfChannels }, (_, index) =>
-      audioBuffer.getChannelData(index)
-    );
-  }
-
-  function toEngineTrack(track) {
-    return {
-      id: track.id,
-      fileName: track.fileName,
-      role: track.role,
-      family: track.family,
-      sampleRate: track.sampleRate,
-      duration: track.duration,
-      channelData: track.channelData,
-      channels: track.channelData,
-      audioBuffer: track.audioBuffer,
-      transientSample: track.transientSample,
-      manualTransientSample: track.manualTransientSample,
-    };
-  }
-
-  function getDecodedTrackResult(track, result) {
-    return (result?.tracks || []).find(
-      (candidate) => candidate.id === track.id
-    );
-  }
-
-  function getRecommendedReference(tracks) {
-    if (engine && typeof engine.recommendReference === "function") {
-      try {
-        const recommendation = engine.recommendReference(
-          tracks.map(toEngineTrack)
-        );
-        if (recommendation) return recommendation;
-      } catch (_error) {
-        // Local fallback keeps the UI useful if the engine is missing or strict.
-      }
-    }
-
-    const overheadTracks = tracks.filter((track) => track.role === "overhead");
-    if (overheadTracks.length > 0) {
-      return {
-        type: "group",
-        trackIds: overheadTracks.map((track) => track.id),
-        label:
-          overheadTracks.length === 1
-            ? `Overhead: ${overheadTracks[0].fileName}`
-            : `Overheads (${overheadTracks.length})`,
-        reason: "Overheads usually hold the kit image and timing reference.",
-      };
-    }
-
-    const firstTrack = tracks[0];
-    return firstTrack
-      ? {
-          type: "track",
-          trackIds: [firstTrack.id],
-          label: firstTrack.fileName,
-          reason:
-            "No overheads detected, so the first loaded track is selected.",
-        }
-      : null;
-  }
-
-  function getReferenceFromValue(value) {
-    if (value === "auto") {
-      return state.recommendation || getRecommendedReference(state.tracks);
-    }
-
-    if (value.startsWith("group:")) {
-      const family = value.slice("group:".length);
-      const trackIds = state.tracks
-        .filter((track) => track.role === family || track.family === family)
-        .map((track) => track.id);
-      return {
-        type: "group",
-        trackIds,
-        label: `${family.charAt(0).toUpperCase()}${family.slice(1)} group`,
-        reason: "Manual reference override.",
-      };
-    }
-
-    if (value.startsWith("track:")) {
-      const trackId = value.slice("track:".length);
-      const track = state.tracks.find((candidate) => candidate.id === trackId);
-      return track
-        ? {
-            type: "track",
-            trackIds: [track.id],
-            label: track.fileName,
-            reason: "Manual reference override.",
-          }
-        : null;
-    }
-
-    return null;
-  }
-
-  function setStatus(nodes, message) {
-    if (nodes.status) nodes.status.textContent = message;
-  }
-
-  function renderReferenceSelector(nodes) {
-    if (!nodes.referenceSelector) return;
-    const previousValue = state.referenceValue;
-    const hasOverheads = state.tracks.some(
-      (track) => track.role === "overhead"
-    );
-    const hasRooms = state.tracks.some((track) => track.role === "room");
-    const recommendation = state.recommendation;
-
-    const options = [
-      `<option value="auto">Recommended${recommendation?.label ? `: ${escapeHtml(recommendation.label)}` : ""}</option>`,
-    ];
-
-    if (hasOverheads) {
-      options.push('<option value="group:overhead">Overhead group</option>');
-    }
-    if (hasRooms) {
-      options.push('<option value="group:room">Room group</option>');
-    }
-
-    state.tracks.forEach((track) => {
-      options.push(
-        `<option value="track:${escapeHtml(track.id)}">${escapeHtml(track.fileName)}</option>`
-      );
-    });
-
-    nodes.referenceSelector.innerHTML = options.join("");
-    const validValues = Array.from(nodes.referenceSelector.options).map(
-      (option) => option.value
-    );
-    state.referenceValue = validValues.includes(previousValue)
-      ? previousValue
-      : "auto";
-    nodes.referenceSelector.value = state.referenceValue;
-  }
-
-  function renderTrackList(nodes) {
-    if (!nodes.trackList) return;
-    if (state.tracks.length === 0) {
-      nodes.trackList.innerHTML =
-        '<article class="drum-align-empty"><p>No drum audio files loaded yet.</p></article>';
+  function renderLanes() {
+    $("drum-lane-count").textContent = `${state.tracks.length} lanes · shared time axis`;
+    const view = viewport();
+    renderRuler(view);
+    const mount = $("drum-waveform-mount");
+    if (!state.tracks.length) {
+      mount.innerHTML = '<div class="drum-align-empty">Waveforms appear after local files are decoded.</div>';
       return;
     }
-
-    nodes.trackList.innerHTML = state.tracks
-      .map((track) => {
-        const resultTrack = getDecodedTrackResult(track, state.result) || track;
-        const manualValue =
-          track.manualTransientSample === null ||
-          track.manualTransientSample === undefined
-            ? ""
-            : track.manualTransientSample;
-        const options = ROLE_OPTIONS.map(
-          (option) =>
-            `<option value="${option.value}" ${track.role === option.value ? "selected" : ""}>${option.label}</option>`
-        ).join("");
-
-        return `<article class="drum-align-track-card" data-drum-track-id="${escapeHtml(track.id)}">
-          <div class="drum-align-track-identity">
-            <strong>${escapeHtml(track.fileName)}</strong>
-            <span>${escapeHtml(track.role)} · ${escapeHtml(track.channelsLabel)} · ${track.sampleRate} Hz · ${formatDuration(track.duration)}</span>
-          </div>
-          <div class="drum-align-track-field"><label for="drum-role-${escapeHtml(track.id)}">Role</label>
-            <select id="drum-role-${escapeHtml(track.id)}" data-drum-role>${options}</select></div>
-          <div class="drum-align-track-field"><label for="drum-manual-${escapeHtml(track.id)}">Manual transient sample</label>
-            <input id="drum-manual-${escapeHtml(track.id)}" data-drum-manual-transient type="number" min="0" step="1" inputmode="numeric" placeholder="Auto" value="${escapeHtml(manualValue)}" /></div>
-          <output class="drum-align-track-offset">${escapeHtml(formatOffset(resultTrack))}</output>
-        </article>`;
-      })
-      .join("");
-  }
-
-  function renderCorrelationPanel(nodes) {
-    if (!nodes.correlationPanel) return;
-    const correlations = state.result?.correlations || [];
-    if (correlations.length === 0) {
-      nodes.correlationPanel.innerHTML =
-        '<article class="drum-align-empty"><p>Analyze tracks to see correlation confidence.</p></article>';
-      return;
-    }
-
-    nodes.correlationPanel.innerHTML = correlations
-      .map((correlation) => {
-        const value = Number(correlation.value);
-        const valueLabel = Number.isFinite(value) ? `${value >= 0 ? "+" : ""}${value.toFixed(3)}` : "--";
-        const confidence =
-          value >= 0.82 ? "strong" : value >= 0.55 ? "check" : "issue";
-        const trackNames = (correlation.trackIds || []).map((id) =>
-          state.tracks.find((track) => track.id === id)?.fileName || id
-        );
-        const position = Number.isFinite(value) ? `${((Math.max(-1, Math.min(1, value)) + 1) * 50).toFixed(1)}%` : "50%";
-        return `<article class="drum-align-meter" data-confidence="${confidence}">
-          <span class="studio-workbench-label">${escapeHtml(correlation.family || "Correlation")}</span>
-          <strong>${escapeHtml(correlation.label || "Check by ear")}</strong>
-          <p>${escapeHtml(trackNames.join(" vs "))}</p>
-          <div class="drum-align-meter-value"><span>Envelope correlation</span><output>${escapeHtml(valueLabel)}</output></div>
-          <div class="drum-align-meter-scale" role="meter" aria-label="${escapeHtml(trackNames.join(" vs "))} energy envelope correlation" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="${Number.isFinite(value) ? value : 0}"><span style="left:${position}"></span></div>
-          <div class="drum-align-meter-ticks" aria-hidden="true"><span>−1</span><span>0</span><span>+1</span></div>
-          ${correlation.warning ? `<p>${escapeHtml(correlation.warning)}</p>` : ""}
-        </article>`;
-      })
-      .join("");
-  }
-
-  function createFallbackReport(result, reference) {
-    const lines = [
-      "Dirt Cat Records Drum Alignment Report",
-      `Reference: ${reference?.label || "Not selected"}`,
-      "",
-    ];
-
-    (result?.tracks || state.tracks).forEach((track) => {
-      lines.push(
-        `${track.fileName}: ${track.role || "unknown"} | ${formatOffset(track)}`
-      );
-    });
-
-    return lines.join("\n");
-  }
-
-  function resolveReportText(result, reference) {
-    if (result?.reportText) return result.reportText;
-    if (engine && typeof engine.createAlignmentReport === "function") {
-      try {
-        return engine.createAlignmentReport(result);
-      } catch (_error) {
-        return createFallbackReport(result, reference);
-      }
-    }
-    return createFallbackReport(result, reference);
-  }
-
-  function renderReport(nodes) {
-    if (!nodes.reportPanel) return;
-    nodes.reportPanel.textContent =
-      state.lastReportText || "Run analysis to generate a DAW-ready report.";
-  }
-
-  function renderWaveforms(nodes) {
-    console.log(
-      "[drum-alignment] renderWaveforms starting, has waveformRenderer:",
-      !!waveformRenderer,
-      "tracks:",
-      state.tracks.length
-    );
-    if (!nodes.waveformMount) {
-      console.log("[drum-alignment] no waveformMount node");
-      return;
-    }
-    nodes.waveformMount.innerHTML = "";
-
-    // Skip waveform rendering if there are no tracks yet
-    // (prevents hang during initialization)
-    if (state.tracks.length === 0) {
-      console.log("[drum-alignment] no tracks, rendering empty state");
-      nodes.waveformMount.innerHTML =
-        '<article class="drum-align-empty"><p>Waveforms appear after local files are decoded.</p></article>';
-      return;
-    }
-
-    if (waveformRenderer) {
-      console.log(
-        "[drum-alignment] waveformRenderer exists, has tracks:",
-        state.tracks.length
-      );
-      // Skip rendering if testHarness is active to avoid rendering hangs in tests
-      const shouldSkipRender = new URLSearchParams(location?.search || "").has(
-        "testHarness"
-      );
-      if (shouldSkipRender) {
-        console.log("[drum-alignment] in test mode, skipping waveform render");
-        nodes.waveformMount.innerHTML =
-          '<article class="drum-align-empty"><p>Waveform rendering skipped during test.</p></article>';
-        return;
-      }
-
-      const tracks = state.tracks.map((track) => {
-        const resultTrack = getDecodedTrackResult(track, state.result) || {};
-        return {
-          ...toEngineTrack(track),
-          ...resultTrack,
-          channelData: track.channelData,
-          channels: track.channelData,
-          audioBuffer: track.audioBuffer,
-        };
+    mount.innerHTML = state.tracks.map((track) => {
+      const result = aligned(track.id);
+      const offset = result?.offsetMs;
+      const role = roles.find(([value]) => value === track.role)?.[1] || track.role;
+      return `<div class="drum-scope-track${state.selectedId === track.id ? " selected" : ""}" data-drum-track-id="${escape(track.id)}">
+        <button class="drum-scope-label" type="button" data-select-track="${escape(track.id)}" title="${escape(track.fileName)}">
+          <span class="drum-scope-code">${escape(role.split(" ").map((part) => part[0]).join("").slice(0, 2))}</span>
+          <span><strong>${escape(role)}</strong><small>${escape(track.fileName)}</small></span>
+        </button>
+        <div class="drum-scope-wave" data-wave-id="${escape(track.id)}" role="button" tabindex="0" aria-label="Select ${escape(track.fileName)}; drag to edit transient marker"><canvas></canvas></div>
+        <div class="drum-scope-offset">${offset === null || offset === undefined ? "Unverified" : `${offset >= 0 ? "+" : ""}${offset.toFixed(3)} ms`}<small>${result?.offsetSamples === null || result?.offsetSamples === undefined ? "" : `${result.offsetSamples >= 0 ? "+" : ""}${result.offsetSamples} samples`}</small></div>
+      </div>`;
+    }).join("");
+    for (const element of mount.querySelectorAll("[data-wave-id]")) {
+      const track = state.tracks.find((item) => item.id === element.dataset.waveId);
+      const result = aligned(track.id) || {};
+      waveform?.drawSignedLane(element.querySelector("canvas"), { ...track, ...result, channelData: track.channelData }, view, {
+        referenceSeconds: result.referenceMs === null ? null : Number.isFinite(result.referenceMs) ? result.referenceMs / 1000 : null,
       });
-      const renderState = {
-        tracks,
-        sampleRate: state.tracks[0]?.sampleRate,
-        referenceEvent: state.result?.referenceEvent,
-        correlations: state.result?.correlations || [],
-      };
-
-      try {
-        if (
-          typeof waveformRenderer.renderDrumAlignmentWaveforms === "function"
-        ) {
-          console.log(
-            "[drum-alignment] calling renderDrumAlignmentWaveforms with",
-            tracks.length,
-            "tracks"
-          );
-          // Use Promise.resolve to give Playwright a chance to handle callbacks
-          const promise = Promise.resolve().then(() => {
-            console.log(
-              "[drum-alignment] about to call renderDrumAlignmentWaveforms"
-            );
-            const result = waveformRenderer.renderDrumAlignmentWaveforms(
-              nodes.waveformMount,
-              renderState,
-              {
-                windowSeconds: state.scopeZoom === "overview" ? undefined : state.scopeZoom === "detail" ? 0.02 : 0.1,
-                overview: state.scopeZoom === "overview",
-              }
-            );
-            console.log(
-              "[drum-alignment] renderDrumAlignmentWaveforms returned, rendered:",
-              result?.rendered
-            );
-            console.log(
-              "[drum-alignment] renderDrumAlignmentWaveforms returned, rendered:",
-              result?.rendered
-            );
-            return result;
-          });
-          // Don't wait for it, just return immediately
-          promise.catch((err) =>
-            console.error(
-              "[drum-alignment] renderDrumAlignmentWaveforms error:",
-              err.message
-            )
-          );
-          console.log("[drum-alignment] queued renderDrumAlignmentWaveforms");
-          return;
-        }
-        if (typeof waveformRenderer.renderAlignmentWaveforms === "function") {
-          console.log("[drum-alignment] calling renderAlignmentWaveforms");
-          waveformRenderer.renderAlignmentWaveforms({
-            mount: nodes.waveformMount,
-            ...renderState,
-            reference: getReferenceFromValue(state.referenceValue),
-          });
-          console.log("[drum-alignment] renderAlignmentWaveforms returned");
-          return;
-        }
-        if (typeof waveformRenderer.renderWaveforms === "function") {
-          console.log("[drum-alignment] calling renderWaveforms");
-          waveformRenderer.renderWaveforms({
-            mount: nodes.waveformMount,
-            ...renderState,
-            reference: getReferenceFromValue(state.referenceValue),
-          });
-          console.log("[drum-alignment] renderWaveforms returned");
-          return;
-        }
-        if (typeof waveformRenderer.render === "function") {
-          console.log("[drum-alignment] calling render on waveformRenderer");
-          waveformRenderer.render({
-            mount: nodes.waveformMount,
-            ...renderState,
-            reference: getReferenceFromValue(state.referenceValue),
-          });
-          console.log("[drum-alignment] render on waveformRenderer returned");
-          return;
-        }
-        console.log("[drum-alignment] no matching renderer method found");
-      } catch (_error) {
-        console.log("[drum-alignment] renderWaveforms error:", _error.message);
-        nodes.waveformMount.innerHTML =
-          '<p class="studio-workbench-label">Waveform renderer could not draw this session.</p>';
-        return;
-      }
     }
-
-    console.log("[drum-alignment] no waveformRenderer, fallback rendering");
-    nodes.waveformMount.innerHTML = state.tracks
-      .map((track) => {
-        const resultTrack = getDecodedTrackResult(track, state.result) || track;
-        return `<article class="drum-align-empty">
-          <span class="studio-workbench-label">Waveform lane</span>
-          <h3>${escapeHtml(track.fileName)}</h3>
-          <p>Renderer pending. ${escapeHtml(formatOffset(resultTrack))}</p>
-        </article>`;
-      })
-      .join("");
-    console.log("[drum-alignment] renderWaveforms complete");
   }
-
-  function render(nodes) {
-    console.log("[drum-alignment] render starting");
-    state.recommendation = getRecommendedReference(state.tracks);
-    console.log("[drum-alignment] renderReferenceSelector");
-    renderReferenceSelector(nodes);
-    console.log("[drum-alignment] renderTrackList");
-    renderTrackList(nodes);
-    console.log("[drum-alignment] renderCorrelationPanel");
-    renderCorrelationPanel(nodes);
-    console.log("[drum-alignment] renderReport");
-    renderReport(nodes);
-    console.log("[drum-alignment] renderWaveforms");
-    renderWaveforms(nodes);
-    console.log("[drum-alignment] render complete");
+  function renderInspector() {
+    const track = selected();
+    $("drum-selected-name").textContent = track ? roles.find(([value]) => value === track.role)?.[1] || track.role : "Choose a track";
+    const score = track && pair(track.id);
+    $("drum-pair-name").textContent = score ? score.pairNames.join(" ↔ ") : "Choose a lane to inspect its pair";
+    $("drum-correlation-panel").innerHTML = score ?
+      `<div class="drum-align-metric"><span>Timing envelope similarity</span><strong>${numeric(score.envelope)}</strong><small>Matched hit shape · higher is more similar</small></div>
+       <div class="drum-align-metric"><span>Signed waveform correlation</span><strong class="${score.signed < 0 ? "negative" : ""}">${numeric(score.signed)}</strong><small>−1 opposing · +1 similar; not a phase angle</small></div>` :
+      '<div class="drum-align-metric">Analyze tracks to see measured pair readings.</div>';
+    const details = $("drum-track-list");
+    if (!track) { details.innerHTML = "<p>No track selected.</p>"; return; }
+    const result = aligned(track.id);
+    details.innerHTML = `<article class="drum-align-track-card" data-drum-track-id="${escape(track.id)}">
+      <div class="drum-align-track-identity"><strong>${escape(track.fileName)}</strong><span>${escape(track.channelsLabel)} · ${track.sampleRate} Hz · ${track.duration.toFixed(3)} s</span></div>
+      <div class="drum-align-track-field"><label for="drum-selected-role">Role</label><select id="drum-selected-role" data-drum-role>${roles.map(([value, label]) => option(value, label, track.role)).join("")}</select></div>
+      <div class="drum-align-track-field"><label for="drum-selected-sample">Marker sample</label><input id="drum-selected-sample" data-drum-manual-transient type="number" min="0" max="${track.channelData[0]?.length - 1 || 0}" step="1" placeholder="Auto" value="${track.manualTransientSample ?? result?.transientSample ?? ""}"></div>
+      <button id="drum-reset-auto" type="button">Reset Auto</button>
+      <output class="drum-align-track-offset">${result?.offsetSamples === null ? "Unverified" : `${result?.offsetSamples ?? 0} samples / ${result?.offsetMs?.toFixed(3) ?? "0.000"} ms`}</output>
+      <p>${score ? `Pair: ${escape(score.pairNames.join(" vs "))}; event ${score.eventMs ?? "n/a"} ms; after stated shifts; ${score.windowMs} ms window. ${escape(score.warning || score.label)}` : "Run analysis for pair and event details."}</p>
+    </article>`;
   }
-
-  async function decodeFile(file, index) {
-    const audioContext = getAudioContext();
+  function render() {
+    renderReference(); renderLanes(); renderInspector();
+    $("drum-report-panel").textContent = state.report || "Run analysis to generate a DAW-ready report.";
+    if (state.errors.length) {
+      const list = document.createElement("div");
+      list.className = "drum-align-errors";
+      list.innerHTML = state.errors.map((error) => `<p>${escape(error)}</p>`).join("");
+      $("drum-alignment-status").after(list);
+      document.querySelectorAll(".drum-align-errors").forEach((node) => { if (node !== list) node.remove(); });
+    } else document.querySelectorAll(".drum-align-errors").forEach((node) => node.remove());
+  }
+  function toEngine(track) {
+    return { id: track.id, fileName: track.fileName, role: track.role, family: track.family,
+      sampleRate: track.sampleRate, duration: track.duration, channelData: track.channelData,
+      manualTransientSample: track.manualTransientSample };
+  }
+  function analyze() {
+    if (!state.tracks.length) { status("Load local drum audio files before analysis."); return; }
+    state.result = engine.calculateAlignment({ tracks: state.tracks.map(toEngine), reference: reference() });
+    state.report = state.result.reportText;
+    render();
+    status("Analysis complete. Offsets and report are ready.");
+    return state.result;
+  }
+  async function decode(file, index) {
+    if (!state.context) state.context = new (globalScope.AudioContext || globalScope.webkitAudioContext)();
     const buffer = await file.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(buffer.slice(0));
-    const classification = normalizeClassification(file.name);
-    const channelData = getTrackChannelData(audioBuffer);
-
-    return {
-      id: `drum-track-${Date.now()}-${index}`,
-      fileName: file.name,
-      file,
-      audioBuffer,
-      channelData,
-      sampleRate: audioBuffer.sampleRate,
-      duration: audioBuffer.duration,
-      role: classification.role,
-      family: classification.family,
-      channelsLabel:
-        audioBuffer.numberOfChannels === 1
-          ? "mono"
-          : `${audioBuffer.numberOfChannels} channels`,
-      transientSample: null,
-      manualTransientSample: null,
-    };
-  }
-
-  async function handleFiles(files, nodes) {
-    const audioFiles = Array.from(files || []).filter(isAudioFile);
-
-    if (audioFiles.length === 0) {
-      setStatus(nodes, "Choose local audio files to start alignment.");
-      return;
+    const audio = await state.context.decodeAudioData(buffer.slice(0));
+    const channels = Array.from({ length: audio.numberOfChannels }, (_, channel) => audio.getChannelData(channel));
+    const inferred = infer(file.name);
+    const basic = { fileName: file.name, sampleRate: audio.sampleRate, duration: audio.duration,
+      manualTransientSample: null };
+    if (inferred.startsWith("overhead") && channels.length === 2) {
+      return channels.map((data, side) => ({ ...basic, id: `drum-track-${Date.now()}-${index}-${side}`,
+        role: side ? "overhead-right" : "overhead-left", family: "overhead",
+        fileName: `${file.name} · ${side ? "R" : "L"}`, channelData: [data], channelsLabel: side ? "right channel" : "left channel" }));
     }
-
-    setStatus(nodes, `Decoding ${audioFiles.length} local audio file(s)...`);
-    const results = await Promise.allSettled(audioFiles.map(decodeFile));
-    const decodedTracks = [];
-    const failures = [];
-
-    results.forEach((result, index) => {
-      if (result.status === "fulfilled") {
-        decodedTracks.push(result.value);
-      } else {
-        failures.push(
-          `${audioFiles[index].name}: ${result.reason?.message || "decode failed"}`
-        );
-      }
+    return [{ ...basic, id: `drum-track-${Date.now()}-${index}`, role: inferred, family: family(inferred),
+      channelData: channels, channelsLabel: channels.length === 1 ? "mono" : `${channels.length} channels` }];
+  }
+  async function loadFiles(files) {
+    const accepted = Array.from(files || []).filter((file) => /^audio\//.test(file.type) || /\.(wav|aif|aiff|flac|m4a|mp3|ogg)$/i.test(file.name));
+    if (!accepted.length) { status("Choose local audio files to start alignment."); return; }
+    status(`Decoding ${accepted.length} local audio file(s)...`);
+    const settled = await Promise.allSettled(accepted.map(decode));
+    state.tracks = settled.flatMap((item) => item.status === "fulfilled" ? item.value : []);
+    state.errors = settled.flatMap((item, index) => item.status === "rejected" ?
+      [`${accepted[index].name}: ${item.reason?.message || "decode failed"}`] : []);
+    state.referenceValue = "auto"; state.result = null; state.report = "";
+    state.selectedId = state.tracks[0]?.id || null;
+    render();
+    status(`Decoded ${state.tracks.length} local track lane(s).${state.errors.length ? ` ${state.errors.length} file(s) could not be decoded; choose files again to retry.` : ""}`);
+  }
+  function editMarker(track, value) {
+    track.manualTransientSample = value === "" ? null : Math.max(0, Math.min(track.channelData[0]?.length - 1 || 0, Math.round(Number(value))));
+    analyze();
+  }
+  function bind() {
+    $("drum-alignment-files").addEventListener("change", (event) => loadFiles(event.target.files));
+    const drop = $("drum-alignment-dropzone");
+    drop.addEventListener("dragover", (event) => { event.preventDefault(); drop.classList.add("is-dragging"); });
+    drop.addEventListener("dragleave", () => drop.classList.remove("is-dragging"));
+    drop.addEventListener("drop", (event) => { event.preventDefault(); drop.classList.remove("is-dragging"); loadFiles(event.dataTransfer.files); });
+    drop.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); $("drum-alignment-files").click(); } });
+    $("drum-reference-selector").addEventListener("change", (event) => { state.referenceValue = event.target.value; analyze(); });
+    $("drum-scope-zoom").addEventListener("change", (event) => { state.scopeZoom = event.target.value; renderLanes(); });
+    $("drum-analyze-button").addEventListener("click", analyze);
+    $("drum-copy-report-button").addEventListener("click", async () => {
+      if (!state.report) { status("Run analysis before copying a report."); return; }
+      try { await navigator.clipboard.writeText(state.report); status("Alignment report copied to the clipboard."); }
+      catch { status("Clipboard copy failed. Select the report text manually."); $("drum-alignment-app").querySelector(".drum-align-report").open = true; }
     });
-
-    state.tracks = decodedTracks;
-    state.result = null;
-    state.lastReportText = "";
-    state.referenceValue = "auto";
-    render(nodes);
-
-    if (decodedTracks.length === 0) {
-      setStatus(nodes, `No files decoded. ${failures.join(" ")}`.trim());
-      return;
-    }
-
-    const statusParts = [`Decoded ${decodedTracks.length} local file(s).`];
-    if (failures.length > 0) {
-      statusParts.push(`${failures.length} file(s) could not be decoded.`);
-    }
-    const recommendation = state.recommendation;
-    if (recommendation?.label) {
-      statusParts.push(`Recommended reference: ${recommendation.label}.`);
-    }
-    setStatus(nodes, statusParts.join(" "));
-  }
-
-  function isAudioFile(file) {
-    if (String(file?.type || "").startsWith("audio/")) return true;
-    return /\.(aif|aiff|flac|m4a|mp3|ogg|wav)$/i.test(file?.name || "");
-  }
-
-  function shouldInstallTestHarness() {
-    try {
-      return new URLSearchParams(globalScope.location?.search || "").has(
-        "testHarness"
-      );
-    } catch (_error) {
-      return false;
-    }
-  }
-
-  function normalizeHarnessChannelData(input) {
-    if (!input || typeof input.length !== "number") return [];
-    if (input.length === 0) return [];
-    if (typeof input[0] === "number") return [Float32Array.from(input)];
-    return Array.from(input)
-      .filter((channel) => channel && typeof channel.length === "number")
-      .map((channel) => Float32Array.from(channel));
-  }
-
-  function createHarnessTrack(input, index) {
-    const fileName =
-      input.fileName || input.name || `Synthetic ${index + 1}.wav`;
-    const classification = normalizeClassification(fileName);
-    const channelData = normalizeHarnessChannelData(
-      input.channelData || input.channels || input.samples || input.data
-    );
-    const sampleRate = Number(input.sampleRate) || 44100;
-    const duration =
-      Number(input.duration) || (channelData[0]?.length || 0) / sampleRate;
-    return {
-      id: input.id || `drum-harness-track-${index + 1}`,
-      fileName,
-      file: null,
-      audioBuffer: null,
-      channelData,
-      sampleRate,
-      duration,
-      role: input.role || classification.role,
-      family: input.family || classification.family,
-      channelsLabel:
-        channelData.length === 1 ? "mono" : `${channelData.length} channels`,
-      transientSample: Number.isFinite(input.transientSample)
-        ? Math.max(0, Math.round(input.transientSample))
-        : null,
-      manualTransientSample: Number.isFinite(input.manualTransientSample)
-        ? Math.max(0, Math.round(input.manualTransientSample))
-        : null,
+    $("drum-track-list").addEventListener("change", (event) => {
+      const track = selected(); if (!track) return;
+      if (event.target.matches("[data-drum-role]")) { track.role = event.target.value; track.family = family(track.role); analyze(); }
+      if (event.target.matches("[data-drum-manual-transient]")) editMarker(track, event.target.value);
+    });
+    $("drum-track-list").addEventListener("click", (event) => {
+      if (event.target.id === "drum-reset-auto") { const track = selected(); track.manualTransientSample = null; analyze(); }
+    });
+    const mount = $("drum-waveform-mount");
+    mount.addEventListener("click", (event) => {
+      const id = event.target.closest("[data-select-track]")?.dataset.selectTrack;
+      if (id) { state.selectedId = id; renderLanes(); renderInspector(); }
+    });
+    mount.addEventListener("keydown", (event) => {
+      const id = event.target.closest("[data-wave-id]")?.dataset.waveId;
+      if (id && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); state.selectedId = id; renderLanes(); renderInspector(); }
+    });
+    let dragging = null;
+    mount.addEventListener("pointerdown", (event) => {
+      const wave = event.target.closest("[data-wave-id]"); if (!wave) return;
+      const track = state.tracks.find((item) => item.id === wave.dataset.waveId);
+      state.selectedId = track.id; dragging = { track, wave, view: viewport() };
+      updatePointer(event);
+    });
+    const updatePointer = (event) => {
+      if (!dragging) return;
+      const rect = dragging.wave.getBoundingClientRect(), view = dragging.view;
+      const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+      dragging.track.manualTransientSample = Math.round((view.start + ratio * (view.end - view.start)) * dragging.track.sampleRate);
+      const canvas = dragging.wave.querySelector("canvas");
+      waveform?.drawSignedLane(canvas, { ...dragging.track, ...aligned(dragging.track.id),
+        manualTransientSample: dragging.track.manualTransientSample,
+        transientSample: dragging.track.manualTransientSample }, view);
     };
+    document.addEventListener("pointermove", updatePointer);
+    const finish = () => { if (dragging) { dragging = null; analyze(); } };
+    document.addEventListener("pointerup", finish);
+    document.addEventListener("pointercancel", finish);
+    let frame;
+    globalScope.addEventListener("resize", () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(renderLanes); });
   }
-
-  function installTestHarness(nodes) {
-    console.log(
-      "[drum-alignment] installTestHarness called, testHarness param present:",
-      shouldInstallTestHarness()
-    );
-    if (!shouldInstallTestHarness()) return;
-    console.log("[drum-alignment] installing test harness...");
+  function testHarness() {
+    if (!new URLSearchParams(location.search).has("testHarness")) return;
     globalScope.DrumAlignmentWorkbenchTest = {
-      loadTracks(tracks) {
-        state.tracks = (tracks || []).map(createHarnessTrack);
-        state.result = null;
-        state.lastReportText = "";
-        state.referenceValue = "auto";
-        render(nodes);
-        const recommendation = state.recommendation;
-        const statusParts = [
-          `Loaded ${state.tracks.length} synthetic track(s).`,
-        ];
-        if (recommendation?.label) {
-          statusParts.push(`Recommended reference: ${recommendation.label}.`);
-        }
-        setStatus(nodes, statusParts.join(" "));
-        return {
-          trackCount: state.tracks.length,
-          recommendation,
-        };
+      loadTracks(items) {
+        state.tracks = items.map((item, index) => {
+          const data = item.channelData || item.channels || item.samples || [];
+          const channels = typeof data[0] === "number" ? [Float32Array.from(data)] : Array.from(data, (channel) => Float32Array.from(channel));
+          const role = item.role || infer(item.fileName);
+          return { id: item.id || `test-${index}`, fileName: item.fileName, sampleRate: item.sampleRate || 44100,
+            channelData: channels, duration: item.duration || channels[0].length / (item.sampleRate || 44100),
+            role, family: item.family || family(role), channelsLabel: channels.length === 1 ? "mono" : `${channels.length} channels`,
+            manualTransientSample: item.manualTransientSample ?? null };
+        });
+        state.selectedId = state.tracks[0]?.id || null; state.result = null; state.report = ""; state.referenceValue = "auto";
+        render(); status(`Loaded ${state.tracks.length} synthetic track(s).`);
+        return { trackCount: state.tracks.length, recommendation: state.recommendation };
       },
-      analyze: () => analyze(nodes),
-      getState() {
-        return {
-          trackCount: state.tracks.length,
-          recommendation: state.recommendation,
-          result: state.result,
-          reportText: state.lastReportText,
-          status: nodes.status?.textContent || "",
-        };
-      },
+      analyze,
+      getState: () => ({ trackCount: state.tracks.length, result: state.result, recommendation: state.recommendation, reportText: state.report }),
     };
   }
-
-  async function analyze(nodes) {
-    if (state.tracks.length === 0) {
-      setStatus(nodes, "Load local drum audio files before analysis.");
-      return;
-    }
-    if (!engine || typeof engine.calculateAlignment !== "function") {
-      state.result = {
-        tracks: state.tracks.map(toEngineTrack),
-        correlations: [],
-      };
-      const reference = getReferenceFromValue(state.referenceValue);
-      state.lastReportText = createFallbackReport(state.result, reference);
-      render(nodes);
-      setStatus(
-        nodes,
-        "Files are decoded locally. Alignment engine is not loaded in this workspace yet."
-      );
-      return;
-    }
-
-    const sampleRate = state.tracks[0]?.sampleRate || 44100;
-    const reference = getReferenceFromValue(state.referenceValue);
-    setStatus(nodes, "Analyzing transients and correlation locally...");
-
-    try {
-      state.result = await Promise.resolve(
-        engine.calculateAlignment({
-          tracks: state.tracks.map(toEngineTrack),
-          reference,
-          sampleRate,
-        })
-      );
-      state.lastReportText = resolveReportText(state.result, reference);
-      render(nodes);
-      setStatus(nodes, "Analysis complete. Offsets and report are ready.");
-    } catch (error) {
-      setStatus(nodes, `Analysis failed: ${error.message || error}`);
-    }
-  }
-
-  async function copyReport(nodes) {
-    const reportText =
-      state.lastReportText || nodes.reportPanel?.textContent || "";
-    if (!reportText.trim()) {
-      setStatus(nodes, "Run analysis before copying a report.");
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(reportText);
-      setStatus(nodes, "Alignment report copied to the clipboard.");
-    } catch (_error) {
-      setStatus(
-        nodes,
-        "Clipboard copy failed. Select the report text manually."
-      );
-    }
-  }
-
-  function bindEvents(nodes) {
-    nodes.scopeZoom.addEventListener("change", (event) => {
-      state.scopeZoom = event.target.value;
-      renderWaveforms(nodes);
-    });
-    let resizeFrame = 0;
-    globalScope.addEventListener("resize", () => {
-      if (resizeFrame) globalScope.cancelAnimationFrame(resizeFrame);
-      resizeFrame = globalScope.requestAnimationFrame(() => {
-        resizeFrame = 0;
-        if (state.tracks.length) renderWaveforms(nodes);
-      });
-    });
-    nodes.fileInput.addEventListener("change", (event) => {
-      handleFiles(event.target.files, nodes);
-    });
-
-    ["dragenter", "dragover"].forEach((eventName) => {
-      nodes.dropzone.addEventListener(eventName, (event) => {
-        event.preventDefault();
-        nodes.dropzone.classList.add("is-dragging");
-      });
-    });
-
-    ["dragleave", "drop"].forEach((eventName) => {
-      nodes.dropzone.addEventListener(eventName, (event) => {
-        event.preventDefault();
-        nodes.dropzone.classList.remove("is-dragging");
-      });
-    });
-
-    nodes.dropzone.addEventListener("drop", (event) => {
-      handleFiles(event.dataTransfer.files, nodes);
-    });
-
-    nodes.dropzone.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        nodes.fileInput.click();
-      }
-    });
-
-    nodes.referenceSelector.addEventListener("change", (event) => {
-      state.referenceValue = event.target.value;
-      state.result = null;
-      state.lastReportText = "";
-      render(nodes);
-      setStatus(
-        nodes,
-        "Reference override updated. Run analysis to refresh offsets."
-      );
-    });
-
-    nodes.trackList.addEventListener("change", (event) => {
-      const trackCard = event.target.closest("[data-drum-track-id]");
-      if (!trackCard) return;
-      const track = state.tracks.find(
-        (candidate) => candidate.id === trackCard.dataset.drumTrackId
-      );
-      if (!track) return;
-
-      if (event.target.matches("[data-drum-role]")) {
-        track.role = event.target.value;
-        track.family = getFamilyForRole(track.role);
-      }
-      if (event.target.matches("[data-drum-manual-transient]")) {
-        const numericValue = Number(event.target.value);
-        track.manualTransientSample = Number.isFinite(numericValue)
-          ? Math.max(0, Math.round(numericValue))
-          : null;
-      }
-
-      state.result = null;
-      state.lastReportText = "";
-      render(nodes);
-      setStatus(nodes, "Track edit saved. Run analysis to refresh offsets.");
-    });
-
-    nodes.analyzeButton.addEventListener("click", () => analyze(nodes));
-    nodes.copyButton.addEventListener("click", () => copyReport(nodes));
-  }
-
-  function init() {
-    if (state.booted) return;
-    const root = document.getElementById("drum-alignment-workbench");
-    if (!root) return;
-
-    const nodes = {
-      root,
-      fileInput: document.getElementById("drum-alignment-files"),
-      dropzone: document.getElementById("drum-alignment-dropzone"),
-      trackList: document.getElementById("drum-track-list"),
-      referenceSelector: document.getElementById("drum-reference-selector"),
-      analyzeButton: document.getElementById("drum-analyze-button"),
-      copyButton: document.getElementById("drum-copy-report-button"),
-      waveformMount: document.getElementById("drum-waveform-mount"),
-      correlationPanel: document.getElementById("drum-correlation-panel"),
-      scopeZoom: document.getElementById("drum-scope-zoom"),
-      reportPanel: document.getElementById("drum-report-panel"),
-      status: document.getElementById("drum-alignment-status"),
-    };
-
-    const missingNode = Object.keys(nodes).find((key) => !nodes[key]);
-    console.log("[drum-alignment] missing node:", missingNode);
-    if (missingNode) return;
-
-    state.booted = true;
-    console.log("[drum-alignment] calling bindEvents");
-    bindEvents(nodes);
-    console.log("[drum-alignment] bindEvents complete, calling render");
-    render(nodes);
-    console.log("[drum-alignment] render complete, calling setStatus");
-    setStatus(
-      nodes,
-      "Ready. Audio stays in this browser; no upload or backend analysis is used."
-    );
-    console.log("[drum-alignment] calling installTestHarness");
-    installTestHarness(nodes);
-    console.log("[drum-alignment] init complete");
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  function init() { if (!$("drum-alignment-workbench")) return; bind(); testHarness(); render(); status("Ready. Audio stays in this browser."); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })(typeof globalThis !== "undefined" ? globalThis : window);

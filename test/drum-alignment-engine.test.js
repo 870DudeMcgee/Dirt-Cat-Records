@@ -157,3 +157,78 @@ test("creates a copyable alignment report with offsets and correlation labels", 
   assert.match(report, /Correlation:/);
   assert.equal(result.reportText, report);
 });
+
+test("matches snare and later tom to their own overhead hits and exposes inverted signed pair", () => {
+  const burst = (at, invert = false) => {
+    const data = new Float32Array(400);
+    [0.2, 0.8, -0.6, 0.4, -0.2].forEach((value, index) => {
+      data[at + index] = value * (invert ? -1 : 1);
+    });
+    return data;
+  };
+  const oh = new Float32Array(400);
+  for (const at of [45, 145, 245]) oh.set(burst(at).slice(at, at + 5), at);
+  const result = calculateAlignment({ sampleRate: 1000, tracks: [
+    { id: "oh-l", fileName: "OH L.wav", sampleRate: 1000, channelData: oh },
+    { id: "oh-r", fileName: "OH R.wav", sampleRate: 1000, channelData: oh },
+    { id: "kick", fileName: "Kick In.wav", sampleRate: 1000, channelData: burst(42) },
+    { id: "top", fileName: "Snare Top.wav", sampleRate: 1000, channelData: burst(141) },
+    { id: "bottom", fileName: "Snare Bottom.wav", sampleRate: 1000, channelData: burst(143, true) },
+    { id: "tom", fileName: "Rack Tom.wav", sampleRate: 1000, channelData: burst(239) },
+  ] });
+  assert.equal(result.tracks.find((track) => track.id === "top").offsetSamples, 4);
+  assert.equal(result.tracks.find((track) => track.id === "bottom").offsetSamples, 2);
+  assert.equal(result.tracks.find((track) => track.id === "tom").offsetSamples, 6);
+  assert.equal(result.tracks.find((track) => track.id === "tom").referenceMs, 246);
+  const pair = result.correlations.find((score) => score.trackId === "bottom");
+  assert.deepEqual(pair.pairNames, ["Snare Bottom.wav", "Snare Top.wav"]);
+  assert.ok(pair.envelope > 0.9, JSON.stringify(pair));
+  assert.ok(pair.signed < -0.9, JSON.stringify(pair));
+});
+
+test("silent and mixed-rate tracks remain unverified", () => {
+  const result = calculateAlignment({ tracks: [
+    { id: "oh", fileName: "OH.wav", sampleRate: 1000, channelData: impulse(400, 100) },
+    { id: "silent", fileName: "Snare Top.wav", sampleRate: 1000, channelData: new Float32Array(400) },
+    { id: "other-rate", fileName: "Tom.wav", sampleRate: 2000, channelData: impulse(800, 200) },
+  ] });
+  assert.equal(result.tracks.find((track) => track.id === "other-rate").offsetSamples, null);
+  assert.equal(result.correlations.find((score) => score.trackId === "silent").signed, null);
+});
+
+test("ambiguous early bleed does not claim a tom alignment until the later hit is selected", () => {
+  const hit = (samples, index, value) => {
+    samples[index] = value;
+    samples[index + 1] = value * 0.7;
+    samples[index + 2] = -value * 0.4;
+  };
+  const oh = new Float32Array(600);
+  hit(oh, 50, 1);
+  hit(oh, 250, 0.6);
+  const tom = new Float32Array(600);
+  hit(tom, 50, 0.9);
+  hit(tom, 255, 0.45);
+  const tracks = [
+    { id: "oh-l", fileName: "OH L.wav", sampleRate: 1000, channelData: oh },
+    { id: "oh-r", fileName: "OH R.wav", sampleRate: 1000, channelData: oh },
+    { id: "tom", fileName: "Floor Tom.wav", sampleRate: 1000, channelData: tom },
+  ];
+  const automatic = calculateAlignment({ sampleRate: 1000, tracks });
+  const automaticTom = automatic.tracks.find((track) => track.id === "tom");
+  const automaticScore = automatic.correlations.find((score) => score.trackId === "tom");
+  assert.equal(automaticTom.offsetSamples, null);
+  assert.equal(automaticTom.referenceMs, null);
+  assert.match(automaticTom.reason, /Multiple plausible reference hits/);
+  assert.equal(automaticScore.envelope, null);
+  assert.equal(automaticScore.signed, null);
+  assert.match(automatic.reportText, /Floor Tom.wav \[Tom\]: unverified/);
+
+  const corrected = calculateAlignment({ sampleRate: 1000, tracks: [
+    tracks[0], tracks[1], { ...tracks[2], manualTransientSample: 255 },
+  ] });
+  const correctedTom = corrected.tracks.find((track) => track.id === "tom");
+  assert.equal(correctedTom.referenceMs, 250);
+  assert.equal(correctedTom.offsetSamples, -5);
+  assert.equal(correctedTom.offsetMs, -5);
+  assert.match(corrected.reportText, /Floor Tom.wav \[Tom\]: -5 samples \(-5.000 ms\).*manual marker/);
+});
