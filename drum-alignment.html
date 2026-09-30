@@ -21,7 +21,10 @@
       name="description"
       content="Browser-only drum alignment workbench for local audio files, overhead references, waveform movement, and DAW-ready offsets."
     />
-    <link rel="canonical" href="https://www.dirtcatrecords.com/drum-alignment.html" />
+    <link
+      rel="canonical"
+      href="https://www.dirtcatrecords.com/drum-alignment.html"
+    />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Dirt Cat Records" />
     <meta property="og:title" content="Drum Alignment | Dirt Cat Records" />
@@ -29,7 +32,10 @@
       property="og:description"
       content="Browser-only drum alignment workbench for local audio files, overhead references, waveform movement, and DAW-ready offsets."
     />
-    <meta property="og:url" content="https://www.dirtcatrecords.com/drum-alignment.html" />
+    <meta
+      property="og:url"
+      content="https://www.dirtcatrecords.com/drum-alignment.html"
+    />
     <meta
       property="og:image"
       content="https://www.dirtcatrecords.com/assets/Dirt-Cat-Logo.PNG"
@@ -39,6 +45,7 @@
     <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2" />
     <link rel="stylesheet" href="style.css?v=5" />
     <link rel="stylesheet" href="dark-theme.css" />
+    <link rel="stylesheet" href="drum-alignment.css?v=20260930-scope" />
   </head>
   <body class="brick-lane-lab-page studio-tools-page">
     <nav id="main-nav">
@@ -62,23 +69,14 @@
         <div>
           <p class="brick-lane-kicker">Dirt Cat Records</p>
           <h1>Drum Alignment</h1>
-          <p class="brick-lane-subhead">
-            Load local drum recordings, choose the kit image reference, inspect
-            alignment offsets, and copy a DAW-ready report without uploading
-            audio.
-          </p>
         </div>
         <div class="brick-lane-actions">
-          <button type="button" id="drum-demo-button" class="btn-primary">
-            Watch Demo
-          </button>
           <a href="studio-tools.html" class="btn-secondary">All Tools</a>
         </div>
       </header>
 
       <section
         id="drum-alignment-workbench"
-        class="studio-workbench-section"
         aria-label="Drum Alignment Workbench"
       >
         <div
@@ -86,121 +84,37 @@
           class="drum-align-shell"
           data-local-audio-workbench
         >
-          <article class="drum-align-dropzone">
-            <span class="studio-workbench-label">Local Audio Intake</span>
-            <h3>Load Drum Files</h3>
-            <label for="drum-alignment-files">Audio files</label>
-            <input
-              id="drum-alignment-files"
-              type="file"
-              accept="audio/*"
-              multiple
-            />
+          <div class="drum-align-setup">
             <div
+              class="drum-align-dropzone"
               id="drum-alignment-dropzone"
               tabindex="0"
               role="button"
               aria-describedby="drum-alignment-status"
             >
-              Drop drum tracks here or press Enter to choose files.
+              <label for="drum-alignment-files">Local audio files</label>
+              <input
+                id="drum-alignment-files"
+                type="file"
+                accept="audio/*,.wav,.aif,.aiff,.flac,.m4a,.mp3,.ogg"
+                multiple
+              />
+              <span>Choose or drop drum tracks here</span>
             </div>
-          </article>
-          <article class="drum-align-controls">
-            <span class="studio-workbench-label">Reference Strategy</span>
-            <h3>Kit Image Reference</h3>
-            <div class="drum-align-demo-card">
-              <div>
-                <span class="drum-align-demo-pulse" aria-hidden="true"></span>
-                <strong>See the full flow</strong>
-              </div>
-              <p>
-                A guided session shows how tracks become offsets you can take
-                into your DAW.
-              </p>
-              <button type="button" id="drum-demo-button-inline" class="btn-primary">
-                Run interactive demo
+            <div class="drum-align-controls">
+              <label for="drum-reference-selector">Reference</label>
+              <select id="drum-reference-selector">
+                <option value="auto">Recommended reference</option>
+              </select>
+              <button
+                type="button"
+                id="drum-analyze-button"
+                class="btn-primary"
+              >
+                Analyze Alignment
               </button>
             </div>
-            <label for="drum-reference-selector">Reference</label>
-            <select id="drum-reference-selector">
-              <option value="auto">Recommended reference</option>
-            </select>
-            <button type="button" id="drum-analyze-button" class="btn-primary">
-              Analyze Alignment
-            </button>
-            <button
-              type="button"
-              id="drum-copy-report-button"
-              class="btn-secondary"
-            >
-              Copy Report
-            </button>
-          </article>
-          <article class="drum-align-track-list">
-            <span class="studio-workbench-label">Decoded Tracks</span>
-            <h3>Roles And Manual Markers</h3>
-            <div id="drum-track-list"></div>
-          </article>
-          <article class="drum-align-waveform-stage">
-            <span class="studio-workbench-label">Before / After Movement</span>
-            <h3>Waveform Overlay</h3>
-            <div class="drum-align-waveform-legend" aria-label="Waveform legend">
-              <span><i class="legend-swatch legend-before"></i>Before</span>
-              <span><i class="legend-swatch legend-after"></i>Aligned</span>
-              <span><i class="legend-swatch legend-reference"></i>Reference</span>
-              <span class="waveform-phase-key"><b>Out</b><i></i><b>In phase</b></span>
-              <span class="waveform-zoom-note">First-hit ADSR detail</span>
-            </div>
-            <div class="drum-align-waveform-navigation" aria-label="Waveform navigation">
-              <button type="button" id="drum-waveform-first-hit" class="btn-secondary">
-                Focus first hit
-              </button>
-              <button type="button" id="drum-waveform-fit-track" class="btn-secondary">
-                Fit full track
-              </button>
-              <label for="drum-waveform-window">
-                ADSR window
-                <select id="drum-waveform-window">
-                  <option value="0.25">250 ms</option>
-                  <option value="0.5">500 ms</option>
-                  <option value="0.75" selected>750 ms</option>
-                  <option value="1">1 second</option>
-                  <option value="2">2 seconds</option>
-                </select>
-              </label>
-              <label class="drum-waveform-position-label" for="drum-waveform-position">
-                Track position
-                <input id="drum-waveform-position" type="range" min="0" max="1000" value="0" step="1" />
-              </label>
-              <output id="drum-waveform-position-output" for="drum-waveform-position">First hit · per track</output>
-            </div>
-            <section class="drum-align-phase-strip" aria-label="Phase confidence">
-              <div class="drum-align-phase-heading">
-                <span class="studio-workbench-label">Phase Confidence</span>
-                <strong id="drum-phase-summary">Waiting for analysis</strong>
-                <span class="drum-align-phase-scale">−1 issue · 0 neutral · +1 aligned</span>
-              </div>
-              <div id="drum-correlation-panel"></div>
-            </section>
-            <div id="drum-waveform-mount"></div>
-          </article>
-          <article class="drum-align-report">
-            <div class="drum-align-report-heading">
-              <div>
-                <span class="studio-workbench-label">DAW Notes</span>
-                <h3>Alignment Report</h3>
-              </div>
-              <button type="button" id="drum-copy-report-inline" class="btn-secondary">
-                Copy DAW notes
-              </button>
-            </div>
-            <div id="drum-report-panel" class="drum-align-report-panel">
-              <div class="drum-align-report-empty">
-                <strong>No report yet</strong>
-                <span>Run analysis to generate a DAW-ready report.</span>
-              </div>
-            </div>
-          </article>
+          </div>
           <p
             id="drum-alignment-status"
             class="drum-align-status"
@@ -209,13 +123,69 @@
           >
             Ready. Audio stays in this browser.
           </p>
+          <section
+            class="drum-align-waveform-stage"
+            aria-label="All-kit transient scope"
+          >
+            <div class="drum-align-scope-controls">
+              <strong>All-kit transient scope</strong>
+              <span id="drum-lane-count">0 lanes · shared time axis</span>
+              <label for="drum-scope-zoom">Time scale</label>
+              <select id="drum-scope-zoom" aria-label="Waveform time scale">
+                <option value="overview">Overview</option>
+                <option value="transient" selected>100 ms</option>
+                <option value="detail">20 ms</option>
+              </select>
+              <span class="drum-align-scope-legend" aria-label="Waveform colors"
+                ><span class="scope-before">Before</span
+                ><span class="scope-after">Aligned</span
+                ><span class="scope-reference">Reference</span
+                ><span class="scope-manual">Marker</span></span
+              >
+            </div>
+            <div id="drum-ruler" class="drum-align-ruler"></div>
+            <div id="drum-waveform-mount"></div>
+          </section>
+          <section
+            id="drum-inspector"
+            class="drum-align-inspector"
+            aria-label="Selected track readings"
+          >
+            <div class="drum-align-inspector-head">
+              <span class="studio-workbench-label">Selected track</span
+              ><strong id="drum-selected-name">Choose a track</strong
+              ><span id="drum-pair-name"></span>
+            </div>
+            <div id="drum-correlation-panel" class="drum-align-metrics"></div>
+            <details id="drum-track-details">
+              <summary>Marker and reading details</summary>
+              <div class="drum-align-detail-body">
+                <div id="drum-track-list"></div>
+                <p>
+                  Drag the waveform marker or edit its sample number. Clear the
+                  number or choose Reset Auto to use detected audio again.
+                </p>
+              </div>
+            </details>
+          </section>
+          <details class="drum-align-report">
+            <summary>DAW alignment report</summary>
+            <button
+              type="button"
+              id="drum-copy-report-button"
+              class="btn-secondary"
+            >
+              Copy Report
+            </button>
+            <pre><code id="drum-report-panel">Run analysis to generate a DAW-ready report.</code></pre>
+          </details>
         </div>
       </section>
     </main>
 
     <script src="nav.js"></script>
-    <script src="lib/lab/drum-alignment-engine.js"></script>
-    <script src="lib/lab/drum-waveform-renderer.js"></script>
-    <script src="drum-alignment.js?v=5"></script>
+    <script src="lib/lab/drum-alignment-engine.js?v=20260930-scope"></script>
+    <script src="lib/lab/drum-waveform-renderer.js?v=20260930-scope"></script>
+    <script src="drum-alignment.js?v=20260930-scope"></script>
   </body>
 </html>

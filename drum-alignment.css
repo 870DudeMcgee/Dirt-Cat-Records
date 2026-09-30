@@ -1,0 +1,456 @@
+#drum-alignment-workbench .drum-align-shell {
+  display: block;
+  padding: 0;
+  color: var(--brick-lane-text);
+}
+#drum-alignment-workbench .drum-align-setup,
+#drum-alignment-workbench .drum-align-waveform-stage,
+#drum-alignment-workbench .drum-align-inspector,
+#drum-alignment-workbench .drum-align-report {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(8, 9, 16, 0.76);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 16px 40px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(24px) saturate(140%);
+}
+#drum-alignment-workbench .drum-align-setup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+}
+#drum-alignment-workbench .drum-align-dropzone {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 12px;
+  min-height: 44px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+#drum-alignment-workbench .drum-align-dropzone label {
+  color: var(--brick-lane-cyan);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+#drum-alignment-workbench .drum-align-dropzone input {
+  max-width: 230px;
+  font-size: 0.75rem;
+}
+#drum-alignment-workbench .drum-align-dropzone span {
+  color: var(--brick-lane-muted);
+  font-size: 0.7rem;
+}
+#drum-alignment-workbench .drum-align-controls {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 10px;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+#drum-alignment-workbench .drum-align-controls label {
+  color: var(--brick-lane-muted);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+#drum-alignment-workbench .drum-align-controls select {
+  width: 205px;
+}
+#drum-alignment-workbench .drum-align-controls button {
+  width: auto;
+  white-space: nowrap;
+}
+#drum-alignment-workbench .drum-align-status {
+  display: block;
+  margin: 0 0 13px;
+  padding: 8px 12px;
+  min-height: 0;
+  border-radius: 0 0 10px 10px;
+  background: rgba(255, 213, 73, 0.06);
+  border-color: rgba(255, 213, 73, 0.25);
+  color: var(--brick-lane-muted);
+}
+#drum-alignment-workbench .drum-align-status::before {
+  display: none;
+}
+#drum-alignment-workbench .drum-align-errors {
+  color: var(--brick-lane-yellow);
+  padding: 5px 12px;
+  font-size: 0.76rem;
+}
+#drum-alignment-workbench .drum-align-waveform-stage {
+  display: block;
+  padding: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+#drum-alignment-workbench .drum-align-scope-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 15px;
+  background: rgba(18, 15, 30, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+#drum-alignment-workbench .drum-align-scope-controls strong {
+  font-size: 0.82rem;
+}
+#drum-alignment-workbench #drum-lane-count {
+  color: var(--brick-lane-muted);
+  font:
+    0.68rem ui-monospace,
+    monospace;
+}
+#drum-alignment-workbench .drum-align-scope-controls label {
+  margin-left: auto;
+}
+#drum-alignment-workbench .drum-align-scope-controls select {
+  width: auto;
+  flex: none;
+  min-height: 30px;
+}
+#drum-alignment-workbench .drum-align-ruler,
+#drum-alignment-workbench .drum-scope-track {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 140px;
+}
+#drum-alignment-workbench .drum-align-ruler {
+  height: 29px;
+  align-items: center;
+  background: rgba(18, 15, 30, 0.7);
+  color: var(--brick-lane-muted);
+  font:
+    0.65rem ui-monospace,
+    monospace;
+}
+#drum-alignment-workbench .drum-align-ruler > span {
+  padding: 0 13px;
+}
+#drum-alignment-workbench .drum-align-ruler > span:last-child {
+  text-align: right;
+}
+#drum-alignment-workbench .drum-ruler-axis {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+#drum-alignment-workbench .drum-ruler-axis span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding: 7px 0 0 4px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+#drum-alignment-workbench .drum-scope-track {
+  min-height: 66px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+#drum-alignment-workbench .drum-scope-track.selected,
+#drum-alignment-workbench .drum-scope-track:hover {
+  background: rgba(94, 231, 255, 0.075);
+}
+#drum-alignment-workbench .drum-scope-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 7px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+#drum-alignment-workbench .drum-scope-code {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 27px;
+  flex: none;
+  border: 1px solid rgba(94, 231, 255, 0.4);
+  border-radius: 4px;
+  color: var(--brick-lane-cyan);
+  font:
+    0.67rem ui-monospace,
+    monospace;
+}
+#drum-alignment-workbench .drum-scope-label > span:last-child {
+  min-width: 0;
+}
+#drum-alignment-workbench .drum-scope-label strong,
+#drum-alignment-workbench .drum-scope-label small {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#drum-alignment-workbench .drum-scope-label strong {
+  font-size: 0.78rem;
+}
+#drum-alignment-workbench .drum-scope-label small {
+  display: none;
+}
+#drum-alignment-workbench .drum-scope-wave {
+  min-width: 0;
+  cursor: crosshair;
+  touch-action: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+#drum-alignment-workbench .drum-scope-wave:focus-visible {
+  outline: 1px solid var(--brick-lane-cyan);
+}
+#drum-alignment-workbench .drum-scope-wave canvas {
+  width: 100%;
+  height: 64px;
+  display: block;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+#drum-alignment-workbench .drum-scope-offset {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 6px 12px;
+  color: var(--brick-lane-cyan);
+  white-space: nowrap;
+  font:
+    0.76rem ui-monospace,
+    monospace;
+}
+#drum-alignment-workbench .drum-scope-offset small {
+  display: none;
+}
+#drum-alignment-workbench .drum-align-inspector {
+  margin-top: 14px;
+  overflow: hidden;
+}
+#drum-alignment-workbench .drum-align-inspector-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+#drum-alignment-workbench .drum-align-inspector-head strong {
+  font-size: 0.82rem;
+}
+#drum-alignment-workbench #drum-pair-name {
+  color: var(--brick-lane-muted);
+  font:
+    0.69rem ui-monospace,
+    monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#drum-alignment-workbench .drum-align-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 0;
+}
+#drum-alignment-workbench .drum-align-metric {
+  padding: 12px 15px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+}
+#drum-alignment-workbench .drum-align-metric + .drum-align-metric {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+#drum-alignment-workbench .drum-align-metric span {
+  font-size: 0.77rem;
+}
+#drum-alignment-workbench .drum-align-metric strong {
+  color: var(--brick-lane-cyan);
+  font:
+    1.15rem ui-monospace,
+    monospace;
+}
+#drum-alignment-workbench .drum-align-metric strong.negative {
+  color: var(--brick-lane-yellow);
+}
+#drum-alignment-workbench .drum-align-metric small {
+  grid-column: 1 / -1;
+  color: var(--brick-lane-muted);
+  font-size: 0.64rem;
+}
+#drum-alignment-workbench details summary {
+  cursor: pointer;
+  color: var(--brick-lane-muted);
+  font-size: 0.74rem;
+  padding: 10px 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+#drum-alignment-workbench .drum-align-detail-body {
+  padding: 0 15px 14px;
+}
+#drum-alignment-workbench .drum-align-track-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+  min-height: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+#drum-alignment-workbench .drum-align-track-identity {
+  flex: 1 1 240px;
+}
+#drum-alignment-workbench .drum-align-track-identity strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#drum-alignment-workbench .drum-align-track-identity span {
+  display: block;
+  margin-top: 5px;
+}
+#drum-alignment-workbench .drum-align-track-field {
+  flex: 0 1 160px;
+}
+#drum-alignment-workbench .drum-align-track-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.68rem;
+}
+#drum-alignment-workbench .drum-align-track-field input,
+#drum-alignment-workbench .drum-align-track-field select {
+  width: 100%;
+  background: #080910;
+  color: var(--brick-lane-text);
+}
+#drum-alignment-workbench #drum-reset-auto {
+  min-height: 32px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--brick-lane-text);
+  cursor: pointer;
+}
+#drum-alignment-workbench .drum-align-track-offset {
+  flex: 0 0 100%;
+}
+#drum-alignment-workbench .drum-align-detail-body > p,
+#drum-alignment-workbench .drum-align-track-card p {
+  font-size: 0.69rem;
+  margin: 8px 0 0;
+}
+#drum-alignment-workbench .drum-align-report {
+  display: block;
+  margin-top: 14px;
+  padding-bottom: 12px;
+}
+#drum-alignment-workbench .drum-align-report summary {
+  border-top: 0;
+}
+#drum-alignment-workbench .drum-align-report button {
+  margin: 0 12px 10px;
+}
+#drum-alignment-workbench .drum-align-report pre {
+  margin: 0 12px;
+  width: calc(100% - 24px);
+  max-height: 340px;
+}
+@media (max-width: 800px) {
+  #drum-alignment-workbench .drum-align-setup {
+    flex-wrap: wrap;
+  }
+  #drum-alignment-workbench .drum-align-dropzone {
+    flex: 1 1 100%;
+  }
+  #drum-alignment-workbench .drum-align-controls {
+    flex: 1 1 100%;
+  }
+  #drum-alignment-workbench .drum-align-ruler,
+  #drum-alignment-workbench .drum-scope-track {
+    grid-template-columns: 170px minmax(0, 1fr) 105px;
+  }
+  #drum-alignment-workbench .drum-align-scope-legend {
+    display: none;
+  }
+}
+@media (max-width: 650px) {
+  #drum-alignment-workbench .drum-align-dropzone {
+    flex-wrap: wrap;
+  }
+  #drum-alignment-workbench .drum-align-dropzone span {
+    display: none;
+  }
+  #drum-alignment-workbench .drum-align-controls {
+    flex-wrap: wrap;
+  }
+  #drum-alignment-workbench .drum-align-controls label {
+    margin-right: auto;
+  }
+  #drum-alignment-workbench .drum-align-controls select {
+    width: 180px;
+  }
+  #drum-alignment-workbench .drum-align-controls button {
+    flex: 1 1 100%;
+  }
+  #drum-alignment-workbench .drum-align-scope-controls {
+    flex-wrap: wrap;
+    padding: 9px;
+  }
+  #drum-alignment-workbench .drum-align-ruler {
+    grid-template-columns: 0 minmax(0, 1fr) 0;
+  }
+  #drum-alignment-workbench .drum-align-ruler > span {
+    display: none;
+  }
+  #drum-alignment-workbench .drum-scope-track {
+    grid-template-columns: minmax(0, 1fr) 98px;
+    grid-template-rows: 35px 58px;
+  }
+  #drum-alignment-workbench .drum-scope-label {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 4px 8px;
+  }
+  #drum-alignment-workbench .drum-scope-label small {
+    display: none;
+  }
+  #drum-alignment-workbench .drum-scope-offset {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 3px 8px;
+    font-size: 0.66rem;
+  }
+  #drum-alignment-workbench .drum-scope-wave {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    border: 0;
+  }
+  #drum-alignment-workbench .drum-scope-wave canvas {
+    height: 58px;
+  }
+  #drum-alignment-workbench .drum-align-inspector-head {
+    display: block;
+    padding: 10px;
+  }
+  #drum-alignment-workbench .drum-align-inspector-head > * {
+    display: block;
+    margin: 3px 0;
+  }
+  #drum-alignment-workbench #drum-pair-name {
+    white-space: normal;
+  }
+  #drum-alignment-workbench .drum-align-metrics {
+    grid-template-columns: 1fr;
+  }
+  #drum-alignment-workbench .drum-align-metric + .drum-align-metric {
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

@@ -21,13 +21,16 @@ function startServer() {
 
     readFile(fullPath, (error, data) => {
       if (error) {
-        response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+        response.writeHead(404, {
+          "content-type": "text/plain; charset=utf-8",
+        });
         response.end("not found");
         return;
       }
 
       response.writeHead(200, {
-        "content-type": CONTENT_TYPES.get(extname(fullPath)) || "application/octet-stream",
+        "content-type":
+          CONTENT_TYPES.get(extname(fullPath)) || "application/octet-stream",
       });
       response.end(data);
     });
@@ -75,305 +78,133 @@ function impulse(length, sample, amplitude = 1) {
   );
 }
 
-test("Drum Alignment page initializes with the local workbench ready", { timeout: 10000 }, async () => {
+test("page presents compact local import and an empty shared scope", async () => {
   const server = await startServer();
-  let browser;
-
+  const browser = await chromium.launch({ headless: true });
   try {
-    browser = await chromium.launch({ headless: true });
     const page = await browser.newPage({
-      viewport: { width: 1440, height: 1000 },
+      viewport: { width: 1440, height: 900 },
     });
-
-    const response = await page.goto(`${server.origin}/drum-alignment.html`, {
-      waitUntil: "commit",
-    });
-
-    assert.equal(response.status(), 200);
-    assert.match(await page.title(), /Drum Alignment/i);
-
-    await page.locator("#drum-alignment-workbench").waitFor({
-      state: "visible",
-      timeout: 5000,
-    });
-
+    await page.goto(server.origin + "/drum-alignment.html");
     assert.equal(await page.locator("h1").innerText(), "Drum Alignment");
-    assert.ok(await page.locator("#drum-alignment-dropzone").isVisible());
     assert.equal(await page.locator("#drum-alignment-files").count(), 1);
     assert.ok(await page.locator("#drum-reference-selector").isVisible());
     assert.ok(await page.locator("#drum-analyze-button").isVisible());
-    assert.ok(await page.locator("#drum-copy-report-button").isVisible());
-    assert.equal(await page.locator("#drum-waveform-mount").count(), 1);
-    assert.equal(await page.locator("#drum-correlation-panel").count(), 1);
-    assert.equal(await page.locator("#drum-report-panel").count(), 1);
-
     assert.match(
       await page.locator("#drum-alignment-status").innerText(),
-      /Ready\. Audio stays in this browser/i
+      /Audio stays in this browser/
     );
-    assert.match(
-      await page.locator("#drum-reference-selector option").first().innerText(),
-      /Recommended/i
+    assert.equal(
+      await page.locator(".drum-align-report").evaluate((node) => node.open),
+      false
     );
-    assert.match(
-      await page.locator("#drum-report-panel").innerText(),
-      /Run analysis to generate a DAW-ready report/i
-    );
+    assert.equal(await page.locator("#drum-ruler").count(), 1);
   } finally {
-    if (browser) await browser.close();
+    await browser.close();
     await server.close();
   }
 });
 
-test("Drum Alignment demo buttons load a completed sample session", { timeout: 10000 }, async () => {
+test("real calculations populate lanes and inspector; manual marker and reset recalculate", async () => {
   const server = await startServer();
-  let browser;
-
+  const browser = await chromium.launch({ headless: true });
   try {
-    browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-    await page.goto(`${server.origin}/drum-alignment.html`, { waitUntil: "commit" });
-
-    await page.locator("#drum-demo-button").click();
-    await page.waitForFunction(
-      () => document.querySelector("#drum-alignment-status")?.textContent.includes("Demo 4/4"),
-      null,
-      { timeout: 5000 }
-    );
-
-    assert.equal(await page.locator(".drum-align-track-card").count(), 4);
-    assert.match(
-      await page.locator("#drum-report-panel").innerText(),
-      /TRACK MOVES/
-    );
-    assert.equal(await page.locator("#drum-waveform-mount canvas").count(), 1);
-    assert.equal(await page.locator("#drum-demo-button").innerText(), "Watch Demo");
-    assert.equal(
-      await page.locator("#drum-demo-button-inline").innerText(),
-      "Run interactive demo"
-    );
-
-    await page.locator("#drum-demo-button-inline").click();
-    await page.waitForFunction(
-      () => document.querySelector("#drum-alignment-workbench")?.getAttribute("aria-busy") === "true",
-      null,
-      { timeout: 2000 }
-    );
-    await page.waitForFunction(
-      () => document.querySelector("#drum-alignment-status")?.textContent.includes("Demo 4/4"),
-      null,
-      { timeout: 5000 }
-    );
-    assert.equal(
-      await page.locator("#drum-alignment-workbench").getAttribute("aria-busy"),
-      "false"
-    );
-  } finally {
-    if (browser) await browser.close();
-    await server.close();
-  }
-});
-
-test("Drum Alignment analyzes synthetic tracks and renders report plus waveform", { timeout: 10000 }, async () => {
-  const server = await startServer();
-  let browser;
-
-  try {
-    browser = await chromium.launch({ headless: true });
     const page = await browser.newPage({
-      viewport: { width: 1440, height: 1000 },
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
     });
-
-    console.log("[TEST] Navigating to drum-alignment.html?testHarness=1");
-    await page.goto(`${server.origin}/drum-alignment.html?testHarness=1`, {
-      waitUntil: "commit",
-    });
-    
-    // Capture console messages from the page
-    page.on('console', msg => {
-      console.log(`[PAGE] ${msg.type().substring(0, 3).toUpperCase()} ${msg.text()}`);
-    });
-    
-    page.on('pageerror', err => {
-      console.log(`[PAGE ERROR] ${err.message}`);
-    });
-    
-    console.log("[TEST] Waiting for workbench to be visible");
-    await page.locator("#drum-alignment-workbench").waitFor({
-      state: "visible",
-      timeout: 5000,
-    });
-    
-    console.log("[TEST] Waiting for DrumAlignmentWorkbenchTest");
-    // First, just check if it exists immediately
-    const immediateCheck = await page.evaluate(() => typeof window.DrumAlignmentWorkbenchTest);
-    console.log("[DEBUG] Immediate check for DrumAlignmentWorkbenchTest:", immediateCheck);
-    
-    // Wait a bit for the page to settle, then check again
-    await page.waitForTimeout(500);
-    const secondCheck = await page.evaluate(() => typeof window.DrumAlignmentWorkbenchTest);
-    console.log("[DEBUG] Second check after delay:", secondCheck);
-    
-    // Check if window has the property at all
-    const hasProperty = await page.evaluate(() => 'DrumAlignmentWorkbenchTest' in window);
-    console.log("[DEBUG] Property exists on window:", hasProperty);
-    
-    // Now wait for it
-    try {
-      await page.waitForFunction(() => window.DrumAlignmentWorkbenchTest, {
-        timeout: 5000,
+    await page.goto(server.origin + "/drum-alignment.html?testHarness=1");
+    await page.waitForFunction(() => window.DrumAlignmentWorkbenchTest);
+    const burst = (at, invert = false) => {
+      const data = Array(400).fill(0);
+      [0.2, 0.8, -0.6, 0.4, -0.2].forEach((value, index) => {
+        data[at + index] = value * (invert ? -1 : 1);
       });
-      console.log("[TEST] DrumAlignmentWorkbenchTest found");
-    } catch (err) {
-      const testValue = await page.evaluate(() => typeof window.DrumAlignmentWorkbenchTest);
-      const readyState = await page.evaluate(() => document.readyState);
-      const harness = await page.evaluate(() => JSON.stringify({
-        hasTest: typeof window.DrumAlignmentWorkbenchTest !== 'undefined',
-        globalThis: typeof globalThis !== 'undefined',
-        readyState,
-      }));
-      console.error("[ERROR] Test harness not found after wait:", harness);
-      throw err;
-    }
-
-    console.log("[TEST] Calling loadTracks");
-    const loadResult = await page.evaluate((tracks) => {
-      return window.DrumAlignmentWorkbenchTest.loadTracks(tracks);
-    }, [
-      {
-        id: "oh",
-        fileName: "OH Stereo.wav",
-        sampleRate: 48000,
-        channelData: [impulse(512, 100, 0.82), impulse(512, 100, -0.72)],
-      },
-      {
-        id: "kick",
-        fileName: "Kick In.wav",
-        sampleRate: 48000,
-        channelData: impulse(512, 150, 0.9),
-      },
-      {
-        id: "snare",
-        fileName: "Snare Top.wav",
-        sampleRate: 48000,
-        channelData: impulse(512, 80, 0.78),
-      },
-    ]);
-
-    console.log("[TEST] Asserting loadResult");
-    assert.equal(loadResult.trackCount, 3);
-    assert.match(loadResult.recommendation.label, /Overheads/i);
-    
-    console.log("[TEST] Checking track cards");
-    assert.equal(await page.locator(".drum-align-track-card").count(), 3);
-    
-    console.log("[TEST] Checking status text");
-    assert.match(
-      await page.locator("#drum-alignment-status").innerText(),
-      /Loaded 3 synthetic track/i
+      return data;
+    };
+    const oh = Array(400).fill(0);
+    for (const at of [45, 145, 245])
+      [0.2, 0.8, -0.6, 0.4, -0.2].forEach((value, index) => {
+        oh[at + index] = value;
+      });
+    await page.evaluate(
+      (tracks) => window.DrumAlignmentWorkbenchTest.loadTracks(tracks),
+      [
+        { id: "oh-l", fileName: "OH L.wav", sampleRate: 1000, channelData: oh },
+        { id: "oh-r", fileName: "OH R.wav", sampleRate: 1000, channelData: oh },
+        {
+          id: "top",
+          fileName: "Snare Top.wav",
+          sampleRate: 1000,
+          channelData: burst(141),
+        },
+        {
+          id: "bottom",
+          fileName: "Snare Bottom.wav",
+          sampleRate: 1000,
+          channelData: burst(143, true),
+        },
+        {
+          id: "tom",
+          fileName: "Rack Tom.wav",
+          sampleRate: 1000,
+          channelData: burst(239),
+        },
+      ]
     );
-
-    console.log("[TEST] Clicking analyze button");
-    // Instead of clicking button, directly call the harness analyze method
-    // This avoids any issues with event handling in Playwright
-    console.log("[TEST] Calling harness.analyze() directly");
-    const analyzeResult = await page.evaluate(() => {
-      console.log("[PAGE] Calling window.DrumAlignmentWorkbenchTest.analyze()");
-      return window.DrumAlignmentWorkbenchTest.analyze();
-    });
-    console.log("[TEST] Harness analyze returned:", analyzeResult);
-    
-    // Debug: Log current status before waiting
-    const preAnalysisStatus = await page.locator("#drum-alignment-status").innerText();
-    console.log("[DEBUG] Status before analysis wait:", preAnalysisStatus);
-    // Alternative: Try calling analyze directly through harness
-    console.log("[TEST] Calling analyze through harness");
-    try {
-      const harness = await page.evaluate(() => window.DrumAlignmentWorkbenchTest);
-      if (harness && harness.analyze) {
-        await page.evaluate(() => {
-          console.log("[PAGE] About to call harness.analyze()");
-          return window.DrumAlignmentWorkbenchTest.analyze();
-        });
-        console.log("[TEST] Harness.analyze() called");
-      } else {
-        console.log("[TEST] Harness.analyze not available, skipping harness call");
-      }
-    } catch (err) {
-      console.log("[ERROR] Failed to call harness.analyze:", err.message);
-    }
-    
-    // Debug: Log current status after analyze
-    const postAnalysisStatus = await page.locator("#drum-alignment-status").innerText();
-    console.log("[DEBUG] Status after analyze:", postAnalysisStatus);
-    
-    console.log("[TEST] Waiting for Analysis complete status");
-    let timeoutReached = false;
-    await page.waitForFunction(
-      () => {
-        const statusText = document.querySelector("#drum-alignment-status")?.textContent || "";
-        console.log("[WAIT] Current status:", statusText);
-        return statusText.includes("Analysis complete");
-      },
-      null,
-      { timeout: 5000 }
-    ).catch((err) => {
-      console.log("[ERROR] Wait failed:", err.message);
-      timeoutReached = true;
-      throw err;
-    });
-
-    console.log("[TEST] Analysis wait completed");
-
-    const report = await page.locator("#drum-report-panel").innerText();
-    console.log("[TEST] Checking report content");
-    // The page renders a structured summary; the copy/export report keeps
-    // the plain-text "Dirt Cat Drum Alignment Report" header.
-    assert.match(report, /REFERENCE/);
-    assert.match(report, /TRACK MOVES/);
-    assert.match(report, /OH Stereo\.wav/);
-    assert.match(report, /Kick In\.wav/);
-    assert.match(report, /-50 SMP/);
-    assert.match(report, /Snare Top\.wav/);
-    assert.match(report, /\+20 SMP/);
-    assert.match(report, /PHASE CONFIDENCE/);
-
-    // Canvas rendering is skipped in test mode, so skip those checks
-    console.log("[TEST] Skipping canvas checks (rendering disabled in test mode)");
-
-    const kickCard = page.locator(".drum-align-track-card", {
-      hasText: "Kick In.wav",
-    });
-    const manualInput = kickCard.locator("[data-drum-manual-transient]");
-    await manualInput.fill("120");
-    await manualInput.dispatchEvent("change");
-    // Call analyze through harness method
-    console.log("[TEST] Calling harness.analyze() for second analysis");
-    await page.evaluate(() => window.DrumAlignmentWorkbenchTest.analyze());
-    
-    await page.waitForFunction(
-      () =>
-        window.DrumAlignmentWorkbenchTest.getState().result?.tracks?.some(
-          (track) => track.fileName === "Kick In.wav" && track.manualTransientSample === 120
-        ),
-      null,
-      { timeout: 5000 }
-    );
-
-    const correctedReport = await page.locator("#drum-report-panel").innerText();
-    assert.match(correctedReport, /Kick In\.wav/);
-    assert.match(correctedReport, /-20 SMP/);
-    const correctedState = await page.evaluate(() =>
-      window.DrumAlignmentWorkbenchTest.getState()
-    );
+    await page.locator("#drum-analyze-button").click();
+    assert.equal(await page.locator(".drum-scope-track").count(), 5);
+    await page.locator('[data-select-track="tom"]').click();
     assert.equal(
-      correctedState.result.tracks.find((track) => track.fileName === "Kick In.wav")
-        .manualTransientSample,
-      120
+      await page.locator("#drum-selected-name").innerText(),
+      "Rack Tom"
     );
-    assert.match(correctedState.reportText, /manual marker/);
+    assert.match(
+      await page.locator("#drum-report-panel").textContent(),
+      /Rack Tom\.wav \[Tom\]/
+    );
+    await page.locator('[data-select-track="bottom"]').click();
+    assert.match(
+      await page.locator("#drum-pair-name").innerText(),
+      /Snare Bottom.wav.*Snare Top.wav/
+    );
+    assert.match(
+      await page.locator("#drum-correlation-panel").innerText(),
+      /Timing envelope similarity/
+    );
+    assert.match(
+      await page.locator("#drum-correlation-panel").innerText(),
+      /Signed waveform correlation/
+    );
+    const scores = await page.evaluate(() =>
+      window.DrumAlignmentWorkbenchTest.getState().result.correlations.find(
+        (score) => score.trackId === "bottom"
+      )
+    );
+    assert.ok(scores.envelope > 0.9);
+    assert.ok(scores.signed < -0.9);
+    assert.equal(await page.locator(".drum-scope-wave canvas").count(), 5);
+    const dimensions = await page
+      .locator(".drum-scope-wave canvas")
+      .first()
+      .evaluate((canvas) => [canvas.width, canvas.clientWidth]);
+    assert.ok(dimensions[0] >= dimensions[1] * 2);
+    await page.locator("#drum-track-details summary").click();
+    await page.locator("#drum-selected-sample").fill("140");
+    await page.locator("#drum-selected-sample").dispatchEvent("change");
+    assert.match(
+      await page.locator("#drum-report-panel").textContent(),
+      /manual marker/
+    );
+    await page.locator("#drum-reset-auto").click();
+    assert.equal(
+      await page.locator("#drum-selected-sample").inputValue(),
+      "144"
+    );
+    await page.locator("#drum-scope-zoom").selectOption("detail");
+    assert.ok((await page.locator("#drum-ruler").getByText(/ms/).count()) > 0);
   } finally {
-    if (browser) await browser.close();
+    await browser.close();
     await server.close();
   }
 });
