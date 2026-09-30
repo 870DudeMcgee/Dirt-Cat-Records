@@ -3981,8 +3981,8 @@ footer {
 
 .drum-align-track-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.35rem 0.55rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.35rem;
   align-items: center;
   min-height: 78px;
   padding: 0.62rem;
@@ -3990,6 +3990,11 @@ footer {
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.055);
 }
+
+.drum-align-track-card > * { min-width: 0; }
+.drum-align-track-card label { display: block; width: 100%; }
+.drum-align-track-card input { display: block; width: 100%; min-height: 32px; }
+.drum-align-track-card p { margin: 0; overflow-wrap: break-word; }
 
 .drum-align-track-card.is-reference {
   border-color: rgba(255, 213, 73, 0.42);
@@ -4016,12 +4021,14 @@ footer {
 
 .drum-align-track-card span,
 .drum-align-track-card output {
+  grid-column: 1 / -1;
+  min-width: 0;
   color: var(--brick-lane-cyan);
   font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.06em;
   line-height: 1.25;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-transform: uppercase;
 }
 
@@ -4048,7 +4055,45 @@ footer {
   overflow: auto;
 }
 
-.drum-align-waveform-stage canvas,
+.drum-align-scope-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  color: var(--brick-lane-text);
+  font-size: 0.78rem;
+}
+
+.drum-align-scope-controls select {
+  min-height: 36px;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--drum-align-border);
+  border-radius: 6px;
+  background: #101820;
+  color: var(--brick-lane-text);
+  font: inherit;
+}
+
+.drum-align-scope-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.7rem; font-size: 0.72rem; }
+.drum-align-scope-legend span::before { content: ""; display: inline-block; width: 0.8rem; height: 0.65rem; margin-right: 0.3rem; border-left: 3px solid currentColor; vertical-align: -0.05rem; }
+.drum-align-scope-legend .scope-before { color: #cedbda; }
+.drum-align-scope-legend .scope-after { color: #60dab5; }
+.drum-align-scope-legend .scope-reference { color: #f6c860; }
+.drum-align-scope-legend .scope-transient { color: #7ec8ff; }
+.drum-align-scope-legend .scope-manual { color: #ff9f69; }
+
+#drum-waveform-mount { min-width: 0; }
+
+.drum-align-waveform-stage canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: #101820;
+}
+
 .drum-align-waveform-stage svg,
 .drum-align-waveform-stage [data-waveform-lane],
 .drum-align-waveform-stage .drum-align-waveform-lane {
@@ -4153,23 +4198,21 @@ footer {
   font-weight: 800;
 }
 
-.drum-align-meter::after,
+.drum-align-correlation-note { grid-column: 1 / -1; margin: 0; color: var(--brick-lane-muted); font-size: 0.76rem; line-height: 1.45; }
+.drum-align-meter-value { display: flex; justify-content: space-between; gap: 0.5rem; }
+.drum-align-meter-value output { color: var(--brick-lane-text); font-size: 1rem; font-variant-numeric: tabular-nums; }
 .drum-align-meter [role="meter"] {
-  content: "";
   display: block;
+  position: relative;
   width: 100%;
-  height: 8px;
+  height: 12px;
   border-radius: 999px;
-  background:
-    linear-gradient(
-      90deg,
-      var(--brick-lane-red),
-      var(--brick-lane-yellow),
-      var(--brick-lane-green)
-    ),
-    rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 10px rgba(94, 231, 255, 0.16);
+  background: linear-gradient(90deg, #de7283, #e6d4a2 50%, #60dab5);
 }
+.drum-align-meter [role="meter"]::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; border-left: 1px solid #fff; opacity: 0.85; }
+.drum-align-meter [role="meter"] span { position: absolute; top: -4px; width: 5px; height: 20px; transform: translateX(-50%); border-radius: 3px; background: #fff; box-shadow: 0 0 0 2px #101820; }
+.drum-align-meter-ticks { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.drum-align-meter-ticks span { color: var(--brick-lane-muted); font-size: 0.68rem; }
 
 .drum-align-meter[data-confidence="strong"],
 .drum-align-meter.is-strong {
@@ -5628,7 +5671,6 @@ footer {
     min-height: 344px;
   }
 
-  .drum-align-waveform-stage canvas,
   .drum-align-waveform-stage svg,
   .drum-align-waveform-stage [data-waveform-lane],
   .drum-align-waveform-stage .drum-align-waveform-lane {

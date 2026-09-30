@@ -92,19 +92,32 @@
               Copy Report
             </button>
           </article>
+          <article class="drum-align-waveform-stage">
+            <span class="studio-workbench-label">Before / After Movement</span>
+            <h3>Waveform Overlay</h3>
+            <div class="drum-align-scope-controls">
+              <label for="drum-scope-zoom">Time scale</label>
+              <select id="drum-scope-zoom" aria-label="Waveform time scale">
+                <option value="overview">Whole recording</option>
+                <option value="transient" selected>Transient · 100 ms</option>
+                <option value="detail">Detail · 20 ms</option>
+              </select>
+              <span class="drum-align-scope-legend" aria-label="Waveform colors and markers">
+                <span class="scope-before">Before</span><span class="scope-after">Aligned</span>
+                <span class="scope-reference">Reference</span><span class="scope-transient">Transient</span><span class="scope-manual">Manual</span>
+              </span>
+            </div>
+            <div id="drum-waveform-mount"></div>
+          </article>
           <article class="drum-align-track-list">
             <span class="studio-workbench-label">Decoded Tracks</span>
             <h3>Roles And Manual Markers</h3>
             <div id="drum-track-list"></div>
           </article>
-          <article class="drum-align-waveform-stage">
-            <span class="studio-workbench-label">Before / After Movement</span>
-            <h3>Waveform Overlay</h3>
-            <div id="drum-waveform-mount"></div>
-          </article>
           <article class="drum-align-correlation-grid">
             <span class="studio-workbench-label">Phase Confidence</span>
             <h3>Correlation Checks</h3>
+            <p class="drum-align-correlation-note">Energy-envelope correlation around the transient. Shows timing similarity; does not measure waveform polarity. Check the waveform and listen before reversing polarity.</p>
             <div id="drum-correlation-panel"></div>
           </article>
           <article class="drum-align-report">

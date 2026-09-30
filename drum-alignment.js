@@ -21,6 +21,7 @@
     recommendation: null,
     result: null,
     lastReportText: "",
+    scopeZoom: "transient",
     booted: false,
   };
 
@@ -275,16 +276,15 @@
         ).join("");
 
         return `<article class="drum-align-track-card" data-drum-track-id="${escapeHtml(track.id)}">
-          <span class="studio-workbench-label">${escapeHtml(track.fileName)}</span>
-          <h4>${escapeHtml(track.role)} / ${escapeHtml(track.family)}</h4>
-          <p>${escapeHtml(track.channelsLabel)} | ${track.sampleRate} Hz | ${formatDuration(track.duration)}</p>
-          <label for="drum-role-${escapeHtml(track.id)}">Role</label>
-          <select id="drum-role-${escapeHtml(track.id)}" data-drum-role>
-            ${options}
-          </select>
-          <label for="drum-manual-${escapeHtml(track.id)}">Manual transient sample</label>
-          <input id="drum-manual-${escapeHtml(track.id)}" data-drum-manual-transient type="number" min="0" step="1" inputmode="numeric" placeholder="Auto" value="${escapeHtml(manualValue)}" />
-          <p>${escapeHtml(formatOffset(resultTrack))}</p>
+          <div class="drum-align-track-identity">
+            <strong>${escapeHtml(track.fileName)}</strong>
+            <span>${escapeHtml(track.role)} · ${escapeHtml(track.channelsLabel)} · ${track.sampleRate} Hz · ${formatDuration(track.duration)}</span>
+          </div>
+          <div class="drum-align-track-field"><label for="drum-role-${escapeHtml(track.id)}">Role</label>
+            <select id="drum-role-${escapeHtml(track.id)}" data-drum-role>${options}</select></div>
+          <div class="drum-align-track-field"><label for="drum-manual-${escapeHtml(track.id)}">Manual transient sample</label>
+            <input id="drum-manual-${escapeHtml(track.id)}" data-drum-manual-transient type="number" min="0" step="1" inputmode="numeric" placeholder="Auto" value="${escapeHtml(manualValue)}" /></div>
+          <output class="drum-align-track-offset">${escapeHtml(formatOffset(resultTrack))}</output>
         </article>`;
       })
       .join("");
@@ -302,14 +302,20 @@
     nodes.correlationPanel.innerHTML = correlations
       .map((correlation) => {
         const value = Number(correlation.value);
-        const valueLabel = Number.isFinite(value) ? value.toFixed(3) : "--";
+        const valueLabel = Number.isFinite(value) ? `${value >= 0 ? "+" : ""}${value.toFixed(3)}` : "--";
         const confidence =
           value >= 0.82 ? "strong" : value >= 0.55 ? "check" : "issue";
+        const trackNames = (correlation.trackIds || []).map((id) =>
+          state.tracks.find((track) => track.id === id)?.fileName || id
+        );
+        const position = Number.isFinite(value) ? `${((Math.max(-1, Math.min(1, value)) + 1) * 50).toFixed(1)}%` : "50%";
         return `<article class="drum-align-meter" data-confidence="${confidence}">
           <span class="studio-workbench-label">${escapeHtml(correlation.family || "Correlation")}</span>
           <strong>${escapeHtml(correlation.label || "Check by ear")}</strong>
-          <p>${escapeHtml((correlation.trackIds || []).join(" vs "))}</p>
-          <p>Value: ${escapeHtml(valueLabel)}</p>
+          <p>${escapeHtml(trackNames.join(" vs "))}</p>
+          <div class="drum-align-meter-value"><span>Envelope correlation</span><output>${escapeHtml(valueLabel)}</output></div>
+          <div class="drum-align-meter-scale" role="meter" aria-label="${escapeHtml(trackNames.join(" vs "))} energy envelope correlation" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="${Number.isFinite(value) ? value : 0}"><span style="left:${position}"></span></div>
+          <div class="drum-align-meter-ticks" aria-hidden="true"><span>−1</span><span>0</span><span>+1</span></div>
           ${correlation.warning ? `<p>${escapeHtml(correlation.warning)}</p>` : ""}
         </article>`;
       })
@@ -423,7 +429,8 @@
               nodes.waveformMount,
               renderState,
               {
-                windowSeconds: 1.5,
+                windowSeconds: state.scopeZoom === "overview" ? undefined : state.scopeZoom === "detail" ? 0.02 : 0.1,
+                overview: state.scopeZoom === "overview",
               }
             );
             console.log(
@@ -741,6 +748,18 @@
   }
 
   function bindEvents(nodes) {
+    nodes.scopeZoom.addEventListener("change", (event) => {
+      state.scopeZoom = event.target.value;
+      renderWaveforms(nodes);
+    });
+    let resizeFrame = 0;
+    globalScope.addEventListener("resize", () => {
+      if (resizeFrame) globalScope.cancelAnimationFrame(resizeFrame);
+      resizeFrame = globalScope.requestAnimationFrame(() => {
+        resizeFrame = 0;
+        if (state.tracks.length) renderWaveforms(nodes);
+      });
+    });
     nodes.fileInput.addEventListener("change", (event) => {
       handleFiles(event.target.files, nodes);
     });
@@ -825,6 +844,7 @@
       copyButton: document.getElementById("drum-copy-report-button"),
       waveformMount: document.getElementById("drum-waveform-mount"),
       correlationPanel: document.getElementById("drum-correlation-panel"),
+      scopeZoom: document.getElementById("drum-scope-zoom"),
       reportPanel: document.getElementById("drum-report-panel"),
       status: document.getElementById("drum-alignment-status"),
     };
